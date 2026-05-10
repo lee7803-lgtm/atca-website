@@ -1,0 +1,102 @@
+"use client";
+
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+
+const navItems = [
+  { href: "/", label: "首页" },
+  { href: "/association", label: "关于协会" },
+  { href: "/certification", label: "认证体系" },
+  { href: "/membership", label: "会员申请" },
+  { href: "/certificate-query", label: "证书查询" },
+  { href: "/contact", label: "联系合作" }
+];
+
+export function Header() {
+  const pathname = usePathname();
+
+  const isActive = (href: string) => {
+    if (href === "/") {
+      return pathname === "/";
+    }
+
+    return pathname === href || pathname.startsWith(`${href}/`);
+  };
+
+  return (
+    <header className="sticky top-0 z-50 border-b border-[#d8d0bf] bg-[#f4efe6]/96 backdrop-blur-sm">
+      <div className="border-b border-[#e6ddcf] bg-[#eee5d8] px-5 py-1.5 text-center text-[11px] tracking-[0.22em] text-[#8a6b3e] sm:text-xs">
+        道法自然 · 和合共生 · 弘道传承 · 文化互鉴 · 共创未来
+      </div>
+      <div className="mx-auto grid max-w-[1320px] grid-cols-[1fr_auto] items-center gap-3 px-5 py-3 sm:px-8 lg:min-h-[76px] lg:grid-cols-[minmax(260px,1fr)_auto_minmax(130px,1fr)] lg:gap-6 lg:py-0">
+        <Link href="/" className="group flex min-w-0 items-center gap-3">
+          <span className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-warmGold/45 bg-[#fffaf0] font-serif text-lg text-warmGold shadow-[0_8px_18px_rgba(80,54,36,0.08)] sm:h-12 sm:w-12">
+            道
+          </span>
+          <span className="min-w-0">
+            <span className="block text-sm font-semibold tracking-[0.22em] text-porcelain">
+              ATCA
+            </span>
+            <span className="hidden truncate text-xs font-medium text-[#33251F] md:block">
+              东盟道教与文化协会
+            </span>
+            <span className="hidden truncate text-[11px] text-[#7a7a7a] xl:block">
+              Asean Taoism And Cultural Association
+            </span>
+          </span>
+        </Link>
+
+        <nav className="hidden items-center gap-1 border-x border-[#d8d0bf] bg-[#fbf8ef]/70 px-2 py-1 lg:flex">
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+
+            return (
+              <Link
+                className={`border-b-2 px-4 py-2.5 text-sm font-medium transition xl:px-5 ${
+                  active
+                    ? "border-cinnabar text-cinnabar"
+                    : "border-transparent text-[#33251F] hover:border-warmGold/60 hover:text-cinnabar"
+                }`}
+                href={item.href}
+                key={item.href}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+
+        <div className="flex items-center justify-self-end gap-2">
+          <Link
+            href="/contact"
+            className="rounded-xl bg-ritualRed px-4 py-2.5 text-sm font-medium text-white shadow-[0_10px_22px_rgba(80,54,36,0.1)] transition hover:bg-porcelain sm:px-5"
+          >
+            联系协会
+          </Link>
+        </div>
+      </div>
+
+      <div className="px-5 pb-3 sm:px-8 lg:hidden">
+        <nav className="scrollbar-thin flex gap-1.5 overflow-x-auto border border-[#e4ded0] bg-white/82 p-1.5 shadow-[0_8px_20px_rgba(80,54,36,0.055)]">
+          {navItems.map((item) => {
+            const active = isActive(item.href);
+
+            return (
+              <Link
+                className={`whitespace-nowrap rounded-xl px-3.5 py-2 text-sm transition ${
+                  active ? "bg-[#f3eadb] text-cinnabar" : "text-[#6b5a4e] hover:bg-[#fbf8ef] hover:text-inkBrown"
+                }`}
+                href={item.href}
+                key={item.href}
+                aria-current={active ? "page" : undefined}
+              >
+                {item.label}
+              </Link>
+            );
+          })}
+        </nav>
+      </div>
+    </header>
+  );
+}

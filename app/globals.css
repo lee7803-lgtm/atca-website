@@ -1,0 +1,188 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: light;
+  background: #f8f4ec;
+  color: #2a1f1a;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  min-height: 100vh;
+  margin: 0;
+  background:
+    radial-gradient(circle at 8% 2%, rgba(198, 161, 91, 0.06), transparent 24rem),
+    radial-gradient(circle at 94% 10%, rgba(143, 31, 45, 0.045), transparent 26rem),
+    linear-gradient(180deg, #fbf8f1 0%, #f8f4ec 48%, #f4eadc 100%);
+  color: #2a1f1a;
+}
+
+main {
+  overflow: hidden;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+  text-underline-offset: 0.18em;
+}
+
+::selection {
+  background: rgba(216, 181, 106, 0.32);
+}
+
+.grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: -1;
+  opacity: 0.06;
+  background-image:
+    linear-gradient(rgba(51, 37, 31, 0.026) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(51, 37, 31, 0.026) 1px, transparent 1px);
+  background-size: 220px 220px;
+  mask-image: linear-gradient(to bottom, black, transparent 92%);
+}
+
+.brush-line {
+  background: linear-gradient(90deg, transparent, rgba(176, 138, 69, 0.72), transparent);
+  height: 1px;
+}
+
+.paper-wash {
+  background:
+    radial-gradient(circle at 82% 12%, rgba(198, 161, 91, 0.045), transparent 24rem),
+    linear-gradient(135deg, #fffdf8 0%, #fbf8ef 50%, #f5efe4 100%);
+}
+
+.water-lines {
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      rgba(51, 37, 31, 0.022) 0,
+      rgba(51, 37, 31, 0.022) 1px,
+      transparent 1px,
+      transparent 42px
+    );
+}
+
+.mountain-lines {
+  background-image:
+    linear-gradient(135deg, transparent 0 42%, rgba(143, 31, 45, 0.032) 42% 43%, transparent 43% 100%),
+    linear-gradient(45deg, transparent 0 48%, rgba(176, 138, 69, 0.035) 48% 49%, transparent 49% 100%);
+  background-size: 420px 210px;
+}
+
+.cloud-lines {
+  background-image:
+    radial-gradient(ellipse at 20% 50%, transparent 0 54%, rgba(51, 37, 31, 0.028) 55% 56%, transparent 57%),
+    radial-gradient(ellipse at 70% 50%, transparent 0 54%, rgba(176, 138, 69, 0.03) 55% 56%, transparent 57%);
+  background-size: 320px 118px;
+}
+
+.pattern-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.pattern-card::after {
+  position: absolute;
+  right: -2rem;
+  top: -2rem;
+  width: 6rem;
+  height: 6rem;
+  content: "";
+  border: 1px solid rgba(176, 138, 69, 0.08);
+  border-radius: 999px;
+}
+
+.cultural-chip {
+  position: relative;
+  display: inline-block;
+  width: 2.25rem;
+  height: 2.25rem;
+  flex: 0 0 auto;
+  border: 1px solid rgba(176, 138, 69, 0.28);
+  border-radius: 999px;
+  background:
+    linear-gradient(90deg, transparent 48%, rgba(143, 31, 45, 0.14) 49% 51%, transparent 52%),
+    linear-gradient(0deg, transparent 48%, rgba(143, 31, 45, 0.14) 49% 51%, transparent 52%);
+}
+
+.scrollbar-thin {
+  scrollbar-width: thin;
+  scrollbar-color: rgba(176, 138, 69, 0.45) transparent;
+}
+
+.visual-stage {
+  position: relative;
+  min-height: 28rem;
+  border-radius: 1.5rem;
+  background:
+    radial-gradient(circle at 50% 45%, rgba(255, 255, 255, 0.88), transparent 13rem),
+    radial-gradient(circle at 68% 22%, rgba(176, 138, 69, 0.08), transparent 11rem),
+    radial-gradient(circle at 28% 76%, rgba(143, 31, 45, 0.045), transparent 12rem);
+}
+
+.visual-stage::before,
+.visual-stage::after {
+  position: absolute;
+  inset: 9%;
+  content: "";
+  border: 1px solid rgba(51, 37, 31, 0.1);
+  border-radius: 999px;
+}
+
+.visual-stage::after {
+  inset: 20%;
+  border-color: rgba(176, 138, 69, 0.16);
+}
+
+.orbit-line {
+  position: absolute;
+  inset: 2.2rem;
+  border: 1px solid rgba(176, 138, 69, 0.16);
+  border-radius: 999px;
+}
+
+.orbital-label {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border: 1px solid rgba(216, 208, 191, 0.9);
+  border-radius: 0.9rem;
+  background: rgba(255, 255, 255, 0.72);
+  padding: 0.45rem 0.8rem;
+  box-shadow: 0 10px 24px rgba(80, 54, 36, 0.055);
+  backdrop-filter: blur(6px);
+  color: #33251f;
+  font-size: 0.78rem;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+@media (max-width: 640px) {
+  .visual-stage {
+    min-height: 24rem;
+    border-radius: 1.25rem;
+  }
+
+  .orbit-line {
+    inset: 1.4rem;
+  }
+
+  .orbital-label {
+    padding: 0.4rem 0.65rem;
+    font-size: 0.72rem;
+  }
+}
