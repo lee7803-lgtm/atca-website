@@ -8,14 +8,14 @@ const memberTypes = [
   {
     title: "个人会员",
     text: "适用于关注道教文化、传统文化交流、协会活动、学习研修或认证相关服务的个人申请人。",
-    href: "/membership/individual",
+    href: "/member/apply",
     icon: "individual" as IconBadgeName,
     labels: ["道教文化学习者", "道教文化研究者", "道教文化传播者", "道士资格认证申请人"]
   },
   {
     title: "机构会员",
     text: "适用于宫观道堂、道教文化机构、传统文化组织、文化交流机构及其他经协会审核认可的机构。",
-    href: "/membership/institutional",
+    href: "/organization/apply",
     icon: "institution" as IconBadgeName,
     labels: ["宫观道堂及文化场所", "传统文化机构", "教育培训机构", "社团组织", "研究机构", "合作单位"]
   }
@@ -93,7 +93,7 @@ export default function MembershipPage() {
 
       <MembershipSection eyebrow="Application Notice" title="申请须知" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          线上提交服务暂未开放，申请资料提交方式以后续协会正式通知为准。
+          个人会员与机构会员前台申请表已开放 MVP 提交骨架。提交后会生成临时申请编号，可用于申请进度查询；正式审核记录将在下一阶段接入数据库后保存。
         </div>
       </MembershipSection>
 
@@ -136,8 +136,9 @@ export default function MembershipPage() {
           会员身份属于协会会员服务与档案管理体系，不等同于道士资格认证、行政许可、商业授权或任何法定资质。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/membership/individual">申请个人会员</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/membership/institutional">申请机构会员</Link>
+          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/organization/apply">申请机构会员</Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/application/query">申请进度查询</Link>
         </div>
       </MembershipSection>
     </>

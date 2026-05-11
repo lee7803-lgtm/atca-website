@@ -247,6 +247,52 @@ a {
   backdrop-filter: blur(4px);
 }
 
+.page-hero__image--credential .page-hero__image-content {
+  inset: clamp(1.1rem, 2.4vw, 1.7rem);
+}
+
+.page-hero__image--credential .page-hero__image-heading {
+  position: relative;
+  align-items: flex-end;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.page-hero__image--credential .page-hero__image-heading > div {
+  position: relative;
+  z-index: 2;
+  min-width: 0;
+  max-width: calc(100% - 4.8rem);
+  padding-top: clamp(2.2rem, 5vw, 3.2rem);
+}
+
+.page-hero__image--credential .page-hero__image-mark {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: -1;
+  max-width: min(100%, 22rem);
+  overflow: hidden;
+  color: rgba(228, 207, 151, 0.28);
+  font-size: clamp(2.45rem, 5.4vw, 4.25rem);
+  line-height: 0.86;
+  white-space: nowrap;
+}
+
+.page-hero__image--credential .page-hero__image-heading h2 {
+  max-width: 18rem;
+  margin-top: 0;
+  overflow-wrap: anywhere;
+}
+
+.page-hero__image--credential .page-hero__image-heading figcaption {
+  max-width: 24rem;
+}
+
+.page-hero__image--credential .page-hero__image-heading > span {
+  align-self: flex-end;
+}
+
 @media (max-width: 640px) {
   .page-hero__image-content {
     inset: 1.25rem;
@@ -264,6 +310,25 @@ a {
     min-width: 3.1rem;
     min-height: 3.1rem;
     font-size: 0.72rem;
+  }
+
+  .page-hero__image--credential .page-hero__image-heading {
+    gap: 0.75rem;
+  }
+
+  .page-hero__image--credential .page-hero__image-heading > div {
+    max-width: calc(100% - 3.85rem);
+    padding-top: 2rem;
+  }
+
+  .page-hero__image--credential .page-hero__image-mark {
+    max-width: 15rem;
+    font-size: 2.35rem;
+  }
+
+  .page-hero__image--credential .page-hero__image-heading h2 {
+    max-width: 12rem;
+    font-size: 1.35rem;
   }
 }
 
@@ -886,4 +951,23 @@ a {
     padding: 0.4rem 0.65rem;
     font-size: 0.72rem;
   }
+}
+
+.form-input {
+  width: 100%;
+  border-radius: 0.9rem;
+  border: 1px solid #d8d0bf;
+  background: #f8f7f3;
+  padding: 0.85rem 1rem;
+  color: #33251f;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  outline: none;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
+}
+
+.form-input:focus {
+  border-color: #a97a3d;
+  background: #fffaf0;
+  box-shadow: 0 0 0 3px rgba(169, 122, 61, 0.14);
 }
