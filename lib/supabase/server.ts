@@ -1,4 +1,4 @@
-import type { ApplicationQueryResult, ApplicationRecord } from "@/types/application";
+import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType } from "@/types/application";
 
 type SupabaseConfig = {
   url: string;
@@ -7,6 +7,7 @@ type SupabaseConfig = {
 };
 
 type SupabaseApplicationRow = {
+  id: string;
   application_no: string;
   application_type: string;
   status: string;
@@ -98,6 +99,27 @@ function toApplicationQueryResult(row: Pick<SupabaseApplicationRow, "application
   };
 }
 
+function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdminRecord {
+  return {
+    id: row.id,
+    applicationNo: row.application_no,
+    applicationType: row.application_type as ApplicationType,
+    status: row.status as ApplicationStatus,
+    name: row.name,
+    contactName: row.contact_name ?? "",
+    phone: row.phone,
+    email: row.email,
+    country: row.country,
+    organizationType: row.organization_type as OrganizationType | null,
+    profile: row.profile ?? "",
+    purpose: row.purpose ?? "",
+    receiveNotice: row.receive_notice ?? false,
+    adminNote: row.admin_note ?? "",
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
 async function readSupabaseError(response: Response) {
   try {
     const error = (await response.json()) as { message?: string; details?: string };
@@ -143,4 +165,74 @@ export async function findApplicationByNoAndEmail(applicationNo: string, email: 
   const row = rows[0];
 
   return row ? toApplicationQueryResult(row) : null;
+}
+
+export async function listApplications(filters: { applicationType?: ApplicationType; status?: ApplicationStatus } = {}) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    select: "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,admin_note,created_at,updated_at",
+    order: "created_at.desc"
+  });
+
+  if (filters.applicationType) params.set("application_type", `eq.${filters.applicationType}`);
+  if (filters.status) params.set("status", `eq.${filters.status}`);
+
+  const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+
+  return rows.map(toApplicationAdminRecord);
+}
+
+export async function getApplicationById(id: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    id: `eq.${id}`,
+    select: "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,admin_note,created_at,updated_at",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+  const row = rows[0];
+
+  return row ? toApplicationAdminRecord(row) : null;
+}
+
+export async function updateApplicationReview(id: string, values: { status: ApplicationStatus; adminNote: string }) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      status: values.status,
+      admin_note: values.adminNote,
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+  const row = rows[0];
+
+  return row ? toApplicationAdminRecord(row) : null;
 }

@@ -5,6 +5,7 @@ export type ApplicationStatus = "submitted" | "pending_review" | "need_more_info
 export type OrganizationType = "宫观" | "文化机构" | "培训机构" | "企业" | "其他";
 
 export type ApplicationRecord = {
+  id?: string;
   applicationNo: string;
   applicationType: ApplicationType;
   status: ApplicationStatus;
@@ -20,6 +21,13 @@ export type ApplicationRecord = {
   adminNote?: string;
   createdAt: string;
   updatedAt: string;
+};
+
+export type ApplicationAdminRecord = Required<Pick<ApplicationRecord, "applicationNo" | "applicationType" | "status" | "name" | "contactName" | "phone" | "email" | "country" | "profile" | "purpose" | "createdAt" | "updatedAt">> & {
+  id: string;
+  organizationType: OrganizationType | null;
+  receiveNotice: boolean;
+  adminNote: string;
 };
 
 export type ApplicationSubmitPayload = {
