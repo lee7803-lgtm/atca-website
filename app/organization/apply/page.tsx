@@ -4,8 +4,8 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import type { ApplicationSubmitResponse } from "@/types/application";
 
-const applicationNumber = "ATCA-O-20260510-0001";
 const organizationTypes = ["宫观", "文化机构", "培训机构", "企业", "其他"];
 
 type FormValues = {
@@ -21,6 +21,8 @@ type FormValues = {
 
 export default function OrganizationApplyPage() {
   const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
   const [values, setValues] = useState<FormValues>({
     organizationName: "",
     principalName: "",
@@ -34,11 +36,46 @@ export default function OrganizationApplyPage() {
 
   const updateValue = (field: keyof FormValues, value: string) => {
     setValues((current) => ({ ...current, [field]: value }));
+    setErrorMessage("");
   };
 
-  const submitApplication = (event: FormEvent<HTMLFormElement>) => {
+  const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    router.push(`/application/success?type=organization&number=${applicationNumber}`);
+
+    if (isSubmitting) return;
+
+    setErrorMessage("");
+    setIsSubmitting(true);
+
+    try {
+      const response = await fetch("/api/applications", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationType: "organization_member",
+          name: values.organizationName,
+          contactName: values.principalName,
+          phone: values.contact,
+          email: values.email,
+          country: values.region,
+          profile: values.profile,
+          purpose: values.cooperation,
+          organizationType: values.organizationType
+        })
+      });
+      const result = (await response.json()) as ApplicationSubmitResponse;
+
+      if (!response.ok || !result.success) {
+        setErrorMessage(result.success === false ? result.message : "申请提交未成功，请检查资料后重新提交。");
+        return;
+      }
+
+      router.push(`/application/success?type=organization&number=${encodeURIComponent(result.applicationNo)}`);
+    } catch {
+      setErrorMessage("申请提交服务暂时不可用，请稍后再试或联系协会秘书处。");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,7 +99,7 @@ export default function OrganizationApplyPage() {
           <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
             <p className="font-medium text-porcelain">申请说明</p>
             <p className="mt-3">
-              请填写机构基础资料、负责人信息与合作意向。当前版本不接数据库，提交后将跳转到申请成功页并展示临时申请编号。
+              请填写机构基础资料、负责人信息与合作意向。提交后系统会生成申请编号；当前阶段暂不接数据库，正式存储将在后续阶段接入。
             </p>
           </aside>
 
@@ -104,10 +141,16 @@ export default function OrganizationApplyPage() {
               </Field>
             </div>
 
+            {errorMessage ? (
+              <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">
+                {errorMessage}
+              </div>
+            ) : null}
+
             <div className="mt-8 flex flex-col gap-3 border-t border-[#eee7da] pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-6 text-[#777]">提交后临时编号：{applicationNumber}</p>
-              <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
-                提交机构会员申请
+              <p className="text-xs leading-6 text-[#777]">提交成功后将生成 ATCA-O 格式申请编号。</p>
+              <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
+                {isSubmitting ? "正在提交..." : "提交机构会员申请"}
               </button>
             </div>
           </form>

@@ -21,6 +21,7 @@ function ApplicationQueryContent() {
 
   const submitQuery = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    // TODO: Replace the static preview with a request to an application query API after Supabase is connected.
     setSubmitted(true);
   };
 
@@ -72,7 +73,7 @@ function ApplicationQueryContent() {
               </div>
             ) : (
               <p className="mt-7 text-sm leading-8 text-[#5f5b52]">
-                填写申请编号与邮箱后，此区域将展示静态示例进度。下一阶段接入数据库后，这里将显示真实申请状态、审核节点和补充材料提示。
+                填写申请编号与邮箱后，此区域将展示静态示例进度。下一阶段将通过查询接口匹配 Supabase 中的真实申请记录、审核节点和补充材料提示。
               </p>
             )}
           </div>
