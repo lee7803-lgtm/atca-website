@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
 
 const memberTypes = [
@@ -77,17 +77,19 @@ function LabelList({ items }: { items: string[] }) {
 export default function MembershipPage() {
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="cloud" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">Membership</p>
-          <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">会员申请</h1>
-          <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Membership Application</p>
-          <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-            ATCA 当前开放个人会员与机构会员申请，用于登记会员基础资料、文化交流意向、合作联系需求及认证体系相关沟通事项。
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Membership"
+        title="会员申请"
+        subtitle="Membership Application"
+        intro="ATCA 当前开放个人会员与机构会员申请，用于登记会员基础资料、文化交流意向、合作联系需求及认证体系相关沟通事项。"
+        imageSrc="/images/atca/member-gathering.jpg"
+        imagePosition="center 46%"
+        visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"
+        visualEyebrow="Membership Service"
+        visualMark="Member"
+        visualSeal="会员"
+        visualTitle="会员组织服务"
+      />
 
       <MembershipSection eyebrow="Application Notice" title="申请须知" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
@@ -103,7 +105,7 @@ export default function MembershipPage() {
               <h2 className="mt-5 text-2xl font-medium text-porcelain">{item.title}</h2>
               <p className="mt-4 text-sm leading-7 text-[#666666]">{item.text}</p>
               <LabelList items={item.labels} />
-              <Link className="mt-6 inline-flex rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white" href={item.href}>{item.title}申请</Link>
+              <Link className="mt-6 inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={item.href}>{item.title}申请</Link>
             </article>
           ))}
         </div>
@@ -134,7 +136,7 @@ export default function MembershipPage() {
           会员身份属于协会会员服务与档案管理体系，不等同于道士资格认证、行政许可、商业授权或任何法定资质。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link className="rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-white" href="/membership/individual">申请个人会员</Link>
+          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/membership/individual">申请个人会员</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/membership/institutional">申请机构会员</Link>
         </div>
       </MembershipSection>

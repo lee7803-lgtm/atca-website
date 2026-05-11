@@ -1,8 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { BrandMark } from "@/components/BrandMark";
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
 
 const profileItems = [
@@ -68,20 +67,19 @@ function AssociationIcon({ name }: { name: IconBadgeName }) {
 export default function AssociationPage() {
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="cloud" />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_auto] lg:py-20">
-          <div>
-            <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">About ATCA</p>
-            <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">关于协会</h1>
-            <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Asean Taoism And Cultural Association</p>
-            <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-              东盟道教与文化协会 ATCA，面向东盟地区道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化在区域内的规范传播、资料备案与交流互鉴。
-            </p>
-          </div>
-          <BrandMark size="md" className="justify-self-center lg:justify-self-end" />
-        </div>
-      </section>
+      <PageHero
+        eyebrow="About ATCA"
+        title="关于协会"
+        subtitle="Asean Taoism And Cultural Association"
+        intro="东盟道教与文化协会 ATCA，面向东盟地区道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化在区域内的规范传播、资料备案与交流互鉴。"
+        imageSrc="/images/atca/about-cultural-space.jpg"
+        imagePosition="center 52%"
+        visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在东盟及国际语境中的规范表达与持续发展。"
+        visualEyebrow="Culture Heritage"
+        visualMark="Culture"
+        visualSeal="协会"
+        visualTitle="道教文化传承"
+      />
 
       <AssociationSection
         eyebrow="Profile"
@@ -128,7 +126,7 @@ export default function AssociationPage() {
 
       <AssociationSection eyebrow="Next Step" title="后续事项" tone="soft" compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link className="rounded-full bg-ink px-6 py-3 text-center text-sm font-semibold text-white" href="/certification">了解认证体系</Link>
+          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification">了解认证体系</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/membership">申请会员</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/contact">联系合作</Link>
         </div>

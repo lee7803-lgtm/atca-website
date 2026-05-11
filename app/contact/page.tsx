@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
 
 const categories: Array<{ title: string; text: string; icon: IconBadgeName }> = [
@@ -44,17 +44,19 @@ function ContactIcon({ name }: { name: IconBadgeName }) {
 export default function ContactPage() {
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="hero" className="opacity-80" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">Contact</p>
-          <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">联系 ATCA</h1>
-          <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Contact And Cooperation</p>
-          <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-            如需了解协会事务、会员申请、道士资格认证、证书核验、机构合作或网站信息更正，可通过本页面了解联系方向。正式联系方式以后续协会公布信息为准。
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Contact"
+        title="联系 ATCA"
+        subtitle="Contact And Cooperation"
+        intro="如需了解协会事务、会员申请、道士资格认证、证书核验、机构合作或网站信息更正，可通过本页面了解联系方向。正式联系方式以后续协会公布信息为准。"
+        imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
+        imagePosition="center 48%"
+        visualDescription="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"
+        visualEyebrow="Cultural Exchange"
+        visualMark="Culture"
+        visualSeal="合作交流"
+        visualTitle="国际文化交流与合作"
+      />
 
       <ContactSection eyebrow="Contact Category" title="联系方向">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
@@ -99,7 +101,7 @@ export default function ContactPage() {
           </div>
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link className="inline-flex rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white" href="/membership">
+          <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/membership">
             查看会员申请
           </Link>
           <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/">

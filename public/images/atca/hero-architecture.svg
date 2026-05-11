@@ -1,0 +1,36 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+  <title id="title">ATCA warm architecture concept</title>
+  <desc id="desc">Warm atmospheric East Asian gateway and temple silhouette for an official cultural association.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fff7e8"/>
+      <stop offset=".48" stop-color="#efd9b9"/>
+      <stop offset="1" stop-color="#b99060"/>
+    </linearGradient>
+    <radialGradient id="sun" cx=".75" cy=".18" r=".42">
+      <stop stop-color="#fff5d6" stop-opacity=".95"/>
+      <stop offset=".42" stop-color="#d9ad64" stop-opacity=".36"/>
+      <stop offset="1" stop-color="#d9ad64" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="grain" width="34" height="34" patternUnits="userSpaceOnUse">
+      <path d="M0 10H34M12 0V34" stroke="#33251f" stroke-opacity=".035"/>
+    </pattern>
+    <filter id="soft"><feGaussianBlur stdDeviation="11"/></filter>
+  </defs>
+  <rect width="1200" height="820" fill="url(#sky)"/>
+  <rect width="1200" height="820" fill="url(#sun)"/>
+  <rect width="1200" height="820" fill="url(#grain)" opacity=".78"/>
+  <path d="M0 626c164-78 306-84 466 0 144 76 282 75 430 0 112-56 208-63 304-22v216H0z" fill="#7b5a35" opacity=".16" filter="url(#soft)"/>
+  <path d="M88 626c144-58 262-56 402 2 130 54 244 54 380 0 104-42 192-42 264-14" fill="none" stroke="#a97a3d" stroke-opacity=".36" stroke-width="4"/>
+  <path d="M210 442h780" stroke="#2a1f1a" stroke-opacity=".34" stroke-width="10"/>
+  <path d="M248 426 600 246l352 180" fill="#2a1f1a" fill-opacity=".12" stroke="#2a1f1a" stroke-opacity=".52" stroke-width="10" stroke-linejoin="round"/>
+  <path d="M310 410 600 288l290 122" fill="none" stroke="#8f1f2d" stroke-opacity=".34" stroke-width="4"/>
+  <path d="M258 474h684" stroke="#a97a3d" stroke-opacity=".72" stroke-width="8"/>
+  <path d="M326 474v192M874 474v192M442 500v152M758 500v152" stroke="#2a1f1a" stroke-opacity=".38" stroke-width="14"/>
+  <rect x="382" y="520" width="436" height="126" fill="#fff8ea" fill-opacity=".38" stroke="#a97a3d" stroke-opacity=".45" stroke-width="4"/>
+  <rect x="488" y="542" width="224" height="48" fill="#8f1f2d" fill-opacity=".12" stroke="#8f1f2d" stroke-opacity=".42" stroke-width="3"/>
+  <path d="M230 668h740" stroke="#2a1f1a" stroke-opacity=".24" stroke-width="6"/>
+  <circle cx="934" cy="168" r="106" fill="none" stroke="#8f1f2d" stroke-opacity=".18" stroke-width="3"/>
+  <circle cx="934" cy="168" r="62" fill="#fffaf0" fill-opacity=".16" stroke="#a97a3d" stroke-opacity=".22"/>
+  <text x="600" y="582" text-anchor="middle" font-family="Georgia, serif" font-size="38" fill="#33251f" fill-opacity=".58">ATCA</text>
+</svg>

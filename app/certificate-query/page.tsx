@@ -1,5 +1,5 @@
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 import { Section } from "@/components/Section";
 
 const fields = ["证书编号", "持证人姓名", "验证码或安全校验"];
@@ -59,17 +59,18 @@ function CertificateSample() {
 export default function CertificateQueryPage() {
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="cloud" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Query</p>
-          <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">证书查询</h1>
-          <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Certificate Verification And Query</p>
-          <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-            本页面用于说明道士资格认证证书的查询方式与人工核验安排。线上查询服务暂未开放，最终结果以协会秘书处备案记录和人工核验为准。
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Certificate Query"
+        imageSrc="/images/atca/certificate-verification.jpg"
+        intro="本页面用于说明道士资格认证证书的查询方式与人工核验安排。线上查询服务暂未开放，最终结果以协会秘书处备案记录和人工核验为准。"
+        subtitle="Certificate Verification And Query"
+        title="证书查询"
+        visualDescription="通过证书编号与备案信息核验，协助查询证书状态，提升认证服务的公开性与可信度。"
+        visualEyebrow="Certificate Verify"
+        visualMark="Verify"
+        visualSeal="核验"
+        visualTitle="证书查询核验"
+      />
 
       <Section
         eyebrow="Query Notice"
@@ -83,7 +84,7 @@ export default function CertificateQueryPage() {
                 <label className="grid gap-2" key={item}>
                   <span className="text-sm font-medium text-porcelain">{item}</span>
                   <input
-                    className="h-12 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 text-sm text-[#666666] outline-none"
+                    className="h-12 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 text-sm text-[#666666] outline-none transition focus:border-gold focus:bg-white"
                     placeholder={`请输入${item}`}
                     readOnly
                   />

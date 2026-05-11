@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 
 type Field = {
   id: string;
@@ -149,17 +149,19 @@ export default function InstitutionalMembershipPage() {
 
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="cloud" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">Institutional Member</p>
-          <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">机构会员申请</h1>
-          <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Institutional Membership Application</p>
-          <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-            机构会员申请用于登记机构基础资料、负责人或联系人信息、机构背景、合作方向及相关证明材料。申请资料将用于协会审核、档案管理与后续合作沟通。
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Institutional Member"
+        title="机构会员申请"
+        subtitle="Institutional Membership Application"
+        intro="机构会员申请用于登记机构基础资料、负责人或联系人信息、机构背景、合作方向及相关证明材料。申请资料将用于协会审核、档案管理与后续合作沟通。"
+        imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
+        imagePosition="center 48%"
+        visualDescription="面向文化机构、宫观组织、研究机构及合作单位，提供机构会员申请与合作服务入口。"
+        visualEyebrow="Organization Member"
+        visualMark="Member"
+        visualSeal="机构"
+        visualTitle="机构会员申请"
+      />
 
       <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
@@ -202,7 +204,7 @@ export default function InstitutionalMembershipPage() {
               上一步
             </button>
             {current < steps.length - 1 ? (
-              <button className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white" onClick={() => validateStep() && setCurrent((value) => Math.min(value + 1, steps.length - 1))} type="button">
+              <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)]" onClick={() => validateStep() && setCurrent((value) => Math.min(value + 1, steps.length - 1))} type="button">
                 下一步
               </button>
             ) : (
@@ -298,7 +300,7 @@ function FormField({ field, value, setValue, errors }: { field: Field; value: st
         <textarea className={`${commonClass} min-h-32 resize-y`} value={value} onChange={(event) => setValue(field.id, event.target.value)} />
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
-          <input className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setValue(field.id, event.target.files?.[0]?.name ?? "")} />
+          <input className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setValue(field.id, event.target.files?.[0]?.name ?? "")} />
           <span className="block text-xs leading-5 text-[#8a6b3e]">文件提交服务暂未开放，请以后续协会正式提交要求为准。</span>
         </span>
       ) : field.kind === "checkbox" ? (

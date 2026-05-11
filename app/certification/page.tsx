@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
 
 const process: Array<{ title: string; icon: IconBadgeName }> = [
@@ -50,17 +50,19 @@ function CertificationIcon({ name }: { name: IconBadgeName }) {
 export default function CertificationPage() {
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="hero" className="opacity-80" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification</p>
-          <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">认证体系</h1>
-          <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Certification System</p>
-          <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-            协会当前开放的认证方向为“道士资格认证”。该认证用于登记申请人的道教身份、师承传承、修道经历与相关证明材料，并按协会流程进行审核与备案。
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Certification"
+        title="认证体系"
+        subtitle="Certification System"
+        intro="协会当前开放的认证方向为“道士资格认证”。该认证用于登记申请人的道教身份、师承传承、修道经历与相关证明材料，并按协会流程进行审核与备案。"
+        imageSrc="/images/atca/certification-detail.jpg"
+        imagePosition="center 52%"
+        visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
+        visualEyebrow="ATCA Certification"
+        visualMark="Credential"
+        visualSeal="认证"
+        visualTitle="认证资料与备案"
+      />
 
       <CertificationSection eyebrow="Open Project" title="道士资格认证">
         <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
@@ -97,7 +99,7 @@ export default function CertificationPage() {
           ATCA 道士资格认证属于协会认证与备案体系，不等同于政府许可、行政许可、宗教执法资格、商业授权或任何法定执业许可。
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link className="inline-flex rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white" href="/certification/taoist-priest">
+          <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification/taoist-priest">
             查看道士资格认证详情
           </Link>
           <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/certificate-query">

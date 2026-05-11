@@ -2,8 +2,8 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
-import { CulturePattern } from "@/components/CulturePattern";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { PageHero } from "@/components/PageHero";
 
 type Field = {
   id: string;
@@ -197,17 +197,19 @@ export default function TaoistPriestCertificationPage() {
 
   return (
     <>
-      <section className="paper-wash relative overflow-hidden border-b border-[#e4ded0]">
-        <CulturePattern variant="hero" className="opacity-80" />
-        <div className="relative mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-20">
-          <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold">Taoist Priest Certification</p>
-          <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-6xl">道士资格认证</h1>
-          <p className="mt-4 font-serif text-2xl leading-snug text-[#8a6b3e]">Taoist Qualification Certification</p>
-          <p className="mt-6 max-w-3xl text-lg leading-9 text-[#5f5148]">
-            东盟道教与文化协会《道士资格认证》用于登记申请人的道教身份、师承传承、宗派背景、修道经历与相关证明材料，并纳入协会道士资格备案与审核流程。
-          </p>
-        </div>
-      </section>
+      <PageHero
+        eyebrow="Taoist Priest Certification"
+        title="道士资格认证"
+        subtitle="Taoist Qualification Certification"
+        intro="东盟道教与文化协会《道士资格认证》用于登记申请人的道教身份、师承传承、宗派背景、修道经历与相关证明材料，并纳入协会道士资格备案与审核流程。"
+        imageSrc="/images/atca/certification-detail.jpg"
+        imagePosition="center 52%"
+        visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
+        visualEyebrow="ATCA Certification"
+        visualMark="Credential"
+        visualSeal="认证"
+        visualTitle="认证资料与备案"
+      />
 
       <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
@@ -258,7 +260,7 @@ export default function TaoistPriestCertificationPage() {
               上一步
             </button>
             {current < steps.length - 1 ? (
-              <button className="rounded-full bg-ink px-6 py-3 text-sm font-semibold text-white" onClick={goNext} type="button">
+              <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)]" onClick={goNext} type="button">
                 下一步
               </button>
             ) : (
@@ -320,7 +322,7 @@ function FormField({ field, value, setValue, errors }: { field: Field; value: st
         <textarea className={`${commonClass} min-h-32 resize-y`} value={value} onChange={(event) => setValue(field.id, event.target.value)} />
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
-          <input className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-ink file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setValue(field.id, event.target.files?.[0]?.name ?? "")} />
+          <input className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setValue(field.id, event.target.files?.[0]?.name ?? "")} />
           <span className="block text-xs leading-5 text-[#8a6b3e]">文件提交服务暂未开放，请以后续协会正式提交要求为准。</span>
         </span>
       ) : field.kind === "checkbox" ? (

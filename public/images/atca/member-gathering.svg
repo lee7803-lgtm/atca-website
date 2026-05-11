@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+  <title id="title">ATCA member service concept</title>
+  <desc id="desc">Warm member exchange, meeting table, tea and discussion.</desc>
+  <defs>
+    <linearGradient id="room" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fffaf0"/>
+      <stop offset=".58" stop-color="#ecd7b8"/>
+      <stop offset="1" stop-color="#bf9565"/>
+    </linearGradient>
+    <radialGradient id="lamp" cx=".5" cy=".2" r=".55">
+      <stop stop-color="#fff1c8" stop-opacity=".86"/>
+      <stop offset=".48" stop-color="#fff1c8" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#fff1c8" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="paper" width="38" height="38" patternUnits="userSpaceOnUse">
+      <path d="M19 0V38M0 19H38" stroke="#33251f" stroke-opacity=".026"/>
+    </pattern>
+  </defs>
+  <rect width="1200" height="820" fill="url(#room)"/>
+  <rect width="1200" height="820" fill="url(#lamp)"/>
+  <rect width="1200" height="820" fill="url(#paper)" opacity=".74"/>
+  <ellipse cx="600" cy="590" rx="426" ry="116" fill="#8f1f2d" fill-opacity=".075" stroke="#a97a3d" stroke-opacity=".36" stroke-width="5"/>
+  <path d="M320 550h560M388 624h424" stroke="#33251f" stroke-opacity=".25" stroke-width="6"/>
+  <circle cx="416" cy="386" r="62" fill="#fffaf0" fill-opacity=".12" stroke="#33251f" stroke-opacity=".24" stroke-width="6"/>
+  <circle cx="784" cy="386" r="62" fill="#fffaf0" fill-opacity=".12" stroke="#33251f" stroke-opacity=".24" stroke-width="6"/>
+  <path d="M324 506c40-74 144-74 184 0M692 506c40-74 144-74 184 0" fill="#33251f" fill-opacity=".05" stroke="#33251f" stroke-opacity=".2" stroke-width="7"/>
+  <rect x="516" y="512" width="168" height="92" fill="#fffaf0" fill-opacity=".62" stroke="#a97a3d" stroke-opacity=".46" stroke-width="4"/>
+  <path d="M552 548h96M552 580h70" stroke="#33251f" stroke-opacity=".27" stroke-width="5"/>
+  <circle cx="478" cy="586" r="24" fill="#fffaf0" fill-opacity=".22" stroke="#8f1f2d" stroke-opacity=".4" stroke-width="4"/>
+  <circle cx="722" cy="586" r="24" fill="#fffaf0" fill-opacity=".22" stroke="#8f1f2d" stroke-opacity=".4" stroke-width="4"/>
+  <path d="M154 238h892M216 286h768" stroke="#a97a3d" stroke-opacity=".26" stroke-width="4"/>
+  <path d="M126 710c126-36 228-36 342 0s220 36 336 0 188-34 270-8" fill="none" stroke="#a97a3d" stroke-opacity=".28" stroke-width="4"/>
+</svg>

@@ -1,0 +1,31 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
+  <title id="title">ATCA cultural space concept</title>
+  <desc id="desc">Warm minimal cultural corridor, exhibition and reception space.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop stop-color="#fffaf0"/>
+      <stop offset=".55" stop-color="#ead7bb"/>
+      <stop offset="1" stop-color="#c59b69"/>
+    </linearGradient>
+    <radialGradient id="light" cx=".28" cy=".18" r=".65">
+      <stop stop-color="#fff8df" stop-opacity=".92"/>
+      <stop offset=".55" stop-color="#fff8df" stop-opacity=".18"/>
+      <stop offset="1" stop-color="#fff8df" stop-opacity="0"/>
+    </radialGradient>
+    <pattern id="paper" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M0 20H40M20 0V40" stroke="#33251f" stroke-opacity=".028"/>
+    </pattern>
+    <filter id="blur"><feGaussianBlur stdDeviation="10"/></filter>
+  </defs>
+  <rect width="1200" height="820" fill="url(#bg)"/>
+  <rect width="1200" height="820" fill="url(#light)"/>
+  <rect width="1200" height="820" fill="url(#paper)" opacity=".82"/>
+  <path d="M104 640c142-44 292-38 450 18 146 52 304 38 474-44" fill="none" stroke="#a97a3d" stroke-opacity=".26" stroke-width="5" filter="url(#blur)"/>
+  <path d="M146 180h908M190 228h820M238 276h724" stroke="#33251f" stroke-opacity=".2" stroke-width="6"/>
+  <path d="M188 180v444M1012 180v444" stroke="#2a1f1a" stroke-opacity=".24" stroke-width="10"/>
+  <path d="M324 624 478 392h244l154 232" fill="#fffaf0" fill-opacity=".18" stroke="#33251f" stroke-opacity=".22" stroke-width="5"/>
+  <rect x="396" y="454" width="408" height="126" fill="#fffaf0" fill-opacity=".44" stroke="#a97a3d" stroke-opacity=".42" stroke-width="4"/>
+  <path d="M464 492h270M464 534h190" stroke="#33251f" stroke-opacity=".28" stroke-width="5"/>
+  <circle cx="918" cy="320" r="70" fill="#8f1f2d" fill-opacity=".08" stroke="#8f1f2d" stroke-opacity=".24" stroke-width="3"/>
+  <path d="M126 708c144-46 266-46 400 0s256 46 400 0 184-38 246-12" fill="none" stroke="#a97a3d" stroke-opacity=".28" stroke-width="4"/>
+</svg>
