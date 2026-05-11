@@ -1,9 +1,17 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { FormEvent, useState } from "react";
-import { Suspense } from "react";
+import { FormEvent, Suspense, useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import type { ApplicationQueryResponse, ApplicationQueryResult, ApplicationStatus } from "@/types/application";
+
+const statusText: Record<ApplicationStatus, string> = {
+  submitted: "已提交",
+  pending_review: "待审核",
+  need_more_info: "需补充资料",
+  approved: "已通过",
+  rejected: "未通过"
+};
 
 export default function ApplicationQueryPage() {
   return (
@@ -17,12 +25,38 @@ function ApplicationQueryContent() {
   const searchParams = useSearchParams();
   const [applicationNumber, setApplicationNumber] = useState(searchParams.get("number") || "");
   const [email, setEmail] = useState("");
-  const [submitted, setSubmitted] = useState(false);
+  const [isQuerying, setIsQuerying] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [application, setApplication] = useState<ApplicationQueryResult | null>(null);
 
-  const submitQuery = (event: FormEvent<HTMLFormElement>) => {
+  const submitQuery = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    // TODO: Replace the static preview with a request to an application query API after Supabase is connected.
-    setSubmitted(true);
+
+    if (isQuerying) return;
+
+    setIsQuerying(true);
+    setErrorMessage("");
+    setApplication(null);
+
+    try {
+      const params = new URLSearchParams({
+        applicationNo: applicationNumber.trim(),
+        email: email.trim()
+      });
+      const response = await fetch(`/api/applications/query?${params.toString()}`);
+      const result = (await response.json()) as ApplicationQueryResponse;
+
+      if (!response.ok || !result.success) {
+        setErrorMessage(result.success === false ? result.message : "申请查询未成功，请检查资料后重新查询。");
+        return;
+      }
+
+      setApplication(result.application);
+    } catch {
+      setErrorMessage("申请查询服务暂时不可用，请稍后重试或联系协会秘书处。");
+    } finally {
+      setIsQuerying(false);
+    }
   };
 
   return (
@@ -56,24 +90,32 @@ function ApplicationQueryContent() {
                 <input className="form-input" required type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
               </label>
             </div>
-            <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
-              查询申请进度
+            {errorMessage ? (
+              <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">
+                {errorMessage}
+              </div>
+            ) : null}
+            <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
+              {isQuerying ? "正在查询..." : "查询申请进度"}
             </button>
           </form>
 
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status Preview</p>
-            <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">示例查询结果</h2>
-            {submitted ? (
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Status</p>
+            <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询结果</h2>
+            {application ? (
               <div className="mt-7 grid gap-4">
-                <StatusRow label="申请编号" value={applicationNumber} />
-                <StatusRow label="登记邮箱" value={email} />
-                <StatusRow label="当前状态" value="资料已收到，待秘书处初审" />
-                <StatusRow label="下一步" value="协会秘书处将核对基础资料，并在需要补充材料时通过邮箱或 WhatsApp 联系申请人。" />
+                <StatusRow label="申请编号" value={application.applicationNo} />
+                <StatusRow label="申请类型" value={application.applicationType === "organization_member" ? "机构会员申请" : "个人会员申请"} />
+                <StatusRow label="申请名称" value={application.name} />
+                <StatusRow label="当前状态" value={statusText[application.status]} />
+                <StatusRow label="审核备注" value={application.adminNote || "暂无备注"} />
+                <StatusRow label="提交时间" value={formatDateTime(application.createdAt)} />
+                <StatusRow label="更新时间" value={formatDateTime(application.updatedAt)} />
               </div>
             ) : (
               <p className="mt-7 text-sm leading-8 text-[#5f5b52]">
-                填写申请编号与邮箱后，此区域将展示静态示例进度。下一阶段将通过查询接口匹配 Supabase 中的真实申请记录、审核节点和补充材料提示。
+                填写申请编号与邮箱后，此区域将显示数据库中的申请状态。页面仅展示查询所需的基础结果，不展示完整申请资料。
               </p>
             )}
           </div>
@@ -81,6 +123,20 @@ function ApplicationQueryContent() {
       </main>
     </>
   );
+}
+
+function formatDateTime(value: string) {
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) return value;
+
+  return date.toLocaleString("zh-HK", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit"
+  });
 }
 
 function QueryPageFallback() {

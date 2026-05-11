@@ -46,3 +46,23 @@ export type ApplicationSubmitResponse =
       message: string;
       fieldErrors?: Record<string, string>;
     };
+
+export type ApplicationQueryResult = {
+  applicationNo: string;
+  applicationType: ApplicationType;
+  name: string;
+  status: ApplicationStatus;
+  adminNote: string;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type ApplicationQueryResponse =
+  | {
+      success: true;
+      application: ApplicationQueryResult;
+    }
+  | {
+      success: false;
+      message: string;
+    };

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateApplicationNo } from "@/lib/application-number";
+import { insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
 const validApplicationTypes: ApplicationType[] = ["personal_member", "organization_member"];
@@ -92,34 +93,60 @@ export async function POST(request: Request) {
     return NextResponse.json(response, { status: 400 });
   }
 
-  const now = new Date().toISOString();
-  const applicationNo = generateApplicationNo(values.applicationType);
-  const application: ApplicationRecord = {
-    applicationNo,
-    applicationType: values.applicationType,
-    status: "submitted",
-    name: values.name,
-    contactName: values.contactName || values.name,
-    phone: values.phone,
-    email: values.email,
-    country: values.country,
-    profile: values.profile,
-    purpose: values.purpose,
-    organizationType: values.organizationType,
-    receiveNotice: values.receiveNotice,
-    adminNote: "",
-    createdAt: now,
-    updatedAt: now
-  };
+  try {
+    const now = new Date().toISOString();
+    const applicationNo = generateApplicationNo(values.applicationType);
+    const application: ApplicationRecord = {
+      applicationNo,
+      applicationType: values.applicationType,
+      status: "submitted",
+      name: values.name,
+      contactName: values.contactName || values.name,
+      phone: values.phone,
+      email: values.email,
+      country: values.country,
+      profile: values.profile,
+      purpose: values.purpose,
+      organizationType: values.organizationType,
+      receiveNotice: values.receiveNotice,
+      adminNote: "",
+      createdAt: now,
+      updatedAt: now
+    };
 
-  // TODO: Persist `application` to Supabase in the next stage.
-  void application;
+    await insertApplication(application);
 
-  const response: ApplicationSubmitResponse = {
-    success: true,
-    applicationNo,
-    status: "submitted"
-  };
+    const response: ApplicationSubmitResponse = {
+      success: true,
+      applicationNo,
+      status: "submitted"
+    };
 
-  return NextResponse.json(response);
+    return NextResponse.json(response);
+  } catch (error) {
+    if (error instanceof SupabaseConfigError) {
+      const response: ApplicationSubmitResponse = {
+        success: false,
+        message: `申请提交服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`
+      };
+
+      return NextResponse.json(response, { status: 500 });
+    }
+
+    if (error instanceof SupabaseRequestError) {
+      const response: ApplicationSubmitResponse = {
+        success: false,
+        message: "申请资料未能写入数据库，请稍后重试或联系协会秘书处。"
+      };
+
+      return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });
+    }
+
+    const response: ApplicationSubmitResponse = {
+      success: false,
+      message: "申请提交服务暂时不可用，请稍后重试。"
+    };
+
+    return NextResponse.json(response, { status: 500 });
+  }
 }
