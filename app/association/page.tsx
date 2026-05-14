@@ -40,10 +40,10 @@ const functions = [
   ["合作与活动组织", "推动宫观道堂、文化机构、传统文化组织与相关合作方之间的交流与活动合作。", "cooperation"]
 ] as const;
 
-function AssociationSection({ eyebrow, title, intro, children, tone = "default", compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean }) {
+function AssociationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
@@ -73,10 +73,13 @@ export default function AssociationPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "联系合作", href: "/contact" }
+        ]}
         eyebrow="About ITCA"
         title="关于协会"
         subtitle="International Taoisme And Cultural Association"
-        intro="ITCA · International Taoisme And Cultural Association（国际道教与文化协会），面向道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化规范传播、资料备案与交流互鉴。"
+        intro="ITCA 用于发布协会介绍、组织职能、会员服务、资格认证与合作方向，服务道教文化传承与国际交流。"
         imageSrc="/images/itca/02-home-association.png"
         imagePosition="center 52%"
         visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"
@@ -90,6 +93,7 @@ export default function AssociationPage() {
         eyebrow="Profile"
         title="协会简介"
         intro="协会围绕道教文化交流、会员服务、资格认证与资料备案开展工作，服务相关个人、机构及文化交流合作事项。"
+        afterHero
       >
         <div className="grid gap-5 md:grid-cols-3">
           {profileItems.map(([title, text, icon], index) => (

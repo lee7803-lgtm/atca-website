@@ -57,9 +57,13 @@ export default function CertificateQueryPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "查询证书", href: "/certificate-query" },
+          { label: "申请进度查询", href: "/application/query" }
+        ]}
         eyebrow="Certificate Query"
         imageSrc="/images/itca/05-service-verification.png"
-        intro="本页面用于查询 ITCA 道士资格认证证书记录。查询结果仅展示公开核验所需资料，并对持证人姓名进行脱敏处理。"
+        intro="证书查询用于核验 ITCA 道士资格认证记录与公开信息，服务持证资料查询、结果确认与申请进度关联。"
         subtitle="Certificate Verification And Query"
         title="证书查询"
         visualDescription="通过证书编号与持证人姓名核验证书状态，提升认证服务的公开性与可信度。"
@@ -69,7 +73,7 @@ export default function CertificateQueryPage() {
         visualTitle="证书查询核验"
       />
 
-      <Section eyebrow="Query" title="证书查询">
+      <Section eyebrow="Query" title="证书查询" afterHero>
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <form className="rounded-2xl border border-[#d8d0bf] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <div className="mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">

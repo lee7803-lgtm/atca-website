@@ -91,10 +91,14 @@ function ApplicationQueryContent() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "申请进度查询", href: "/application/query" },
+          { label: "证书查询", href: "/certificate-query" }
+        ]}
         eyebrow="Application Query"
         title="申请进度查询"
         subtitle="Application Status Query"
-        intro="用于查询个人会员申请进度、机构会员申请进度、道士资格认证申请进度及发证处理进度。支持凭申请编号查询，也支持在忘记编号时按身份资料辅助查询。"
+        intro="申请进度查询用于查看资料受理、审核状态与后续办理结果，服务申请人与协会秘书处沟通确认。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
         visualDescription="查询结果仅脱敏显示申请状态和必要备注，不公开完整申请资料。"
@@ -104,7 +108,7 @@ function ApplicationQueryContent() {
         visualTitle="申请进度查询"
       />
 
-      <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+      <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
         <section className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
@@ -252,7 +256,7 @@ function formatDateTime(value: string) {
 
 function QueryPageFallback() {
   return (
-    <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+    <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
       <section className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
         <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>

@@ -25,10 +25,10 @@ const purposes: Array<{ title: string; text: string; icon: IconBadgeName }> = [
   { title: "作为协会活动参与依据", text: "作为申请参与协会相关道教文化交流、经典学习、礼仪活动等事项的参考依据之一。", icon: "international" }
 ];
 
-function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean }) {
+function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
@@ -56,10 +56,14 @@ export default function CertificationPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "道士资格认证", href: "/certification/taoist-priest" },
+          { label: "证书查询", href: "/certificate-query" }
+        ]}
         eyebrow="Certification"
         title="认证体系"
         subtitle="Certification System"
-        intro="当前认证系统仅开放“道士资格认证”，用于登记申请人的道教身份、师承传承、学习经历与相关证明材料，并纳入协会认证与资料建档流程。"
+        intro="ITCA 认证体系用于发布认证范围、申请流程、资料核验与证书查询说明，服务道士资格认证与档案管理。"
         imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
@@ -69,7 +73,7 @@ export default function CertificationPage() {
         visualTitle="认证资料与备案"
       />
 
-      <CertificationSection eyebrow="Open Project" title="道士资格认证">
+      <CertificationSection eyebrow="Open Project" title="道士资格认证" afterHero>
         <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <InfoCard icon={<CertificationIcon name="certification" />} title="道士资格认证" text="道士资格认证围绕申请人的身份资料、师承关系、宗派背景、修道经历与相关证明文件进行审核，用于协会备案、证书签发及后续核验。" />
           <div className="min-h-full rounded-2xl border border-gold/35 bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">

@@ -115,9 +115,9 @@ export default function Home() {
               ITCA 官方网站用于发布协会信息、认证体系、会员申请、证书查询与联系合作说明，服务道教文化传承与国际交流。
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/certification">认证体系</Link>
+              <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/membership">会员申请</Link>
+              <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certification">认证体系</Link>
               <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">证书查询</Link>
-              <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/membership">会员申请</Link>
             </div>
           </div>
           <div className="lg:pt-4">

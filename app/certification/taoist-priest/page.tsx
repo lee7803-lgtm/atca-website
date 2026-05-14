@@ -347,10 +347,14 @@ export default function TaoistPriestCertificationPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "认证申请", href: "/certification/taoist-priest" },
+          { label: "证书查询", href: "/certificate-query" }
+        ]}
         eyebrow="Taoist Priest Certification"
         title="道士资格认证"
         subtitle="Taoist Qualification Certification"
-        intro="国际道教与文化协会《道士资格认证》用于登记申请人的道教身份、师承传承、宗派背景、修道经历与相关证明材料，并纳入协会道士资格备案与审核流程。"
+        intro="道士资格认证用于登记身份资料、师承关系、修学经历与证明材料，服务协会认证审核、档案建立与证书核验。"
         imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
@@ -360,7 +364,7 @@ export default function TaoistPriestCertificationPage() {
         visualTitle="认证资料与备案"
       />
 
-      <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+      <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
           申请人需提交与道教身份、师承关系、学习经历及相关证明有关的资料。协会将依据提交材料进行资料核验、审核记录及认证建档。
         </div>

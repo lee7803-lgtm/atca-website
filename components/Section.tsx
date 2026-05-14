@@ -7,12 +7,13 @@ type SectionProps = {
   intro?: string;
   children: ReactNode;
   tone?: "default" | "soft";
+  afterHero?: boolean;
 };
 
-export function Section({ eyebrow, title, intro, children, tone = "default" }: SectionProps) {
+export function Section({ eyebrow, title, intro, children, tone = "default", afterHero = false }: SectionProps) {
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
-      <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-20 md:pt-14 lg:pt-16 lg:pb-28" : "py-20 lg:py-28"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? (

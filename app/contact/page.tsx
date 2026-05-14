@@ -19,10 +19,10 @@ const categories: Array<{ title: string; text: string; icon: IconBadgeName }> = 
 
 const consultationItems = ["认证咨询", "会员申请", "机构合作", "文化交流", "网站信息更正"];
 
-function ContactSection({ eyebrow, title, intro, children, compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean }) {
+function ContactSection({ eyebrow, title, intro, children, compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean; afterHero?: boolean }) {
   return (
     <section>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
@@ -50,10 +50,13 @@ export default function ContactPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "联系合作", href: "/contact" }
+        ]}
         eyebrow="Contact"
         title="联系 ITCA"
         subtitle="Contact And Cooperation"
-        intro="如需了解协会事务、会员申请、道士资格认证、证书核验、机构合作或网站信息更正，可通过本页面了解联系方向。正式联系方式以后续协会公布信息为准。"
+        intro="联系合作用于发布协会事务、认证核验、会员申请、机构合作与信息更正方向，服务后续咨询与沟通确认。"
         imageSrc="/images/itca/06-home-international-cooperation.png"
         imagePosition="center 48%"
         visualDescription="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"
@@ -63,7 +66,7 @@ export default function ContactPage() {
         visualTitle="国际文化交流与合作"
       />
 
-      <ContactSection eyebrow="Contact Category" title="联系方向">
+      <ContactSection eyebrow="Contact Category" title="联系方向" afterHero>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {categories.map((item, index) => (
             <InfoCard icon={<ContactIcon name={item.icon} />} index={`0${index + 1}`} key={item.title} text={item.text} title={item.title} />

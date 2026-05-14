@@ -81,10 +81,14 @@ export default function OrganizationApplyPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "会员申请", href: "/membership" },
+          { label: "联系咨询", href: "/contact" }
+        ]}
         eyebrow="Organization Application"
         title="机构会员申请"
         subtitle="Organization Member Application"
-        intro="请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。"
+        intro="机构会员申请用于提交机构资料、负责人信息、合作方向与证明材料，服务协会审核、建档与合作联系。"
         imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 48%"
         visualDescription="面向宫观、文化机构、培训机构、企业及其他合作单位的会员申请入口。"
@@ -94,7 +98,7 @@ export default function OrganizationApplyPage() {
         visualTitle="机构会员申请"
       />
 
-      <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
+      <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
         <section className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
           <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
             <p className="font-medium text-porcelain">申请说明</p>

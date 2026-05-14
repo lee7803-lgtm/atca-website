@@ -40,10 +40,10 @@ const process: Array<{ title: string; icon: IconBadgeName }> = [
   { title: "建立会员档案", icon: "structure" }
 ];
 
-function MembershipSection({ eyebrow, title, intro, children, tone = "default", compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean }) {
+function MembershipSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-14 md:pt-14 lg:pt-16 lg:pb-18" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
@@ -83,10 +83,14 @@ export default function MembershipPage() {
   return (
     <>
       <PageHero
+        actions={[
+          { label: "个人会员申请", href: "/member/apply" },
+          { label: "机构会员申请", href: "/organization/apply" }
+        ]}
         eyebrow="Membership"
         title="会员申请"
         subtitle="Membership Application"
-        intro="申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时联系补充相关材料。"
+        intro="ITCA 会员申请用于发布个人会员、机构会员申请说明与资料要求，服务会员登记、审核沟通与后续联系。"
         imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 46%"
         visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"
@@ -96,7 +100,7 @@ export default function MembershipPage() {
         visualTitle="会员组织服务"
       />
 
-      <MembershipSection eyebrow="Application Notice" title="申请须知" compact>
+      <MembershipSection eyebrow="Application Notice" title="申请须知" compact afterHero>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时与申请人联系补充相关材料。申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。
         </div>

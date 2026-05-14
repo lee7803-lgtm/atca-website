@@ -24,10 +24,14 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
   return (
     <>
       <PageHero
+        actions={[
+          { label: "申请进度查询", href: "/application/query" },
+          { label: "返回首页", href: "/" }
+        ]}
         eyebrow="Application Submitted"
         title="申请已提交"
         subtitle="Application Submitted"
-        intro="申请资料已提交。请妥善保存以下申请编号，后续可用于查询办理进度或与协会秘书处沟通核对。"
+        intro="申请提交成功后请保存申请编号，后续可用于进度查询、资料核对、审核沟通与证书核验。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 46%"
         visualDescription="请保存申请编号，并通过申请进度查询页面查看后续审核状态。"
@@ -37,7 +41,7 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
         visualTitle="申请已提交"
       />
 
-      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8 lg:py-16">
+      <main className="mx-auto max-w-5xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-center shadow-aureate sm:p-10">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Number</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">
