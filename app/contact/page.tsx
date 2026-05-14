@@ -46,7 +46,7 @@ export default function ContactPage() {
     <>
       <PageHero
         eyebrow="Contact"
-        title="联系 ATCA"
+        title="联系 ITCA"
         subtitle="Contact And Cooperation"
         intro="如需了解协会事务、会员申请、道士资格认证、证书核验、机构合作或网站信息更正，可通过本页面了解联系方向。正式联系方式以后续协会公布信息为准。"
         imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
@@ -73,7 +73,7 @@ export default function ContactPage() {
               <ContactIcon name="contact" />
               <div>
                 <p className="text-sm leading-6 text-[#666666]">
-                  线上联系提交服务暂未开放，请以后续协会公布的正式联系方式为准。
+                  如需提交咨询事项，请通过协会公布的正式联系方式与秘书处联系。
                 </p>
               </div>
             </div>

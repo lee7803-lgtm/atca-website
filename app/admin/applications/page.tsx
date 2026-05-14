@@ -17,10 +17,11 @@ const typeOptions: Array<{ value: "" | ApplicationType; label: string }> = [
 const statusOptions: Array<{ value: "" | ApplicationStatus; label: string }> = [
   { value: "", label: "全部状态" },
   { value: "submitted", label: "已提交" },
-  { value: "pending_review", label: "待审核" },
+  { value: "pending_review", label: "审核中" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
-  { value: "rejected", label: "未通过" }
+  { value: "rejected", label: "已驳回" },
+  { value: "archived", label: "已建档" }
 ];
 
 const typeText: Record<ApplicationType, string> = {
@@ -30,10 +31,11 @@ const typeText: Record<ApplicationType, string> = {
 
 const statusText: Record<ApplicationStatus, string> = {
   submitted: "已提交",
-  pending_review: "待审核",
+  pending_review: "审核中",
   need_more_info: "需补充资料",
   approved: "已通过",
-  rejected: "未通过"
+  rejected: "已驳回",
+  archived: "已建档"
 };
 
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus } }) {
@@ -51,7 +53,12 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">申请管理</h1>
           <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看个人会员与机构会员申请，按类型和状态筛选申请记录。</p>
         </div>
-        <AdminLogoutButton />
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">
+            返回后台首页
+          </Link>
+          <AdminLogoutButton />
+        </div>
       </div>
 
       <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_auto] md:items-end">

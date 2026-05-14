@@ -8,6 +8,7 @@ const navItems = [
   { href: "/association", label: "关于协会" },
   { href: "/certification", label: "认证体系" },
   { href: "/membership", label: "会员申请" },
+  { href: "/application/query", label: "申请进度" },
   { href: "/certificate-query", label: "证书查询" },
   { href: "/contact", label: "联系合作" }
 ];
@@ -35,13 +36,16 @@ export function Header() {
           </span>
           <span className="min-w-0">
             <span className="block text-sm font-semibold tracking-[0.22em] text-porcelain">
-              ATCA
+              ITCA
             </span>
             <span className="hidden truncate text-xs font-medium text-[#33251F] md:block">
-              东盟道教与文化协会
+              国际道教与文化协会
             </span>
             <span className="hidden truncate text-[11px] text-[#7a7a7a] xl:block">
-              Asean Taoism And Cultural Association
+              International Taoisme And Cultural Association
+            </span>
+            <span className="hidden truncate text-[11px] text-[#7a7a7a] 2xl:block">
+              Persatuan Kebudayaan Dan Taoism Antarabangsa
             </span>
           </span>
         </Link>

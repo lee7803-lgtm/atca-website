@@ -1,6 +1,6 @@
-# ATCA Website
+# ITCA Website
 
-ATCA 国际道家文化交流与认证协会官网，基于 Next.js、TypeScript 和 TailwindCSS 构建。
+ITCA · International Taoisme And Cultural Association（国际道教与文化协会 / Persatuan Kebudayaan Dan Taoism Antarabangsa）官网，基于 Next.js、TypeScript 和 TailwindCSS 构建。
 
 ## 本地开发
 

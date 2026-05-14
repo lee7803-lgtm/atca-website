@@ -1,41 +1,85 @@
 import { NextResponse } from "next/server";
-import { findApplicationByNoAndEmail, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
-import type { ApplicationQueryResponse } from "@/types/application";
+import {
+  findApplicationByNoAndContact,
+  findApplicationsByIdentity,
+  findCertificationByNoAndContact,
+  findCertificationsByIdentity,
+  isSupabaseSchemaError,
+  SupabaseConfigError,
+  SupabaseRequestError
+} from "@/lib/supabase/server";
+import type { ApplicationQueryResponse, ApplicationQueryResult, ApplicationType } from "@/types/application";
 
-function isEmail(value: string) {
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
+const memberTypes: ApplicationType[] = ["personal_member", "organization_member"];
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
+  const mode = searchParams.get("mode") || "number";
   const applicationNo = searchParams.get("applicationNo")?.trim() || "";
-  const email = searchParams.get("email")?.trim() || "";
+  const contact = searchParams.get("contact")?.trim() || searchParams.get("email")?.trim() || "";
 
-  if (!applicationNo || !email) {
+  if (mode === "number" && (!applicationNo || !contact)) {
     const response: ApplicationQueryResponse = {
       success: false,
-      message: "请填写申请编号和邮箱后再查询。"
-    };
-
-    return NextResponse.json(response, { status: 400 });
-  }
-
-  if (!isEmail(email)) {
-    const response: ApplicationQueryResponse = {
-      success: false,
-      message: "邮箱格式不正确，请检查后重新查询。"
+      message: "请填写申请编号和手机 / WhatsApp 或邮箱后再查询。"
     };
 
     return NextResponse.json(response, { status: 400 });
   }
 
   try {
-    const application = await findApplicationByNoAndEmail(applicationNo, email);
+    let applications: ApplicationQueryResult[] = [];
 
-    if (!application) {
+    if (mode === "number") {
+      const isCertification = applicationNo.toUpperCase().startsWith("ITCA-C-");
+      const application = isCertification
+        ? await findCertificationByNoAndContact(applicationNo, contact)
+        : await findApplicationByNoAndContact(applicationNo, contact);
+
+      applications = application ? [application] : [];
+    } else {
+      const applicationType = searchParams.get("applicationType")?.trim() || "";
+
+      if (memberTypes.includes(applicationType as ApplicationType)) {
+        const name = searchParams.get("name")?.trim() || "";
+        const contactName = searchParams.get("contactName")?.trim() || "";
+
+        if (!name || !contact || (applicationType === "organization_member" && !contactName)) {
+          const response: ApplicationQueryResponse = {
+            success: false,
+            message: "请完整填写查询资料后再查询。"
+          };
+
+          return NextResponse.json(response, { status: 400 });
+        }
+
+        applications = await findApplicationsByIdentity({
+          applicationType: applicationType as ApplicationType,
+          name,
+          contact,
+          contactName: applicationType === "organization_member" ? contactName : undefined
+        });
+      } else if (applicationType === "taoist_certification") {
+        const applicantName = searchParams.get("name")?.trim() || "";
+        const taoistName = searchParams.get("taoistName")?.trim() || "";
+
+        if (!applicantName || !taoistName || !contact) {
+          const response: ApplicationQueryResponse = {
+            success: false,
+            message: "请完整填写查询资料后再查询。"
+          };
+
+          return NextResponse.json(response, { status: 400 });
+        }
+
+        applications = await findCertificationsByIdentity({ applicantName, taoistName, contact });
+      }
+    }
+
+    if (applications.length === 0) {
       const response: ApplicationQueryResponse = {
         success: false,
-        message: "未查询到匹配的申请记录，请确认申请编号和邮箱是否正确。"
+        message: "未查询到相关申请记录，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。"
       };
 
       return NextResponse.json(response, { status: 404 });
@@ -43,7 +87,8 @@ export async function GET(request: Request) {
 
     const response: ApplicationQueryResponse = {
       success: true,
-      application
+      applications,
+      application: applications[0]
     };
 
     return NextResponse.json(response);
@@ -52,6 +97,15 @@ export async function GET(request: Request) {
       const response: ApplicationQueryResponse = {
         success: false,
         message: `申请查询服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`
+      };
+
+      return NextResponse.json(response, { status: 500 });
+    }
+
+    if (isSupabaseSchemaError(error)) {
+      const response: ApplicationQueryResponse = {
+        success: false,
+        message: "申请查询数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL：supabase/applications.sql。"
       };
 
       return NextResponse.json(response, { status: 500 });

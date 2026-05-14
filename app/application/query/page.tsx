@@ -3,14 +3,28 @@
 import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { PageHero } from "@/components/PageHero";
-import type { ApplicationQueryResponse, ApplicationQueryResult, ApplicationStatus } from "@/types/application";
+import { maskApplicationNo, maskName } from "@/lib/masking";
+import type { ApplicationQueryResponse, ApplicationQueryResult } from "@/types/application";
 
-const statusText: Record<ApplicationStatus, string> = {
+type QueryMode = "number" | "forgot";
+type QueryType = "personal_member" | "organization_member" | "taoist_certification";
+
+const statusText: Record<string, string> = {
   submitted: "已提交",
-  pending_review: "待审核",
+  pending_review: "审核中",
+  under_review: "审核中",
   need_more_info: "需补充资料",
   approved: "已通过",
-  rejected: "未通过"
+  rejected: "已驳回",
+  archived: "已建档",
+  cert_issued: "已发证",
+  revoked: "已撤销"
+};
+
+const typeText: Record<string, string> = {
+  personal_member: "个人会员申请",
+  organization_member: "机构会员申请",
+  taoist_certification: "道士资格认证申请"
 };
 
 export default function ApplicationQueryPage() {
@@ -23,26 +37,41 @@ export default function ApplicationQueryPage() {
 
 function ApplicationQueryContent() {
   const searchParams = useSearchParams();
+  const [mode, setMode] = useState<QueryMode>("number");
+  const [applicationType, setApplicationType] = useState<QueryType>("personal_member");
   const [applicationNumber, setApplicationNumber] = useState(searchParams.get("number") || "");
-  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [contactName, setContactName] = useState("");
+  const [taoistName, setTaoistName] = useState("");
+  const [contact, setContact] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
-  const [application, setApplication] = useState<ApplicationQueryResult | null>(null);
+  const [applications, setApplications] = useState<ApplicationQueryResult[]>([]);
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const selectedApplication = applications[selectedIndex] || null;
 
   const submitQuery = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (isQuerying) return;
 
     setIsQuerying(true);
     setErrorMessage("");
-    setApplication(null);
+    setApplications([]);
+    setSelectedIndex(0);
 
     try {
-      const params = new URLSearchParams({
-        applicationNo: applicationNumber.trim(),
-        email: email.trim()
-      });
+      const params = new URLSearchParams({ mode, contact: contact.trim() });
+
+      if (mode === "number") {
+        params.set("applicationNo", applicationNumber.trim());
+      } else {
+        params.set("applicationType", applicationType);
+        params.set("name", name.trim());
+        if (applicationType === "organization_member") params.set("contactName", contactName.trim());
+        if (applicationType === "taoist_certification") params.set("taoistName", taoistName.trim());
+      }
+
       const response = await fetch(`/api/applications/query?${params.toString()}`);
       const result = (await response.json()) as ApplicationQueryResponse;
 
@@ -51,7 +80,7 @@ function ApplicationQueryContent() {
         return;
       }
 
-      setApplication(result.application);
+      setApplications(result.applications);
     } catch {
       setErrorMessage("申请查询服务暂时不可用，请稍后重试或联系协会秘书处。");
     } finally {
@@ -65,10 +94,10 @@ function ApplicationQueryContent() {
         eyebrow="Application Query"
         title="申请进度查询"
         subtitle="Application Status Query"
-        intro="用于申请人通过申请编号与邮箱查询审核进度。本阶段暂不接数据库，提交后展示静态示例结果区域，便于后续接入真实记录。"
+        intro="用于查询个人会员申请进度、机构会员申请进度、道士资格认证申请进度及发证处理进度。支持凭申请编号查询，也支持在忘记编号时按身份资料辅助查询。"
         imageSrc="/images/atca/certificate-verification.jpg"
         imagePosition="center 58%"
-        visualDescription="请输入申请编号与邮箱，后续将用于匹配申请记录和审核状态。"
+        visualDescription="查询结果仅脱敏显示申请状态和必要备注，不公开完整申请资料。"
         visualEyebrow="Query"
         visualMark="Status"
         visualSeal="查询"
@@ -76,48 +105,124 @@ function ApplicationQueryContent() {
       />
 
       <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
-        <section className="grid gap-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-start">
+        <section className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询申请记录</h2>
+
+            <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
+              <button className={mode === "number" ? "rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#7F1D1D] shadow-sm" : "rounded-xl px-4 py-2.5 text-sm font-medium text-[#66594d]"} type="button" onClick={() => setMode("number")}>
+                我有申请编号
+              </button>
+              <button className={mode === "forgot" ? "rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#7F1D1D] shadow-sm" : "rounded-xl px-4 py-2.5 text-sm font-medium text-[#66594d]"} type="button" onClick={() => setMode("forgot")}>
+                我忘记申请编号
+              </button>
+            </div>
+
             <div className="mt-7 grid gap-5">
+              {mode === "number" ? (
+                <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+                  <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
+                  <input className="form-input" placeholder="例如 ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
+                </label>
+              ) : (
+                <>
+                  <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+                    <span className="text-sm font-medium text-porcelain">申请类型 <span className="text-[#7F1D1D]">*</span></span>
+                    <select className="form-input" value={applicationType} onChange={(event) => setApplicationType(event.target.value as QueryType)}>
+                      <option value="personal_member">个人会员申请</option>
+                      <option value="organization_member">机构会员申请</option>
+                      <option value="taoist_certification">道士资格认证申请</option>
+                    </select>
+                  </label>
+                  <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+                    <span className="text-sm font-medium text-porcelain">{applicationType === "organization_member" ? "机构名称" : "中文姓名"} <span className="text-[#7F1D1D]">*</span></span>
+                    <input className="form-input" required value={name} onChange={(event) => setName(event.target.value)} />
+                  </label>
+                  {applicationType === "organization_member" ? (
+                    <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+                      <span className="text-sm font-medium text-porcelain">联系人姓名 <span className="text-[#7F1D1D]">*</span></span>
+                      <input className="form-input" required value={contactName} onChange={(event) => setContactName(event.target.value)} />
+                    </label>
+                  ) : null}
+                  {applicationType === "taoist_certification" ? (
+                    <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+                      <span className="text-sm font-medium text-porcelain">道名 / 法名 <span className="text-[#7F1D1D]">*</span></span>
+                      <input className="form-input" required value={taoistName} onChange={(event) => setTaoistName(event.target.value)} />
+                    </label>
+                  ) : null}
+                </>
+              )}
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
-                <input className="form-input" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
-              </label>
-              <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                <span className="text-sm font-medium text-porcelain">邮箱 <span className="text-[#7F1D1D]">*</span></span>
-                <input className="form-input" required type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+                <span className="text-sm font-medium text-porcelain">手机 / WhatsApp 或邮箱 <span className="text-[#7F1D1D]">*</span></span>
+                <input className="form-input" placeholder="请输入提交申请时填写的联络方式" required value={contact} onChange={(event) => setContact(event.target.value)} />
               </label>
             </div>
-            {errorMessage ? (
-              <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">
-                {errorMessage}
-              </div>
-            ) : null}
+
+            {errorMessage ? <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">{errorMessage}</div> : null}
             <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
               {isQuerying ? "正在查询..." : "查询申请进度"}
             </button>
+            <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
+              支持 ITCA-M、ITCA-O、ITCA-C 开头的申请编号。查询结果会脱敏显示，不展示完整个人资料、邮箱或手机号码。
+            </div>
           </form>
 
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Status</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询结果</h2>
-            {application ? (
+            {applications.length > 1 ? (
+              <div className="mt-6 grid gap-3">
+                <p className="text-sm leading-7 text-[#5f5b52]">查询到多条匹配记录，请选择一条查看脱敏详情。</p>
+                {applications.map((item, index) => (
+                  <button className={`rounded-2xl border px-4 py-3 text-left text-sm ${selectedIndex === index ? "border-[#7F1D1D] bg-white text-[#7F1D1D]" : "border-[#e4ded0] bg-white/70 text-[#5f5b52]"}`} key={item.applicationNo} onClick={() => setSelectedIndex(index)} type="button">
+                    {maskApplicationNo(item.applicationNo)} · {typeText[item.applicationType]} · {maskName(item.name)} · {statusText[item.status]}
+                  </button>
+                ))}
+              </div>
+            ) : null}
+            {selectedApplication ? (
               <div className="mt-7 grid gap-4">
-                <StatusRow label="申请编号" value={application.applicationNo} />
-                <StatusRow label="申请类型" value={application.applicationType === "organization_member" ? "机构会员申请" : "个人会员申请"} />
-                <StatusRow label="申请名称" value={application.name} />
-                <StatusRow label="当前状态" value={statusText[application.status]} />
-                <StatusRow label="审核备注" value={application.adminNote || "暂无备注"} />
-                <StatusRow label="提交时间" value={formatDateTime(application.createdAt)} />
-                <StatusRow label="更新时间" value={formatDateTime(application.updatedAt)} />
+                <StatusRow label="申请编号" value={maskApplicationNo(selectedApplication.applicationNo)} />
+                <StatusRow label="申请类型" value={typeText[selectedApplication.applicationType]} />
+                <StatusRow label="申请人 / 机构名称" value={maskName(selectedApplication.name)} />
+                <StatusRow label="当前状态" value={currentStatusText(selectedApplication)} />
+                <StatusRow label="提交时间" value={formatDateTime(selectedApplication.createdAt)} />
+                <StatusRow label="审核说明" value={selectedApplication.adminNote || "暂无审核说明"} />
+                <StatusRow label="下一步提示" value={nextStepText(selectedApplication.status)} />
+                {selectedApplication.certificateNo ? (
+                  <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
+                    <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
+                    <p className="mt-2 break-all text-sm leading-7 text-porcelain">{selectedApplication.certificateNo}</p>
+                    <a className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
+                      前往证书查询
+                    </a>
+                  </div>
+                ) : null}
               </div>
             ) : (
-              <p className="mt-7 text-sm leading-8 text-[#5f5b52]">
-                填写申请编号与邮箱后，此区域将显示数据库中的申请状态。页面仅展示查询所需的基础结果，不展示完整申请资料。
-              </p>
+              <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
+                <p className="font-medium text-porcelain">暂无查询结果</p>
+                <p className="mt-2">请选择查询模式并填写资料。若查询不到结果，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。</p>
+              </div>
             )}
+          </div>
+        </section>
+
+        <section className="mt-8 grid gap-5 lg:grid-cols-2">
+          <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
+            <h2 className="mt-3 font-serif text-2xl text-porcelain">状态说明</h2>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {["已提交", "审核中", "需补充资料", "已通过", "已驳回", "已建档", "已发证", "已撤销"].map((item) => (
+                <span className="rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>{item}</span>
+              ))}
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Boundary</p>
+            <h2 className="mt-3 font-serif text-2xl text-porcelain">认证说明与适用范围</h2>
+            <p className="mt-5">本认证用于协会内部认证、资料备案、文化交流、活动参与及证书核验，不等同于政府许可、行政许可、法定职业资格、商业授权或宗教职务任命。</p>
           </div>
         </section>
       </main>
@@ -125,26 +230,60 @@ function ApplicationQueryContent() {
   );
 }
 
+function nextStepText(status: string) {
+  if (status === "need_more_info") return "请按审核说明补充资料，并等待协会秘书处进一步联系。";
+  if (status === "approved") return "申请已通过，请等待建档或证书办理通知。";
+  if (status === "cert_issued") return "证书已生成，可前往证书查询页面核验证书记录。";
+  if (status === "rejected" || status === "revoked") return "如需复核，请联系协会秘书处协助核对。";
+  return "请等待协会秘书处审核；如联系方式变更，请主动联系更新。";
+}
+
+function currentStatusText(application: ApplicationQueryResult) {
+  if (application.applicationType === "taoist_certification" && application.status === "approved" && !application.certificateNo) return "已通过，待生成证书";
+  return statusText[application.status];
+}
+
 function formatDateTime(value: string) {
   const date = new Date(value);
-
   if (Number.isNaN(date.getTime())) return value;
-
-  return date.toLocaleString("zh-HK", {
-    year: "numeric",
-    month: "2-digit",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  return date.toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
 function QueryPageFallback() {
   return (
     <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
-      <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-8 text-sm text-[#5f5b52] shadow-aureate">
-        正在载入申请进度查询...
-      </div>
+      <section className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
+        <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>
+          <h1 className="mt-3 font-serif text-3xl text-porcelain">申请进度查询</h1>
+          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于查询个人会员申请进度、机构会员申请进度、道士资格认证申请进度及发证处理进度。</p>
+          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
+            <span className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-[#7F1D1D] shadow-sm">我有申请编号</span>
+            <span className="rounded-xl px-4 py-2.5 text-center text-sm font-medium text-[#66594d]">我忘记申请编号</span>
+          </div>
+          <div className="mt-7 grid gap-5">
+            <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+              <span className="text-sm font-medium text-porcelain">申请编号</span>
+              <input className="form-input" placeholder="例如 ITCA-M-2026-000001" readOnly />
+            </label>
+            <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+              <span className="text-sm font-medium text-porcelain">手机 / WhatsApp 或邮箱</span>
+              <input className="form-input" placeholder="请输入提交申请时填写的联络方式" readOnly />
+            </label>
+          </div>
+          <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white" type="button">
+            查询申请进度
+          </button>
+        </div>
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-8">
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Status</p>
+          <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询结果</h2>
+          <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
+            <p className="font-medium text-porcelain">暂无查询结果</p>
+            <p className="mt-2">请选择查询模式并填写资料。若查询不到结果，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。</p>
+          </div>
+        </div>
+      </section>
     </main>
   );
 }

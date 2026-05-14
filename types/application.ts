@@ -1,6 +1,6 @@
 export type ApplicationType = "personal_member" | "organization_member";
 
-export type ApplicationStatus = "submitted" | "pending_review" | "need_more_info" | "approved" | "rejected";
+export type ApplicationStatus = "submitted" | "pending_review" | "need_more_info" | "approved" | "rejected" | "archived";
 
 export type OrganizationType = "宫观" | "文化机构" | "培训机构" | "企业" | "其他";
 
@@ -57,10 +57,11 @@ export type ApplicationSubmitResponse =
 
 export type ApplicationQueryResult = {
   applicationNo: string;
-  applicationType: ApplicationType;
+  applicationType: ApplicationType | "taoist_certification";
   name: string;
-  status: ApplicationStatus;
+  status: ApplicationStatus | "under_review" | "cert_issued" | "revoked";
   adminNote: string;
+  certificateNo?: string;
   createdAt: string;
   updatedAt: string;
 };
@@ -68,7 +69,8 @@ export type ApplicationQueryResult = {
 export type ApplicationQueryResponse =
   | {
       success: true;
-      application: ApplicationQueryResult;
+      applications: ApplicationQueryResult[];
+      application?: ApplicationQueryResult;
     }
   | {
       success: false;

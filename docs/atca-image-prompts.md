@@ -1,6 +1,6 @@
-# ATCA 首页图片生成提示词
+# ITCA 首页图片生成提示词
 
-本文件用于 ATCA 官网 V2 首页图片生成与替换准备。图片整体应保持东方极简、庄重克制、国际文化协会官网感，色彩控制在米白、墨色、深褐、褐金、枣红与暖灰体系内。避免冷蓝、冷青、科技感渐变、夸张人物特写、旅游宣传风、宗教海报感和玄学营销感。
+本文件用于 ITCA 官网 V2 首页图片生成与替换准备。图片整体应保持东方极简、庄重克制、国际文化协会官网感，色彩控制在米白、墨色、深褐、褐金、枣红与暖灰体系内。避免冷蓝、冷青、科技感渐变、夸张人物特写、旅游宣传风、宗教海报感和玄学营销感。
 
 ## 1. Hero 首屏主视觉
 
@@ -13,7 +13,7 @@
 ## 2. 关于协会区域
 
 - 文件名：`public/images/atca/about-cultural-space.jpg`
-- 适用场景：ATCA 协会平台右侧视觉，表达文化空间、组织背景与公共机构气质。
+- 适用场景：ITCA 协会平台右侧视觉，表达文化空间、组织背景与公共机构气质。
 - 中文提示词：东方传统文化空间室内，木质梁柱、素雅墙面、案几、卷轴或书册细节，柔和自然光，米白纸感背景，暖灰阴影，褐金线条，庄重安静，文化机构与协会办公接待气质，真实摄影或高度写实，无夸张宗教符号，无人物正脸，无商业旅游风，无冷蓝冷青。
 - English prompt：Minimal East Asian cultural interior, wooden beams, quiet desk, scrolls or books, soft warm daylight, ivory paper tone, muted gold lines, solemn cultural association atmosphere, realistic, no frontal people, no cool blue or cyan.
 - 建议构图：中景空间构图，保留桌面、梁柱与墙面层次，画面不要拥挤，右侧或下方留出视觉呼吸空间。

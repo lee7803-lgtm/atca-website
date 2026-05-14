@@ -21,7 +21,7 @@ type CulturalImageProps = {
 const toneMap: Record<CulturalImageTone, { seal: string; mark: string; accent: string }> = {
   architecture: {
     seal: "山门",
-    mark: "ATCA",
+    mark: "ITCA",
     accent: "bg-[#8F1F2D]"
   },
   space: {

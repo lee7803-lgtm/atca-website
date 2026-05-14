@@ -6,10 +6,11 @@ import type { ApplicationStatus } from "@/types/application";
 
 const statusOptions: Array<{ value: ApplicationStatus; label: string }> = [
   { value: "submitted", label: "已提交" },
-  { value: "pending_review", label: "待审核" },
+  { value: "pending_review", label: "审核中" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
-  { value: "rejected", label: "未通过" }
+  { value: "rejected", label: "已驳回" },
+  { value: "archived", label: "已建档" }
 ];
 
 export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: { applicationId: string; initialAdminNote: string; initialStatus: ApplicationStatus }) {

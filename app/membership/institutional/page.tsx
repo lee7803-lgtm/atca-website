@@ -165,7 +165,7 @@ export default function InstitutionalMembershipPage() {
 
       <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
-          请按步骤填写机构会员申请资料。带 <span className="font-semibold text-[#7F1D1D]">*</span> 的项目为必填项，其他资料可按实际情况补充。线上提交服务暂未开放，申请资料提交方式以后续协会正式通知为准。
+          请按步骤填写机构会员申请资料。带 <span className="font-semibold text-[#7F1D1D]">*</span> 的项目为必填项，其他资料可按实际情况补充。当前机构会员申请可通过官网在线提交，提交后请妥善保存申请编号以便查询进度。
         </div>
 
         <StepNav current={current} steps={steps.map((item) => item.title)} />
@@ -208,9 +208,9 @@ export default function InstitutionalMembershipPage() {
                 下一步
               </button>
             ) : (
-              <button className="cursor-not-allowed rounded-full border border-[#d8d0bf] bg-[#efe4d3] px-6 py-3 text-sm font-semibold text-[#8a6b3e]" disabled type="button">
-                提交服务暂未开放
-              </button>
+              <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)]" href="/organization/apply">
+                前往在线提交
+              </Link>
             )}
           </div>
 
@@ -301,7 +301,7 @@ function FormField({ field, value, setValue, errors }: { field: Field; value: st
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
           <input className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setValue(field.id, event.target.files?.[0]?.name ?? "")} />
-          <span className="block text-xs leading-5 text-[#8a6b3e]">文件提交服务暂未开放，请以后续协会正式提交要求为准。</span>
+          <span className="block text-xs leading-5 text-[#8a6b3e]">当前表单先记录文件名称，原件或影本可按协会后续审核要求补充。</span>
         </span>
       ) : field.kind === "checkbox" ? (
         <span className="flex items-center gap-3 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3">

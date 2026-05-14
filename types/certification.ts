@@ -1,0 +1,104 @@
+export type CertificationStatus = "submitted" | "under_review" | "need_more_info" | "approved" | "rejected" | "cert_issued" | "revoked";
+
+export type CertificateStatus = "valid" | "expired" | "revoked" | "suspended";
+
+export type CertificationAttachment = {
+  originalName: string;
+  storagePath?: string;
+  mimeType?: string;
+  size?: number;
+  fieldName: string;
+  uploadedAt?: string;
+  signedUrl?: string;
+};
+
+export type CertificationApplicationPayload = {
+  applicantName: string;
+  applicantNameEn: string;
+  taoistName: string;
+  gender: string;
+  birthDate: string;
+  nationality: string;
+  residence: string;
+  phone: string;
+  email: string;
+  address: string;
+  masterName: string;
+  masterTaoistName: string;
+  lineage: string;
+  templeOrOrganization: string;
+  sect: string;
+  practiceYears: string;
+  experienceSummary: string;
+  existingCertificates: CertificationAttachment[];
+  supportingDocuments: CertificationAttachment[];
+  declarationAccepted: boolean;
+  ethicsConfirmed: boolean;
+  boundaryConfirmed: boolean;
+};
+
+export type CertificationApplicationRecord = CertificationApplicationPayload & {
+  id?: string;
+  applicationNo: string;
+  status: CertificationStatus;
+  reviewNote: string;
+  reviewer: string;
+  reviewedAt: string | null;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CertificationApplicationAdminRecord = CertificationApplicationRecord & {
+  id: string;
+};
+
+export type CertificationSubmitResponse =
+  | {
+      success: true;
+      applicationNo: string;
+      status: CertificationStatus;
+    }
+  | {
+      success: false;
+      message: string;
+      fieldErrors?: Record<string, string>;
+    };
+
+export type CertificateRecord = {
+  id?: string;
+  certificateNo: string;
+  applicationId: string;
+  holderName: string;
+  taoistName: string;
+  taoistRank: string;
+  sect: string;
+  issuedDate: string;
+  validFrom: string;
+  validUntil: string;
+  status: CertificateStatus;
+  publicQueryEnabled: boolean;
+  createdAt: string;
+  updatedAt: string;
+};
+
+export type CertificateQueryResult = {
+  certificateNo: string;
+  holderName: string;
+  taoistName: string;
+  taoistRank: string;
+  sect: string;
+  issuedDate: string;
+  validFrom: string;
+  validUntil: string;
+  status: CertificateStatus;
+};
+
+export type CertificateQueryResponse =
+  | {
+      success: true;
+      certificate: CertificateQueryResult;
+    }
+  | {
+      success: false;
+      message: string;
+    };

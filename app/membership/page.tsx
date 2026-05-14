@@ -81,7 +81,7 @@ export default function MembershipPage() {
         eyebrow="Membership"
         title="会员申请"
         subtitle="Membership Application"
-        intro="ATCA 当前开放个人会员与机构会员申请，用于登记会员基础资料、文化交流意向、合作联系需求及认证体系相关沟通事项。"
+        intro="ITCA 当前开放个人会员与机构会员申请，用于登记会员基础资料、文化交流意向、合作联系需求及认证体系相关沟通事项。"
         imageSrc="/images/atca/member-gathering.jpg"
         imagePosition="center 46%"
         visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"
@@ -93,7 +93,7 @@ export default function MembershipPage() {
 
       <MembershipSection eyebrow="Application Notice" title="申请须知" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          个人会员与机构会员前台申请表已开放 MVP 提交骨架。提交后会生成临时申请编号，可用于申请进度查询；正式审核记录将在下一阶段接入数据库后保存。
+          个人会员与机构会员前台申请表已开放。个人会员申请编号格式为 ITCA-M-2026-000001，机构会员申请编号格式为 ITCA-O-2026-000001。提交后请妥善保存申请编号，可用于申请进度查询。
         </div>
       </MembershipSection>
 
@@ -105,7 +105,10 @@ export default function MembershipPage() {
               <h2 className="mt-5 text-2xl font-medium text-porcelain">{item.title}</h2>
               <p className="mt-4 text-sm leading-7 text-[#666666]">{item.text}</p>
               <LabelList items={item.labels} />
-              <Link className="mt-6 inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={item.href}>{item.title}申请</Link>
+              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={item.href}>{item.title}申请</Link>
+                <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/application/query">查询申请进度</Link>
+              </div>
             </article>
           ))}
         </div>

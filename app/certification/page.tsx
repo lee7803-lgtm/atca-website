@@ -58,7 +58,7 @@ export default function CertificationPage() {
         imageSrc="/images/atca/certification-detail.jpg"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
-        visualEyebrow="ATCA Certification"
+        visualEyebrow="ITCA Certification"
         visualMark="Credential"
         visualSeal="认证"
         visualTitle="认证资料与备案"
@@ -94,9 +94,11 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Boundary" title="认证边界声明" compact>
+      <CertificationSection eyebrow="Scope" title="认证说明与适用范围" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          ATCA 道士资格认证属于协会认证与备案体系，不等同于政府许可、行政许可、宗教执法资格、商业授权或任何法定执业许可。
+          提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。
+          <br />
+          本认证用于协会内部认证、资料备案、文化交流、活动参与及证书核验，不等同于政府许可、行政许可、法定职业资格、商业授权或宗教职务任命。
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification/taoist-priest">

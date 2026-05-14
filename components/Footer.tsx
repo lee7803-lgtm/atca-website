@@ -11,15 +11,18 @@ export function Footer() {
           <div className="flex items-center gap-4">
             <BrandMark size="sm" />
             <div>
-              <p className="font-serif text-3xl text-warmGold">ATCA</p>
-              <p className="mt-1 text-sm font-medium text-white">东盟道教与文化协会</p>
+              <p className="font-serif text-3xl text-warmGold">ITCA</p>
+              <p className="mt-1 text-sm font-medium text-white">国际道教与文化协会</p>
               <p className="mt-2 text-xs uppercase tracking-[0.24em] text-white/55">
-                Asean Taoism And Cultural Association
+                International Taoisme And Cultural Association
+              </p>
+              <p className="mt-1 text-xs text-white/55">
+                Persatuan Kebudayaan Dan Taoism Antarabangsa
               </p>
             </div>
           </div>
           <p className="mt-4 max-w-md text-sm leading-7 text-white/68">
-            东盟道教与文化协会 ATCA，是面向东盟地区道教文化传承、道士资格认证、会员组织与国际交流合作的官方协会平台。
+            ITCA · International Taoisme And Cultural Association（国际道教与文化协会）是面向道教文化传承、道士资格认证、会员组织与国际交流合作的协会平台。
           </p>
         </div>
         <div>
@@ -28,6 +31,7 @@ export function Footer() {
             <Link href="/association">关于协会</Link>
             <Link href="/certification">认证体系</Link>
             <Link href="/membership">会员申请</Link>
+            <Link href="/application/query">申请进度</Link>
             <Link href="/certificate-query">证书查询</Link>
             <Link href="/contact">联系合作</Link>
           </div>
@@ -51,14 +55,14 @@ export function Footer() {
           <p className="mt-4 text-xs leading-6 text-white/55">
             正式电话、邮箱与办公地址尚未在官网公开，后续以协会秘书处公告为准。
           </p>
-          <p className="mt-6 border-b border-warmGold/25 pb-3 text-sm font-medium text-white">认证边界声明</p>
+          <p className="mt-6 border-b border-warmGold/25 pb-3 text-sm font-medium text-white">认证说明</p>
           <p className="mt-4 text-sm leading-7 text-white/68">
-            ATCA 认证属于协会认证与备案性质，不替代任何国家、地区、宗教管理机构或法律机构的行政许可、执照或官方任命。
+            ITCA 认证属于协会认证与资料建档服务，主要用于道教文化传承、师承关系、学习经历及实践资料的确认与核验，不等同于政府许可、行政许可、法定职业资格、商业授权或宗教职务任命。
           </p>
         </div>
       </div>
       <div className="relative border-t border-white/10 px-5 py-5 text-center text-xs text-white/55">
-        © 2026 东盟道教与文化协会 ATCA. All Rights Reserved.
+        © 2026 ITCA · International Taoisme And Cultural Association. All Rights Reserved.
       </div>
     </footer>
   );

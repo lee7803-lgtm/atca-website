@@ -7,8 +7,9 @@ import { InkLandscape } from "@/components/InkLandscape";
 const quickEntries = [
   ["关于协会", "/association"],
   ["道士资格认证", "/certification/taoist-priest"],
-  ["个人会员申请", "/membership/individual"],
-  ["机构会员申请", "/membership/institutional"],
+  ["个人会员申请", "/member/apply"],
+  ["机构会员申请", "/organization/apply"],
+  ["申请进度", "/application/query"],
   ["证书查询", "/certificate-query"],
   ["联系合作", "/contact"]
 ];
@@ -16,7 +17,7 @@ const quickEntries = [
 const services: Array<{ title: string; text: string; href: string; icon: IconBadgeName; visual: "certification" | "membership" | "verification"; visualTitle: string; imageSrc: string; imagePosition: string }> = [
   { title: "道士资格认证", text: "用于登记申请人的道教身份、师承传承、修道经历及相关证明材料，并按协会流程进行审核与备案。", href: "/certification/taoist-priest", icon: "certification", visual: "certification", visualTitle: "认证资料与备案", imageSrc: "/images/atca/certification-detail.jpg", imagePosition: "center 52%" },
   { title: "会员申请", text: "面向个人与机构开放会员申请，用于建立会员档案、参与文化交流及后续合作沟通。", href: "/membership", icon: "membership", visual: "membership", visualTitle: "会员组织服务", imageSrc: "/images/atca/member-gathering.jpg", imagePosition: "center 46%" },
-  { title: "证书核验", text: "用于说明证书核验方式与人工核验流程，证书记录以协会秘书处备案资料为准。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书查询核验", imageSrc: "/images/atca/certificate-verification.jpg", imagePosition: "center 58%" }
+  { title: "证书核验", text: "用于通过证书编号与持证人姓名核验证书状态，并保留人工复核说明。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书查询核验", imageSrc: "/images/atca/certificate-verification.jpg", imagePosition: "center 58%" }
 ];
 
 const showcases = [
@@ -29,10 +30,10 @@ const showcases = [
 ];
 
 const notices = [
-  ["ATCA 官网信息服务已开放", "本网站用于发布协会介绍、认证须知、会员申请、证书核验与联系合作等信息。"],
+  ["ITCA 官网信息服务已开放", "本网站用于发布协会介绍、认证须知、会员申请、证书核验与联系合作等信息。"],
   ["道士资格认证为当前认证重点", "协会当前以道士资格认证为主要认证方向，相关申请、审核与备案事项将按协会流程逐步完善。"],
   ["会员申请事项", "个人会员与机构会员可通过官网了解申请要求、资料准备与后续联系方式。"],
-  ["证书核验事项", "证书核验以协会秘书处备案记录为准。线上查询服务开放前，可根据协会公布方式进行人工核验。"]
+  ["证书核验事项", "证书核验可通过官网证书查询页面提交证书编号与持证人姓名进行核验；查询不到或资料需复核时，可联系协会秘书处协助确认。"]
 ];
 
 const cooperation = [
@@ -40,7 +41,7 @@ const cooperation = [
   ["会员申请", "服务个人会员与机构会员申请须知和资料沟通", "membership"],
   ["机构合作", "面向文化机构、社团组织与合作单位开展对接", "institution"],
   ["学术交流", "举办论坛、研讨会与学术研究合作", "international"],
-  ["国际项目", "促进东盟及全球道教文化交流互鉴", "international"],
+  ["国际项目", "促进国际道教文化交流互鉴", "international"],
   ["媒体合作", "内容共创、品牌传播与媒体平台合作", "contact"]
 ] as const;
 
@@ -48,7 +49,7 @@ const associationHighlights = [
   ["协会宗旨", "弘扬道教清净自然、济世利人的文化精神，推动道教文化与传统文化在区域内的交流与传承。"],
   ["协会使命", "服务会员、认证与文化交流工作，推动相关记录规范留存、办理流程清晰可循。"],
   ["协会定位", "面向道教文化交流、会员服务、资格认证与机构合作，服务相关个人、机构及文化交流事项。"],
-  ["东盟区域合作", "面向东盟及更广泛地区，推动宫观道堂、文化机构、传统文化组织之间的交流与合作。"]
+  ["国际合作", "面向不同国家和地区，推动宫观道堂、文化机构、传统文化组织之间的交流与合作。"]
 ];
 
 function PortalTitle({ eyebrow, title, intro, light = false }: { eyebrow?: string; title: string; intro?: string; light?: boolean }) {
@@ -67,7 +68,7 @@ function PortalCard({ title, text, href, icon, visual, visualTitle, imageSrc, im
   return (
     <article className="overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/88 shadow-[0_14px_38px_rgba(31,42,40,0.06)]">
       <CulturalImage
-        eyebrow="ATCA Service"
+        eyebrow="ITCA Service"
         title={visualTitle}
         imageSrc={imageSrc}
         imagePosition={imagePosition}
@@ -98,13 +99,16 @@ export default function Home() {
         <div className="relative mx-auto grid max-w-7xl gap-10 px-5 py-16 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:py-24">
           <div className="max-w-3xl">
             <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs tracking-[0.26em] text-[#e4cf97]">
-              ATCA · Asean Taoism And Cultural Association
+              ITCA · International Taoisme And Cultural Association
+            </p>
+            <p className="mt-4 text-sm text-[#e4cf97]/80">
+              Persatuan Kebudayaan Dan Taoism Antarabangsa
             </p>
             <h1 className="mt-8 font-serif text-5xl leading-tight text-white sm:text-6xl lg:text-7xl">
-              东盟道教与文化协会
+              国际道教与文化协会
             </h1>
             <p className="mt-7 text-lg leading-9 text-white/80">
-              ATCA 官方网站用于发布协会信息、认证体系、会员申请、证书查询与联系合作说明，服务东盟道教文化传承与交流。
+              ITCA 官方网站用于发布协会信息、认证体系、会员申请、证书查询与联系合作说明，服务道教文化传承与国际交流。
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link className="rounded-2xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0]" href="/association">了解协会</Link>
@@ -130,7 +134,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-[#d8d0bf] bg-[#efe4d3]">
-        <div className="mx-auto grid max-w-7xl gap-px bg-[#d8d0bf] sm:grid-cols-2 lg:grid-cols-6">
+        <div className="mx-auto grid max-w-7xl gap-px bg-[#d8d0bf] sm:grid-cols-2 lg:grid-cols-7">
           {quickEntries.map(([label, href]) => (
             <Link className="bg-[#f7f1e6] px-5 py-5 text-center text-sm font-medium text-[#33251F] transition hover:bg-white hover:text-[#8F1F2D]" href={href} key={label}>
               {label}
@@ -140,7 +144,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-        <PortalTitle eyebrow="Association Platform" title="ATCA 协会平台" intro="协会面向东盟地区开展道教文化传承、会员服务、资格认证与交流合作。" />
+        <PortalTitle eyebrow="Association Platform" title="ITCA 协会平台" intro="协会面向国际开展道教文化传承、会员服务、资格认证与交流合作。" />
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="relative overflow-hidden rounded-[2rem] border border-[#e4ded0] bg-white p-8 shadow-[0_18px_55px_rgba(31,42,40,0.06)]">
             <InkLandscape className="opacity-80" />
@@ -157,7 +161,7 @@ export default function Home() {
             <CulturalImage
               eyebrow="Culture Inheritance"
               title="道教文化传承"
-              caption="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在东盟及国际语境中的规范表达与持续发展。"
+              caption="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"
               imageSrc="/images/atca/about-cultural-space.jpg"
               imagePosition="center 52%"
               overlaySeal="融合"

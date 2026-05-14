@@ -27,7 +27,7 @@ export function AdminLoginForm() {
         return;
       }
 
-      router.push("/admin/applications");
+      router.push("/admin");
       router.refresh();
     } catch {
       setMessage("后台验证服务暂时不可用，请稍后重试。");

@@ -23,7 +23,7 @@ export function PageHero({
   visualMark = "Culture",
   visualTitle,
   visualDescription,
-  visualSeal = "ATCA"
+  visualSeal = "ITCA"
 }: PageHeroProps) {
   const imageModifier = visualMark ? ` page-hero__image--${visualMark.toLowerCase().replace(/[^a-z0-9]+/g, "-")}` : "";
 

@@ -1,4 +1,12 @@
 import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType } from "@/types/application";
+import type {
+  CertificateQueryResult,
+  CertificateRecord,
+  CertificationAttachment,
+  CertificationApplicationAdminRecord,
+  CertificationApplicationRecord,
+  CertificationStatus
+} from "@/types/certification";
 
 type SupabaseConfig = {
   url: string;
@@ -25,6 +33,56 @@ type SupabaseApplicationRow = {
   updated_at: string;
 };
 
+type SupabaseCertificationApplicationRow = {
+  id: string;
+  application_no: string;
+  applicant_name: string;
+  applicant_name_en: string | null;
+  taoist_name: string | null;
+  gender: string | null;
+  birth_date: string | null;
+  nationality: string | null;
+  residence: string | null;
+  phone: string;
+  email: string;
+  address: string | null;
+  master_name: string | null;
+  master_taoist_name: string | null;
+  lineage: string | null;
+  temple_or_organization: string | null;
+  sect: string | null;
+  practice_years: string | null;
+  experience_summary: string | null;
+  existing_certificates: unknown;
+  supporting_documents: unknown;
+  declaration_accepted: boolean | null;
+  ethics_confirmed: boolean | null;
+  boundary_confirmed: boolean | null;
+  status: string;
+  review_note: string | null;
+  reviewer: string | null;
+  reviewed_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type SupabaseCertificateRow = {
+  id: string;
+  certificate_no: string;
+  application_id: string;
+  holder_name: string;
+  taoist_name: string | null;
+  taoist_rank: string | null;
+  sect: string | null;
+  issued_date: string;
+  valid_from: string;
+  valid_until: string;
+  status: string;
+  public_query_enabled: boolean | null;
+  created_at: string;
+  updated_at: string;
+};
+
 export class SupabaseConfigError extends Error {
   constructor(public readonly missing: string[]) {
     super(`Missing Supabase environment variables: ${missing.join(", ")}`);
@@ -35,6 +93,20 @@ export class SupabaseRequestError extends Error {
   constructor(message: string, public readonly status: number) {
     super(message);
   }
+}
+
+export function isSupabaseSchemaError(error: unknown) {
+  if (!(error instanceof SupabaseRequestError)) return false;
+  const message = error.message.toLowerCase();
+
+  return (
+    error.status === 404 ||
+    message.includes("does not exist") ||
+    message.includes("schema cache") ||
+    message.includes("could not find the table") ||
+    message.includes("could not find") ||
+    message.includes("column")
+  );
 }
 
 function getSupabaseConfig(): SupabaseConfig {
@@ -99,6 +171,22 @@ function toApplicationQueryResult(row: Pick<SupabaseApplicationRow, "application
   };
 }
 
+function toCertificationQueryResult(
+  row: Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "created_at" | "updated_at">,
+  certificateNo?: string
+): ApplicationQueryResult {
+  return {
+    applicationNo: row.application_no,
+    applicationType: "taoist_certification",
+    name: row.applicant_name,
+    status: row.status as ApplicationQueryResult["status"],
+    adminNote: row.review_note ?? "",
+    certificateNo,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
 function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdminRecord {
   return {
     id: row.id,
@@ -117,6 +205,148 @@ function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdmin
     adminNote: row.admin_note ?? "",
     createdAt: row.created_at,
     updatedAt: row.updated_at
+  };
+}
+
+function toCertificationRow(application: CertificationApplicationRecord) {
+  return {
+    application_no: application.applicationNo,
+    applicant_name: application.applicantName,
+    applicant_name_en: application.applicantNameEn,
+    taoist_name: application.taoistName,
+    gender: application.gender,
+    birth_date: application.birthDate || null,
+    nationality: application.nationality,
+    residence: application.residence,
+    phone: application.phone,
+    email: application.email,
+    address: application.address,
+    master_name: application.masterName,
+    master_taoist_name: application.masterTaoistName,
+    lineage: application.lineage,
+    temple_or_organization: application.templeOrOrganization,
+    sect: application.sect,
+    practice_years: application.practiceYears,
+    experience_summary: application.experienceSummary,
+    existing_certificates: application.existingCertificates,
+    supporting_documents: application.supportingDocuments,
+    declaration_accepted: application.declarationAccepted,
+    ethics_confirmed: application.ethicsConfirmed,
+    boundary_confirmed: application.boundaryConfirmed,
+    status: application.status,
+    review_note: application.reviewNote,
+    reviewer: application.reviewer,
+    reviewed_at: application.reviewedAt,
+    created_at: application.createdAt,
+    updated_at: application.updatedAt
+  };
+}
+
+function normalizeAttachments(value: unknown, fallbackFieldName: string): CertificationAttachment[] {
+  if (!value) return [];
+
+  if (Array.isArray(value)) {
+    return value
+      .map((item) => {
+        if (typeof item === "string") return { originalName: item, fieldName: fallbackFieldName };
+        if (!item || typeof item !== "object") return null;
+        const record = item as Record<string, unknown>;
+        const originalName = String(record.original_name || record.originalName || "").trim();
+        const storagePath = String(record.storage_path || record.storagePath || "").trim();
+        const mimeType = String(record.mime_type || record.mimeType || "").trim();
+        const fieldName = String(record.field_name || record.fieldName || fallbackFieldName).trim();
+        const uploadedAt = String(record.uploaded_at || record.uploadedAt || "").trim();
+        const size = Number(record.size);
+
+        if (!originalName && !storagePath) return null;
+
+        return {
+          originalName: originalName || storagePath,
+          storagePath: storagePath || undefined,
+          mimeType: mimeType || undefined,
+          size: Number.isFinite(size) ? size : undefined,
+          fieldName,
+          uploadedAt: uploadedAt || undefined
+        };
+      })
+      .filter((item): item is CertificationAttachment => Boolean(item));
+  }
+
+  if (typeof value === "string") {
+    return value
+      .split("；")
+      .map((item) => item.trim())
+      .filter(Boolean)
+      .map((item) => ({ originalName: item, fieldName: fallbackFieldName }));
+  }
+
+  return [];
+}
+
+function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): CertificationApplicationAdminRecord {
+  return {
+    id: row.id,
+    applicationNo: row.application_no,
+    applicantName: row.applicant_name,
+    applicantNameEn: row.applicant_name_en ?? "",
+    taoistName: row.taoist_name ?? "",
+    gender: row.gender ?? "",
+    birthDate: row.birth_date ?? "",
+    nationality: row.nationality ?? "",
+    residence: row.residence ?? "",
+    phone: row.phone,
+    email: row.email,
+    address: row.address ?? "",
+    masterName: row.master_name ?? "",
+    masterTaoistName: row.master_taoist_name ?? "",
+    lineage: row.lineage ?? "",
+    templeOrOrganization: row.temple_or_organization ?? "",
+    sect: row.sect ?? "",
+    practiceYears: row.practice_years ?? "",
+    experienceSummary: row.experience_summary ?? "",
+    existingCertificates: normalizeAttachments(row.existing_certificates, "existing_certificates"),
+    supportingDocuments: normalizeAttachments(row.supporting_documents, "supporting_documents"),
+    declarationAccepted: row.declaration_accepted ?? false,
+    ethicsConfirmed: row.ethics_confirmed ?? false,
+    boundaryConfirmed: row.boundary_confirmed ?? false,
+    status: row.status as CertificationStatus,
+    reviewNote: row.review_note ?? "",
+    reviewer: row.reviewer ?? "",
+    reviewedAt: row.reviewed_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
+  };
+}
+
+function toCertificateRow(certificate: CertificateRecord) {
+  return {
+    certificate_no: certificate.certificateNo,
+    application_id: certificate.applicationId,
+    holder_name: certificate.holderName,
+    taoist_name: certificate.taoistName,
+    taoist_rank: certificate.taoistRank,
+    sect: certificate.sect,
+    issued_date: certificate.issuedDate,
+    valid_from: certificate.validFrom,
+    valid_until: certificate.validUntil,
+    status: certificate.status,
+    public_query_enabled: certificate.publicQueryEnabled,
+    created_at: certificate.createdAt,
+    updated_at: certificate.updatedAt
+  };
+}
+
+function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQueryResult {
+  return {
+    certificateNo: row.certificate_no,
+    holderName: row.holder_name,
+    taoistName: row.taoist_name ?? "",
+    taoistRank: row.taoist_rank ?? "",
+    sect: row.sect ?? "",
+    issuedDate: row.issued_date,
+    validFrom: row.valid_from,
+    validUntil: row.valid_until,
+    status: row.status as CertificateQueryResult["status"]
   };
 }
 
@@ -144,11 +374,11 @@ export async function insertApplication(application: ApplicationRecord) {
   return application;
 }
 
-export async function findApplicationByNoAndEmail(applicationNo: string, email: string) {
+export async function findApplicationByNoAndContact(applicationNo: string, contact: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
-    email: `eq.${email}`,
+    or: `(email.eq.${contact},phone.eq.${contact})`,
     select: "application_no,application_type,name,status,admin_note,created_at,updated_at",
     limit: "1"
   });
@@ -165,6 +395,92 @@ export async function findApplicationByNoAndEmail(applicationNo: string, email: 
   const row = rows[0];
 
   return row ? toApplicationQueryResult(row) : null;
+}
+
+export async function findApplicationsByIdentity(filters: {
+  applicationType: ApplicationType;
+  name: string;
+  contact: string;
+  contactName?: string;
+}) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_type: `eq.${filters.applicationType}`,
+    name: `eq.${filters.name}`,
+    or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
+    select: "application_no,application_type,name,status,admin_note,created_at,updated_at",
+    order: "created_at.desc",
+    limit: "10"
+  });
+
+  if (filters.contactName) params.set("contact_name", `eq.${filters.contactName}`);
+
+  const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as Array<Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at">>;
+
+  return rows.map(toApplicationQueryResult);
+}
+
+export async function findCertificationByNoAndContact(applicationNo: string, contact: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_no: `eq.${applicationNo}`,
+    or: `(email.eq.${contact},phone.eq.${contact})`,
+    select: "id,application_no,applicant_name,status,review_note,created_at,updated_at",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "created_at" | "updated_at">>;
+  const row = rows[0];
+  const certificate = row ? await findCertificateByApplicationIdSafe(row.id) : null;
+
+  return row ? toCertificationQueryResult(row, certificate?.certificateNo) : null;
+}
+
+export async function findCertificationsByIdentity(filters: { applicantName: string; taoistName: string; contact: string }) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    applicant_name: `eq.${filters.applicantName}`,
+    taoist_name: `eq.${filters.taoistName}`,
+    or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
+    select: "id,application_no,applicant_name,status,review_note,created_at,updated_at",
+    order: "created_at.desc",
+    limit: "10"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "created_at" | "updated_at">>;
+
+  const results: ApplicationQueryResult[] = [];
+  for (const row of rows) {
+    const certificate = await findCertificateByApplicationIdSafe(row.id);
+    results.push(toCertificationQueryResult(row, certificate?.certificateNo));
+  }
+
+  return results;
 }
 
 export async function listApplications(filters: { applicationType?: ApplicationType; status?: ApplicationStatus } = {}) {
@@ -235,4 +551,246 @@ export async function updateApplicationReview(id: string, values: { status: Appl
   const row = rows[0];
 
   return row ? toApplicationAdminRecord(row) : null;
+}
+
+export async function insertCertificationApplication(application: CertificationApplicationRecord) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/certification_applications`, {
+    method: "POST",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify(toCertificationRow(application))
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  return application;
+}
+
+export async function listCertificationApplications(filters: { status?: CertificationStatus; q?: string } = {}) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    select: "*",
+    order: "created_at.desc"
+  });
+
+  if (filters.status) params.set("status", `eq.${filters.status}`);
+  if (filters.q) params.set("or", `(application_no.ilike.*${filters.q}*,applicant_name.ilike.*${filters.q}*,taoist_name.ilike.*${filters.q}*)`);
+
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
+
+  return rows.map(toCertificationAdminRecord);
+}
+
+export async function getCertificationApplicationById(id: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    id: `eq.${id}`,
+    select: "*",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
+  const row = rows[0];
+
+  return row ? toCertificationAdminRecord(row) : null;
+}
+
+export async function updateCertificationReview(id: string, values: { status: CertificationStatus; reviewNote: string; reviewer: string }) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      status: values.status,
+      review_note: values.reviewNote,
+      reviewer: values.reviewer,
+      reviewed_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
+  const row = rows[0];
+
+  return row ? toCertificationAdminRecord(row) : null;
+}
+
+export async function insertCertificate(certificate: CertificateRecord) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/certificates`, {
+    method: "POST",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify(toCertificateRow(certificate))
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  return certificate;
+}
+
+export async function findCertificateByApplicationId(applicationId: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_id: `eq.${applicationId}`,
+    select: "*",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const row = rows[0];
+
+  return row ? toCertificateQueryResult(row) : null;
+}
+
+async function findCertificateByApplicationIdSafe(applicationId: string) {
+  try {
+    return await findCertificateByApplicationId(applicationId);
+  } catch (error) {
+    if (isSupabaseSchemaError(error)) return null;
+    throw error;
+  }
+}
+
+export async function checkCertificatesTableConfigured() {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    select: "id",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  return true;
+}
+
+const certificationDocumentsBucket = "certification-documents";
+
+function sanitizeStorageName(value: string) {
+  return value
+    .normalize("NFKD")
+    .replace(/[^\w.\-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 120) || "document";
+}
+
+export async function uploadCertificationAttachment(params: {
+  applicationNo: string;
+  fieldName: string;
+  file: File;
+  category: "existing_certificates" | "supporting_documents";
+  uploadedAt: string;
+}) {
+  const config = getSupabaseConfig();
+  const originalName = params.file.name || "document";
+  const timestamp = params.uploadedAt.replace(/[-:.TZ]/g, "").slice(0, 14);
+  const storagePath = `certification-applications/${params.applicationNo}/${params.category}/${params.fieldName}/${timestamp}-${sanitizeStorageName(originalName)}`;
+  const response = await fetch(`${config.url}/storage/v1/object/${certificationDocumentsBucket}/${storagePath}`, {
+    method: "POST",
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      "Content-Type": params.file.type || "application/octet-stream",
+      "x-upsert": "false"
+    },
+    body: params.file
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  return {
+    originalName,
+    storagePath,
+    mimeType: params.file.type || "application/octet-stream",
+    size: params.file.size,
+    fieldName: params.fieldName,
+    uploadedAt: params.uploadedAt
+  } satisfies CertificationAttachment;
+}
+
+export async function createCertificationAttachmentSignedUrl(storagePath: string, expiresIn = 3600) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/storage/v1/object/sign/${certificationDocumentsBucket}/${storagePath}`, {
+    method: "POST",
+    headers: getHeaders(config),
+    body: JSON.stringify({ expiresIn })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const data = (await response.json()) as { signedURL?: string; signedUrl?: string };
+  const signedPath = data.signedURL || data.signedUrl || "";
+
+  return signedPath.startsWith("http") ? signedPath : `${config.url}/storage/v1${signedPath}`;
+}
+
+export async function findCertificateByNoAndHolder(certificateNo: string, holderName: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    certificate_no: `eq.${certificateNo}`,
+    holder_name: `eq.${holderName}`,
+    public_query_enabled: "eq.true",
+    select: "*",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const row = rows[0];
+
+  return row ? toCertificateQueryResult(row) : null;
 }

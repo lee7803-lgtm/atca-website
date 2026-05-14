@@ -13,7 +13,7 @@ const profileItems = [
 const values = [
   ["尊重传统", "尊重道教传承、师承关系与文化脉络，在资料登记、认证审核与文化交流中保持对传统的敬畏。", "value"],
   ["规范认证", "依照协会流程审核认证申请，确保认证记录有据可查、边界明确。", "certification"],
-  ["国际交流", "面向东盟及更广泛地区，促进道教文化、传统文化与相关机构之间的交流合作。", "international"],
+  ["国际交流", "面向不同国家和地区，促进道教文化、传统文化与相关机构之间的交流合作。", "international"],
   ["公开透明", "通过官网公开协会信息、认证须知、会员申请与证书核验事项，减少信息不对称。", "query"],
   ["稳健发展", "立足认证、会员与证书核验等基础工作，逐步拓展文化交流与合作服务。", "cooperation"]
 ] as const;
@@ -68,13 +68,13 @@ export default function AssociationPage() {
   return (
     <>
       <PageHero
-        eyebrow="About ATCA"
+        eyebrow="About ITCA"
         title="关于协会"
-        subtitle="Asean Taoism And Cultural Association"
-        intro="东盟道教与文化协会 ATCA，面向东盟地区道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化在区域内的规范传播、资料备案与交流互鉴。"
+        subtitle="International Taoisme And Cultural Association"
+        intro="ITCA · International Taoisme And Cultural Association（国际道教与文化协会 / Persatuan Kebudayaan Dan Taoism Antarabangsa），面向道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化规范传播、资料备案与交流互鉴。"
         imageSrc="/images/atca/about-cultural-space.jpg"
         imagePosition="center 52%"
-        visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在东盟及国际语境中的规范表达与持续发展。"
+        visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"
         visualEyebrow="Culture Heritage"
         visualMark="Culture"
         visualSeal="协会"

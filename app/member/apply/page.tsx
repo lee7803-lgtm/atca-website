@@ -80,7 +80,7 @@ export default function MemberApplyPage() {
         eyebrow="Member Application"
         title="个人会员申请"
         subtitle="Individual Member Application"
-        intro="用于提交个人会员申请基础资料，便于协会进行申请记录、资格初审及后续联络。本阶段为前台申请表单骨架，提交后生成临时申请编号。"
+        intro="用于提交个人会员申请基础资料，便于协会进行申请记录、资格初审及后续联络。提交后生成 ITCA-M-2026-000001 格式申请编号。"
         imageSrc="/images/atca/member-gathering.jpg"
         imagePosition="center 46%"
         visualDescription="个人会员申请资料将用于协会会员服务、活动联系与后续审核沟通。"
@@ -95,7 +95,7 @@ export default function MemberApplyPage() {
           <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
             <p className="font-medium text-porcelain">申请说明</p>
             <p className="mt-3">
-              请如实填写个人基础资料。带星号的字段为必填项。提交后系统会生成申请编号；当前阶段暂不接数据库，正式存储将在后续阶段接入。
+              请如实填写个人基础资料。带星号的字段为必填项。提交后系统会生成申请编号，请妥善保存，用于后续查询申请进度。
             </p>
           </aside>
 
@@ -137,7 +137,7 @@ export default function MemberApplyPage() {
             ) : null}
 
             <div className="mt-8 flex flex-col gap-3 border-t border-[#eee7da] pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-6 text-[#777]">提交成功后将生成 ATCA-M 格式申请编号。</p>
+              <p className="text-xs leading-6 text-[#777]">提交成功后将生成 ITCA-M-2026-000001 格式申请编号。</p>
               <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
                 {isSubmitting ? "正在提交..." : "提交个人会员申请"}
               </button>

@@ -1,5 +1,5 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 820" role="img" aria-labelledby="title desc">
-  <title id="title">ATCA warm architecture concept</title>
+  <title id="title">ITCA warm architecture concept</title>
   <desc id="desc">Warm atmospheric East Asian gateway and temple silhouette for an official cultural association.</desc>
   <defs>
     <linearGradient id="sky" x1="0" y1="0" x2="1" y2="1">
@@ -32,5 +32,5 @@
   <path d="M230 668h740" stroke="#2a1f1a" stroke-opacity=".24" stroke-width="6"/>
   <circle cx="934" cy="168" r="106" fill="none" stroke="#8f1f2d" stroke-opacity=".18" stroke-width="3"/>
   <circle cx="934" cy="168" r="62" fill="#fffaf0" fill-opacity=".16" stroke="#a97a3d" stroke-opacity=".22"/>
-  <text x="600" y="582" text-anchor="middle" font-family="Georgia, serif" font-size="38" fill="#33251f" fill-opacity=".58">ATCA</text>
+  <text x="600" y="582" text-anchor="middle" font-family="Georgia, serif" font-size="38" fill="#33251f" fill-opacity=".58">ITCA</text>
 </svg>

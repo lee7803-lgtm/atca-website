@@ -6,18 +6,28 @@ const typePrefix: Record<ApplicationType, "M" | "O"> = {
 };
 
 function formatDateSegment(date: Date) {
-  const year = date.getFullYear();
-  const month = `${date.getMonth() + 1}`.padStart(2, "0");
-  const day = `${date.getDate()}`.padStart(2, "0");
-
-  return `${year}${month}${day}`;
+  return `${date.getFullYear()}`;
 }
 
 export function generateApplicationNo(applicationType: ApplicationType, date = new Date()) {
   const dateSegment = formatDateSegment(date);
 
-  // Temporary sequence placeholder. Replace with a database-backed daily sequence when Supabase is connected.
-  const sequence = `${Math.floor(1 + Math.random() * 9999)}`.padStart(4, "0");
+  // Temporary sequence placeholder. Replace with a database-backed yearly sequence when Supabase is connected.
+  const sequence = `${Math.floor(1 + Math.random() * 999999)}`.padStart(6, "0");
 
-  return `ATCA-${typePrefix[applicationType]}-${dateSegment}-${sequence}`;
+  return `ITCA-${typePrefix[applicationType]}-${dateSegment}-${sequence}`;
+}
+
+export function generateCertificationApplicationNo(date = new Date()) {
+  const dateSegment = formatDateSegment(date);
+  const sequence = `${Math.floor(1 + Math.random() * 999999)}`.padStart(6, "0");
+
+  return `ITCA-C-${dateSegment}-${sequence}`;
+}
+
+export function generateCertificateNo(date = new Date()) {
+  const dateSegment = formatDateSegment(date);
+  const sequence = `${Math.floor(1 + Math.random() * 999999)}`.padStart(6, "0");
+
+  return `ITCA-CERT-${dateSegment}-${sequence}`;
 }
