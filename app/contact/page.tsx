@@ -101,7 +101,6 @@ export default function ContactPage() {
             </div>
             <div className="grid gap-3 text-sm leading-7 text-[#5f5b52]">
               <p>协会正式联系方式尚未公开，官网不会展示未经确认的电话、邮箱或地址。后续以协会秘书处公布信息为准。</p>
-              <p>联系信息待完善。</p>
             </div>
           </div>
         </div>

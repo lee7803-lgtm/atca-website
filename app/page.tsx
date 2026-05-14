@@ -30,10 +30,10 @@ const certificationFeatures = [
 ];
 
 const networkReserve = [
-  ["传承谱系", "持续完善不同传承谱系、门派资料与公开说明的登记机制。"],
-  ["宫观道堂", "持续完善文化场所、道堂与合作空间的资料登记机制。"],
-  ["道长资料", "持续完善认证通过后的公开核验与资料展示机制。"],
-  ["合作机构", "持续完善学术、文化、教育与交流合作机构的登记机制。"]
+  ["传承谱系", "资料登记", "用于登记师承关系、传承脉络及相关说明资料。"],
+  ["宫观道堂", "信息核验", "用于整理宫观道堂、文化场所及合作空间的基础资料。"],
+  ["道长资料", "认证后开放", "用于认证通过后的身份核验、资料归档与公开查询说明。"],
+  ["合作机构", "合作登记", "用于登记学术、文化、教育及交流合作机构的基础资料。"]
 ];
 
 const cooperation = [
@@ -194,11 +194,11 @@ export default function Home() {
 
       <section className="bg-[#f7f1e6] px-5 py-16 sm:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
-          <PortalTitle eyebrow="Organization Network" title="组织与合作网络" intro="协会面向传承谱系、宫观道堂、道长资料与合作机构建立规范登记机制，相关信息将在资料核验、授权确认与协会流程完善后逐步公开。" />
+          <PortalTitle eyebrow="Organization Network" title="组织与合作网络" intro="协会将依据资料提交、授权确认与核验情况，逐步建立传承谱系、宫观道堂、道长资料及合作机构的规范登记与展示机制。" />
           <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
-            {networkReserve.map(([title, text]) => (
+            {networkReserve.map(([title, status, text]) => (
               <article className="rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-[0_14px_38px_rgba(31,42,40,0.06)]" key={title}>
-                <span className="inline-flex rounded-full border border-[#A97A3D]/30 bg-[#fffaf0] px-3 py-1 text-xs font-medium text-[#8a6b3e]">持续完善中</span>
+                <span className="inline-flex rounded-full border border-[#A97A3D]/30 bg-[#fffaf0] px-3 py-1 text-xs font-medium text-[#8a6b3e]">{status}</span>
                 <h3 className="mt-5 text-lg font-medium text-[#1B1B1B]">{title}</h3>
                 <p className="mt-3 text-sm leading-7 text-[#2A2A2A]">{text}</p>
               </article>
