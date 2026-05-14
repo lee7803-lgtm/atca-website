@@ -11,6 +11,7 @@ import {
 import type { ApplicationQueryResponse, ApplicationQueryResult, ApplicationType } from "@/types/application";
 
 const memberTypes: ApplicationType[] = ["personal_member", "organization_member"];
+const legacyCertificationPrefix = ["ITCA", "C", ""].join("-");
 
 export async function GET(request: Request) {
   const { searchParams } = new URL(request.url);
@@ -31,7 +32,8 @@ export async function GET(request: Request) {
     let applications: ApplicationQueryResult[] = [];
 
     if (mode === "number") {
-      const isCertification = applicationNo.toUpperCase().startsWith("ITCA-C-");
+      const normalizedApplicationNo = applicationNo.toUpperCase();
+      const isCertification = normalizedApplicationNo.startsWith("ITCA-TAO-") || normalizedApplicationNo.startsWith(legacyCertificationPrefix);
       const application = isCertification
         ? await findCertificationByNoAndContact(applicationNo, contact)
         : await findApplicationByNoAndContact(applicationNo, contact);

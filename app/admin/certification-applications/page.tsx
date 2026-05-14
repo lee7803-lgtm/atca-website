@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
@@ -7,6 +8,9 @@ import { checkCertificatesTableConfigured, isSupabaseSchemaError, listCertificat
 import type { CertificationApplicationAdminRecord, CertificationStatus } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "认证申请管理｜国际道教与文化协会 ITCA"
+};
 
 const statusOptions: Array<{ value: "" | CertificationStatus; label: string }> = [
   { value: "", label: "全部状态" },
@@ -68,6 +72,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
           <AdminLogoutButton />
         </div>
       </div>

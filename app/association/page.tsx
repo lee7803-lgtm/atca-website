@@ -1,8 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
+
+export const metadata: Metadata = {
+  title: "关于协会｜国际道教与文化协会 ITCA"
+};
 
 const profileItems = [
   ["组织定位", "协会以道教文化交流、会员服务、资格认证与资料备案为主要工作方向，服务相关个人、机构及文化交流合作事项。", "association"],
@@ -28,7 +33,7 @@ const structure = [
 ] as const;
 
 const functions = [
-  ["道教文化交流", "组织和推动道教文化、传统文化、经典学习与区域文化交流相关事项。", "international"],
+  ["道教文化交流", "组织和推动道教文化、传统文化、经典学习与道教文化国际交流相关事项。", "international"],
   ["道士资格认证", "围绕道士身份、师承信息、宗派背景、修道经历与相关证明材料开展认证与备案。", "certification"],
   ["会员组织管理", "受理个人会员与机构会员申请，建立会员档案，推动会员服务与协会事务参与。", "membership"],
   ["资料备案与核验", "整理认证、会员与证书相关记录，为后续核验和服务工作提供依据。", "query"],
@@ -71,7 +76,7 @@ export default function AssociationPage() {
         eyebrow="About ITCA"
         title="关于协会"
         subtitle="International Taoisme And Cultural Association"
-        intro="ITCA · International Taoisme And Cultural Association（国际道教与文化协会 / Persatuan Kebudayaan Dan Taoism Antarabangsa），面向道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化规范传播、资料备案与交流互鉴。"
+        intro="ITCA · International Taoisme And Cultural Association（国际道教与文化协会），面向道教文化传承、会员服务、资格认证与文化交流合作，致力于推动道教文化规范传播、资料备案与交流互鉴。"
         imageSrc="/images/atca/about-cultural-space.jpg"
         imagePosition="center 52%"
         visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"
@@ -95,7 +100,7 @@ export default function AssociationPage() {
 
       <AssociationSection eyebrow="Mission" title="宗旨使命" tone="soft">
         <div className="grid gap-5 md:grid-cols-2">
-          <InfoCard icon={<AssociationIcon name="value" />} title="宗旨" text="弘扬道教清净自然、济世利人、尊师重道的文化精神，促进道教文化与传统文化在区域内的交流、传承与规范发展。" />
+          <InfoCard icon={<AssociationIcon name="value" />} title="宗旨" text="弘扬道教清净自然、济世利人、尊师重道的文化精神，促进道教文化与传统文化在国际语境中的交流、传承与规范发展。" />
           <InfoCard icon={<AssociationIcon name="cooperation" />} title="使命" text="服务道士资格认证、资料备案、会员工作、文化交流与机构合作，推动相关事务规范有序开展。" />
         </div>
       </AssociationSection>

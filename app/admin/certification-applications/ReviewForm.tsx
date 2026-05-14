@@ -14,6 +14,12 @@ const statusOptions: Array<{ value: CertificationStatus; label: string }> = [
   { value: "revoked", label: "已撤销" }
 ];
 
+function buildReviewNote(reviewNote: string, taoistRank: string) {
+  const cleaned = reviewNote.replace(/\n?证书等级 \/ 项目：.*$/m, "").trim();
+  const rankLine = `证书等级 / 项目：${taoistRank || "道士资格认证"}`;
+  return cleaned ? `${cleaned}\n${rankLine}` : rankLine;
+}
+
 export function CertificationReviewForm({ applicationId, initialReviewNote, initialStatus }: { applicationId: string; initialReviewNote: string; initialStatus: CertificationStatus }) {
   const router = useRouter();
   const [status, setStatus] = useState<CertificationStatus>(initialStatus);
@@ -30,16 +36,16 @@ export function CertificationReviewForm({ applicationId, initialReviewNote, init
       const response = await fetch(`/api/admin/certification-applications/${applicationId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(generateCertificate ? { generateCertificate, reviewNote, taoistRank } : { status, reviewNote })
+        body: JSON.stringify(generateCertificate ? { generateCertificate, reviewNote: buildReviewNote(reviewNote, taoistRank), taoistRank } : { status, reviewNote: buildReviewNote(reviewNote, taoistRank) })
       });
-      const result = (await response.json()) as { success: boolean; message?: string };
+      const result = (await response.json()) as { success: boolean; message?: string; certificate?: { certificateNo?: string } };
 
       if (!response.ok || !result.success) {
         setMessage(result.message || "审核结果未能保存。");
         return;
       }
 
-      setMessage(generateCertificate ? "证书记录已生成。" : "审核状态和备注已保存。");
+      setMessage(generateCertificate ? `证书记录已生成。${result.certificate?.certificateNo ? `证书编号：${result.certificate.certificateNo}` : ""}` : "审核状态、备注和证书项目已保存。");
       router.refresh();
     } catch {
       setMessage("审核保存服务暂时不可用，请稍后重试。");

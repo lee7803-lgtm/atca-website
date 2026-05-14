@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
@@ -7,6 +8,9 @@ import { listApplications } from "@/lib/supabase/server";
 import type { ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
+export const metadata: Metadata = {
+  title: "会员申请管理｜国际道教与文化协会 ITCA"
+};
 
 const typeOptions: Array<{ value: "" | ApplicationType; label: string }> = [
   { value: "", label: "全部类型" },
@@ -56,6 +60,9 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">
             返回后台首页
+          </Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">
+            返回前台首页
           </Link>
           <AdminLogoutButton />
         </div>

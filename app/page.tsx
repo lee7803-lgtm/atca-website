@@ -1,15 +1,17 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CulturePattern } from "@/components/CulturePattern";
 import { CulturalImage } from "@/components/CulturalImage";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { InkLandscape } from "@/components/InkLandscape";
 
+export const metadata: Metadata = {
+  title: "国际道教与文化协会 ITCA 官网"
+};
+
 const quickEntries = [
-  ["关于协会", "/association"],
-  ["道士资格认证", "/certification/taoist-priest"],
-  ["个人会员申请", "/member/apply"],
-  ["机构会员申请", "/organization/apply"],
-  ["申请进度", "/application/query"],
+  ["认证体系", "/certification"],
+  ["会员申请", "/membership"],
   ["证书查询", "/certificate-query"],
   ["联系合作", "/contact"]
 ];
@@ -20,33 +22,29 @@ const services: Array<{ title: string; text: string; href: string; icon: IconBad
   { title: "证书核验", text: "用于通过证书编号与持证人姓名核验证书状态，并保留人工复核说明。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书查询核验", imageSrc: "/images/atca/certificate-verification.jpg", imagePosition: "center 58%" }
 ];
 
-const showcases = [
-  ["理事会", "统筹协会发展方向、重大事项审议与协会公共事务。", "组织治理", "governance"],
-  ["秘书处", "负责日常协调、资料受理、信息记录与对外联系。", "执行协调", "secretariat"],
-  ["认证委员会", "负责道士资格认证材料审核、评审与备案建议。", "标准审核", "cert-review"],
-  ["专家顾问委员会", "提供文化研究、学术交流与专业咨询支持。", "学术支持", "research"],
-  ["会员服务部门", "服务个人会员与机构会员申请、沟通与协作。", "会员联结", "member-service"],
-  ["合作发展部门", "推动机构合作、国际项目、学术交流与资源共建。", "合作拓展", "cooperation"]
+const certificationFeatures = [
+  ["可查询", "通过证书编号与姓名核验证书状态，保留人工复核通道。"],
+  ["可建档", "围绕身份资料、师承关系、学习经历与实践资料形成协会认证档案。"],
+  ["可追溯", "申请、审核、建档、签发与核验流程保持记录链路。"],
+  ["边界清晰", "协会认证不等同于政府许可、法定职业资格、商业授权或宗教职务任命。"]
 ];
 
-const notices = [
-  ["ITCA 官网信息服务已开放", "本网站用于发布协会介绍、认证须知、会员申请、证书核验与联系合作等信息。"],
-  ["道士资格认证为当前认证重点", "协会当前以道士资格认证为主要认证方向，相关申请、审核与备案事项将按协会流程逐步完善。"],
-  ["会员申请事项", "个人会员与机构会员可通过官网了解申请要求、资料准备与后续联系方式。"],
-  ["证书核验事项", "证书核验可通过官网证书查询页面提交证书编号与持证人姓名进行核验；查询不到或资料需复核时，可联系协会秘书处协助确认。"]
+const networkReserve = [
+  ["传承谱系", "持续完善不同传承谱系、门派资料与公开说明的登记机制。"],
+  ["宫观道堂", "持续完善文化场所、道堂与合作空间的资料登记机制。"],
+  ["道长资料", "持续完善认证通过后的公开核验与资料展示机制。"],
+  ["合作机构", "持续完善学术、文化、教育与交流合作机构的登记机制。"]
 ];
 
 const cooperation = [
-  ["认证咨询", "围绕道士资格认证要求、材料与流程开展咨询", "certification"],
-  ["会员申请", "服务个人会员与机构会员申请须知和资料沟通", "membership"],
-  ["机构合作", "面向文化机构、社团组织与合作单位开展对接", "institution"],
-  ["学术交流", "举办论坛、研讨会与学术研究合作", "international"],
-  ["国际项目", "促进国际道教文化交流互鉴", "international"],
-  ["媒体合作", "内容共创、品牌传播与媒体平台合作", "contact"]
+  ["国际交流", "面向不同国家和地区推动道教文化交流互鉴。", "international"],
+  ["文化研究", "围绕经典、仪轨、历史与当代传播开展研究协作。", "value"],
+  ["课程研修", "支持文化课程、研修活动与资料整理合作。", "membership"],
+  ["机构合作", "对接文化机构、社团组织、研究单位与合作伙伴。", "institution"]
 ] as const;
 
 const associationHighlights = [
-  ["协会宗旨", "弘扬道教清净自然、济世利人的文化精神，推动道教文化与传统文化在区域内的交流与传承。"],
+  ["协会宗旨", "弘扬道教清净自然、济世利人的文化精神，推动道教文化与传统文化在国际语境中的交流与传承。"],
   ["协会使命", "服务会员、认证与文化交流工作，推动相关记录规范留存、办理流程清晰可循。"],
   ["协会定位", "面向道教文化交流、会员服务、资格认证与机构合作，服务相关个人、机构及文化交流事项。"],
   ["国际合作", "面向不同国家和地区，推动宫观道堂、文化机构、传统文化组织之间的交流与合作。"]
@@ -101,9 +99,6 @@ export default function Home() {
             <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs tracking-[0.26em] text-[#e4cf97]">
               ITCA · International Taoisme And Cultural Association
             </p>
-            <p className="mt-4 text-sm text-[#e4cf97]/80">
-              Persatuan Kebudayaan Dan Taoism Antarabangsa
-            </p>
             <h1 className="mt-8 font-serif text-5xl leading-tight text-white sm:text-6xl lg:text-7xl">
               国际道教与文化协会
             </h1>
@@ -111,10 +106,9 @@ export default function Home() {
               ITCA 官方网站用于发布协会信息、认证体系、会员申请、证书查询与联系合作说明，服务道教文化传承与国际交流。
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link className="rounded-2xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0]" href="/association">了解协会</Link>
-              <Link className="rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white" href="/certification">认证体系</Link>
-              <Link className="rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white" href="/membership">会员申请</Link>
-              <Link className="rounded-2xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white" href="/contact">联系合作</Link>
+              <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/certification">认证体系</Link>
+              <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">证书查询</Link>
+              <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/membership">会员申请</Link>
             </div>
           </div>
           <div className="lg:pt-4">
@@ -134,7 +128,7 @@ export default function Home() {
       </section>
 
       <section className="border-y border-[#d8d0bf] bg-[#efe4d3]">
-        <div className="mx-auto grid max-w-7xl gap-px bg-[#d8d0bf] sm:grid-cols-2 lg:grid-cols-7">
+        <div className="mx-auto grid max-w-7xl gap-px bg-[#d8d0bf] sm:grid-cols-2 lg:grid-cols-4">
           {quickEntries.map(([label, href]) => (
             <Link className="bg-[#f7f1e6] px-5 py-5 text-center text-sm font-medium text-[#33251F] transition hover:bg-white hover:text-[#8F1F2D]" href={href} key={label}>
               {label}
@@ -144,7 +138,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-        <PortalTitle eyebrow="Association Platform" title="ITCA 协会平台" intro="协会面向国际开展道教文化传承、会员服务、资格认证与交流合作。" />
+        <PortalTitle eyebrow="Institutional Role" title="协会定位" intro="ITCA 是面向道教文化传承、认证建档、会员组织与国际交流合作的协会平台，以清晰的信息入口承接申请、查询与合作沟通。" />
         <div className="grid gap-6 lg:grid-cols-[1.1fr_0.9fr]">
           <div className="relative overflow-hidden rounded-[2rem] border border-[#e4ded0] bg-white p-8 shadow-[0_18px_55px_rgba(31,42,40,0.06)]">
             <InkLandscape className="opacity-80" />
@@ -175,7 +169,7 @@ export default function Home() {
 
       <section className="bg-[#f2eadc] px-5 py-16 sm:px-8 lg:py-24">
         <div className="mx-auto max-w-7xl">
-          <PortalTitle eyebrow="Core Services" title="核心服务" intro="协会当前重点提供道士资格认证、会员申请与证书核验相关服务，并通过官网公开办理须知与联系渠道。" />
+          <PortalTitle eyebrow="Official Entries" title="认证、会员与查询入口" intro="官网当前提供道士资格认证、会员申请与证书核验三类核心入口，并公开说明申请边界与查询方式。" />
           <div className="grid gap-6 lg:grid-cols-3">
             {services.map((item) => <PortalCard key={item.title} {...item} />)}
           </div>
@@ -183,47 +177,38 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-        <PortalTitle eyebrow="Organization" title="协会组织与职能" intro="协会依据章程和实际工作需要，设立相应组织分工，负责会员服务、认证审核、文化交流与合作沟通等事务。" />
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {showcases.map(([title, text, label, visual], index) => (
-            <article className="overflow-hidden rounded-[1.75rem] border border-[#e4ded0] bg-white shadow-[0_18px_55px_rgba(31,42,40,0.06)]" key={title}>
-              <div className={`org-visual org-visual--${visual} h-36 p-5`}>
-                <span className="relative z-10 font-serif text-3xl text-[#8F1F2D]/72">0{index + 1}</span>
-                <span className="relative z-10 ml-4 inline-flex border border-[#A97A3D]/30 bg-[#fffaf0]/62 px-3 py-1 text-xs tracking-[0.18em] text-[#7b5a2e]">
-                  {label}
-                </span>
-              </div>
-              <div className="p-6">
-                <h3 className="text-lg font-medium text-porcelain">{title}</h3>
-                <p className="mt-3 text-sm leading-7 text-[#666666]">{text}</p>
-              </div>
+        <PortalTitle eyebrow="Certification System" title="认证体系" intro="当前认证系统仅开放道士资格认证，用于登记申请人的道教身份、师承传承、学习经历与相关证明材料，并纳入协会认证与资料建档流程。" />
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {certificationFeatures.map(([title, text], index) => (
+            <article className="rounded-2xl border border-[#e4ded0] bg-white/90 p-6 shadow-[0_14px_38px_rgba(31,42,40,0.06)]" key={title}>
+              <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
+              <h3 className="mt-4 text-lg font-medium text-[#1B1B1B]">{title}</h3>
+              <p className="mt-3 text-sm leading-7 text-[#2A2A2A]">{text}</p>
             </article>
           ))}
+        </div>
+        <div className="mt-8 border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
+          ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。
         </div>
       </section>
 
       <section className="bg-[#f7f1e6] px-5 py-16 sm:px-8 lg:py-24">
-        <div className="mx-auto grid max-w-7xl gap-8 lg:grid-cols-[0.9fr_1.1fr]">
-          <article className="rounded-[2rem] bg-[#8b3f31] p-8 text-white shadow-[0_18px_55px_rgba(139,63,49,0.14)]">
-            <p className="text-xs uppercase tracking-[0.28em] text-[#f2d79a]">Announcement</p>
-            <h2 className="mt-5 font-serif text-3xl">协会公告</h2>
-            <p className="mt-5 text-sm leading-8 text-white/78">
-              协会通过官网发布认证、会员、证书核验与合作联系相关信息。涉及具体申请、核验或合作事项，以协会秘书处正式确认为准。
-            </p>
-          </article>
-          <div className="rounded-[2rem] border border-[#e4ded0] bg-white p-6 shadow-[0_18px_55px_rgba(31,42,40,0.06)]">
-            {notices.map(([title, text]) => (
-              <div className="border-b border-[#eee7da] py-4 last:border-b-0" key={title}>
-                <p className="text-sm font-medium text-porcelain">{title}</p>
-                <p className="mt-2 text-sm leading-7 text-[#666666]">{text}</p>
-              </div>
+        <div className="mx-auto max-w-7xl">
+          <PortalTitle eyebrow="Organization Network" title="组织与合作网络" intro="协会面向传承谱系、宫观道堂、道长资料与合作机构建立规范登记机制，相关信息将在资料核验、授权确认与协会流程完善后逐步公开。" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {networkReserve.map(([title, text]) => (
+              <article className="rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-[0_14px_38px_rgba(31,42,40,0.06)]" key={title}>
+                <span className="inline-flex rounded-full border border-[#A97A3D]/30 bg-[#fffaf0] px-3 py-1 text-xs font-medium text-[#8a6b3e]">持续完善中</span>
+                <h3 className="mt-5 text-lg font-medium text-[#1B1B1B]">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[#2A2A2A]">{text}</p>
+              </article>
             ))}
           </div>
         </div>
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-16 sm:px-8 lg:py-24">
-        <PortalTitle eyebrow="Cooperation" title="联系合作" intro="面向文化机构、社团组织、研究单位和国际项目伙伴，开展稳健合作。" />
+        <PortalTitle eyebrow="International Cooperation" title="国际合作与学术交流" intro="面向文化机构、社团组织、研究单位和国际项目伙伴，围绕文化研究、课程研修、资料整理与交流活动开展稳健合作。" />
         <CulturalImage
           eyebrow="Cultural Exchange"
           title="国际文化交流与合作"
@@ -243,6 +228,23 @@ export default function Home() {
               <p className="mt-4 text-sm leading-7 text-[#666666]">{text}</p>
             </article>
           ))}
+        </div>
+      </section>
+
+      <section className="bg-[#2A1F1A] px-5 py-14 text-white sm:px-8 lg:py-20">
+        <div className="mx-auto flex max-w-7xl flex-col gap-7 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd7a]">Next Step</p>
+            <h2 className="mt-4 font-serif text-3xl leading-tight text-[#F5E7C4] sm:text-4xl">申请与查询服务</h2>
+            <p className="mt-4 max-w-2xl text-sm leading-7 text-white/82">
+              申请道士资格认证、核验证书记录，或与协会秘书处沟通国际合作与学术交流事项。
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:justify-end">
+            <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/certification/taoist-priest">申请认证</Link>
+            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">查询证书</Link>
+            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/contact">联系合作</Link>
+          </div>
         </div>
       </section>
     </>

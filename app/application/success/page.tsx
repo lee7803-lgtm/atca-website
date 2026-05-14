@@ -1,6 +1,11 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import { CopyButton } from "@/components/CopyButton";
 import { PageHero } from "@/components/PageHero";
+
+export const metadata: Metadata = {
+  title: "申请已提交｜国际道教与文化协会 ITCA"
+};
 
 type SuccessPageProps = {
   searchParams?: {
@@ -22,10 +27,10 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
         eyebrow="Application Submitted"
         title="申请已提交"
         subtitle="Application Submitted"
-        intro="您的申请资料已完成提交。申请编号可用于后续查询申请进度。"
+        intro="申请资料已提交。请妥善保存以下申请编号，后续可用于查询办理进度或与协会秘书处沟通核对。"
         imageSrc="/images/atca/member-gathering.jpg"
         imagePosition="center 46%"
-        visualDescription="请妥善保存申请编号，并通过申请进度查询页面查看后续审核状态。"
+        visualDescription="请保存申请编号，并通过申请进度查询页面查看后续审核状态。"
         visualEyebrow="Success"
         visualMark="ITCA"
         visualSeal="提交"
@@ -46,7 +51,7 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
           </div>
           <p className="mx-auto mt-7 max-w-2xl text-sm leading-8 text-[#5f5b52]">
             {applicationNumber
-              ? "请妥善保存申请编号，后续可用于查询申请进度。协会秘书处将在收到资料后进行初步审核。"
+              ? "请妥善保存以下申请编号，后续可用于查询办理进度或与协会秘书处沟通核对。"
               : "当前页面缺少申请编号参数，无法展示对应申请记录。请从申请提交成功后的页面进入，或使用已保存的申请编号进行查询。"}
           </p>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">

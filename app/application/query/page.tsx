@@ -164,7 +164,7 @@ function ApplicationQueryContent() {
               {isQuerying ? "正在查询..." : "查询申请进度"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ITCA-M、ITCA-O、ITCA-C 开头的申请编号。查询结果会脱敏显示，不展示完整个人资料、邮箱或手机号码。
+              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果会脱敏显示，不展示完整个人资料、邮箱或手机号码。
             </div>
           </form>
 
@@ -222,7 +222,7 @@ function ApplicationQueryContent() {
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Boundary</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">认证说明与适用范围</h2>
-            <p className="mt-5">本认证用于协会内部认证、资料备案、文化交流、活动参与及证书核验，不等同于政府许可、行政许可、法定职业资格、商业授权或宗教职务任命。</p>
+            <p className="mt-5">ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。</p>
           </div>
         </section>
       </main>
@@ -232,7 +232,7 @@ function ApplicationQueryContent() {
 
 function nextStepText(status: string) {
   if (status === "need_more_info") return "请按审核说明补充资料，并等待协会秘书处进一步联系。";
-  if (status === "approved") return "申请已通过，请等待建档或证书办理通知。";
+  if (status === "approved") return "审核已通过，请等待证书记录生成或协会秘书处进一步通知。";
   if (status === "cert_issued") return "证书已生成，可前往证书查询页面核验证书记录。";
   if (status === "rejected" || status === "revoked") return "如需复核，请联系协会秘书处协助核对。";
   return "请等待协会秘书处审核；如联系方式变更，请主动联系更新。";
@@ -240,6 +240,7 @@ function nextStepText(status: string) {
 
 function currentStatusText(application: ApplicationQueryResult) {
   if (application.applicationType === "taoist_certification" && application.status === "approved" && !application.certificateNo) return "已通过，待生成证书";
+  if (application.applicationType === "taoist_certification" && application.status === "cert_issued" && application.certificateNo) return "审核已通过，证书记录已生成";
   return statusText[application.status];
 }
 

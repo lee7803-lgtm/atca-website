@@ -362,7 +362,7 @@ export default function TaoistPriestCertificationPage() {
 
       <main className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
-          请按步骤填写认证申请资料。带 <span className="font-semibold text-[#7F1D1D]">*</span> 的项目为必填项，其他资料可按实际情况补充。提交后系统将生成 ITCA-C-2026-000001 格式认证申请编号。
+          申请人需提交与道教身份、师承关系、学习经历及相关证明有关的资料。协会将依据提交材料进行资料核验、审核记录及认证建档。
         </div>
         <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between">
           <span>已提交认证申请？查询认证申请进度</span>
@@ -407,7 +407,7 @@ export default function TaoistPriestCertificationPage() {
               <div className="rounded-2xl border border-gold/35 bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
                 <h3 className="font-serif text-xl text-porcelain">认证说明与适用范围</h3>
                 <p className="mt-3">提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。</p>
-                <p className="mt-3">本认证用于协会内部认证、资料备案、文化交流、活动参与及证书核验，不等同于政府许可、行政许可、法定职业资格、商业授权或宗教职务任命。</p>
+                <p className="mt-3">ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。</p>
               </div>
             </div>
           ) : null}

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { FormEvent, useState } from "react";
+import { FormEvent, useEffect, useState } from "react";
 import { IconBadge } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { Section } from "@/components/Section";
@@ -21,6 +21,14 @@ export default function CertificateQueryPage() {
   const [certificate, setCertificate] = useState<CertificateQueryResult | null>(null);
   const [message, setMessage] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
+
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const certificateNoParam = params.get("certificateNo");
+    const holderNameParam = params.get("holderName");
+    if (certificateNoParam) setCertificateNo(certificateNoParam);
+    if (holderNameParam) setHolderName(holderNameParam);
+  }, []);
 
   const submitQuery = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -73,7 +81,7 @@ export default function CertificateQueryPage() {
             <div className="grid gap-5">
               <label className="grid gap-2">
                 <span className="text-sm font-medium text-porcelain">证书编号</span>
-                <input className="form-input" placeholder="ITCA-CERT-2026-000001" required value={certificateNo} onChange={(event) => setCertificateNo(event.target.value)} />
+                <input className="form-input" placeholder="ITCA-TAO-********" required value={certificateNo} onChange={(event) => setCertificateNo(event.target.value)} />
               </label>
               <label className="grid gap-2">
                 <span className="text-sm font-medium text-porcelain">持证人姓名</span>
@@ -96,6 +104,7 @@ export default function CertificateQueryPage() {
                 <ResultRow label="道名 / 法名" value={certificate.taoistName || "未登记"} />
                 <ResultRow label="认证项目" value="道士资格认证" />
                 <ResultRow label="道士等级" value={certificate.taoistRank || "未登记"} />
+                <ResultRow label="签发机构" value="International Taoisme And Cultural Association" />
                 <ResultRow label="签发日期" value={certificate.issuedDate} />
                 <ResultRow label="有效期" value={`${certificate.validFrom} 至 ${certificate.validUntil}`} />
                 <ResultRow label="证书状态" value={statusText[certificate.status]} />
@@ -110,7 +119,7 @@ export default function CertificateQueryPage() {
 
       <Section title="证书核验说明" tone="soft">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          证书查询结果用于核验证书编号、持证人信息、认证项目、签发日期、有效状态及协会备案记录。查询结果仅代表 ITCA 系统内的认证与建档状态，不作为任何政府许可、行政许可、法定执业资格或宗教职务任命证明。
+          证书查询结果用于核验证书编号、持证人信息、认证项目、签发日期、有效状态及协会备案记录。查询结果仅代表 ITCA 系统内的认证与建档状态，不作为任何政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可证明。
         </div>
       </Section>
     </>

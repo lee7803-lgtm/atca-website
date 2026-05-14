@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 
-export function CopyButton({ text }: { text: string }) {
+export function CopyButton({ label = "复制申请编号", text }: { label?: string; text: string }) {
   const [copied, setCopied] = useState(false);
 
   const copy = async () => {
@@ -17,7 +17,7 @@ export function CopyButton({ text }: { text: string }) {
 
   return (
     <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink" disabled={!text} onClick={copy} type="button">
-      {copied ? "已复制" : "复制申请编号"}
+      {copied ? "已复制" : label}
     </button>
   );
 }

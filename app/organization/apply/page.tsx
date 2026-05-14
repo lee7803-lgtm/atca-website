@@ -84,7 +84,7 @@ export default function OrganizationApplyPage() {
         eyebrow="Organization Application"
         title="机构会员申请"
         subtitle="Organization Member Application"
-        intro="用于提交机构会员申请基础资料，便于协会进行机构背景记录、合作方向初审及后续联络。提交后生成 ITCA-O-2026-000001 格式申请编号。"
+        intro="请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。"
         imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
         imagePosition="center 48%"
         visualDescription="面向宫观、文化机构、培训机构、企业及其他合作单位的会员申请入口。"
@@ -99,7 +99,7 @@ export default function OrganizationApplyPage() {
           <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
             <p className="font-medium text-porcelain">申请说明</p>
             <p className="mt-3">
-              请填写机构基础资料、负责人信息与合作意向。提交后系统会生成申请编号，请妥善保存，用于后续查询申请进度。
+              请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。
             </p>
           </aside>
 
@@ -148,7 +148,7 @@ export default function OrganizationApplyPage() {
             ) : null}
 
             <div className="mt-8 flex flex-col gap-3 border-t border-[#eee7da] pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-6 text-[#777]">提交成功后将生成 ITCA-O-2026-000001 格式申请编号。</p>
+              <p className="text-xs leading-6 text-[#777]">申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。</p>
               <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
                 {isSubmitting ? "正在提交..." : "提交机构会员申请"}
               </button>

@@ -1,14 +1,19 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
 
+export const metadata: Metadata = {
+  title: "联系合作｜国际道教与文化协会 ITCA"
+};
+
 const categories: Array<{ title: string; text: string; icon: IconBadgeName }> = [
   { title: "认证咨询", text: "用于了解道士资格认证的申请条件、材料要求、审核流程与证书核验事项。", icon: "certification" },
   { title: "会员申请", text: "用于了解个人会员、机构会员申请范围、申请资料、审核流程与后续沟通事项。", icon: "membership" },
   { title: "机构合作", text: "面向宫观道堂、文化机构、传统文化组织及相关合作方，沟通合作方向与资料对接。", icon: "institution" },
-  { title: "文化交流", text: "用于联系道教文化、传统文化、经典学习、活动交流及区域文化合作相关事项。", icon: "international" },
+  { title: "文化交流", text: "用于联系道教文化、传统文化、经典学习、活动交流及道教文化国际交流相关事项。", icon: "international" },
   { title: "网站信息更正", text: "用于反馈官网内容、名称表述、资料展示、证书信息或页面内容中的更正需求。", icon: "certificate" }
 ];
 

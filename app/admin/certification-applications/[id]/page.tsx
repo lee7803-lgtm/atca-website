@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { CertificationReviewForm } from "../ReviewForm";
+import { CopyButton } from "@/components/CopyButton";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { CertificateQueryResult, CertificationApplicationAdminRecord, CertificationAttachment, CertificationStatus } from "@/types/certification";
@@ -50,8 +51,11 @@ export default async function AdminCertificationApplicationDetailPage({ params }
     return (
       <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/certification-applications">返回认证申请列表</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
+          <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/certification-applications">返回申请管理</Link>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
+            <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
+          </div>
         </div>
         <div className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate">
           <h1 className="font-serif text-3xl text-porcelain">认证申请数据表尚未配置</h1>
@@ -82,8 +86,11 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/certification-applications">返回认证申请列表</Link>
-        <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
+        <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/certification-applications">返回申请管理</Link>
+        <div className="flex flex-col gap-3 sm:flex-row">
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
+        </div>
       </div>
       <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
@@ -117,13 +124,18 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="边界确认" value={application.boundaryConfirmed ? "已确认" : "未确认"} />
           </div>
           {certificate ? (
-            <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-              <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href="/certificate-query">
-                前台证书查询入口
-              </Link>
-              <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={`/application/query?number=${application.applicationNo}`}>
-                申请进度查询入口
-              </Link>
+            <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+              <p className="text-sm font-medium text-porcelain">证书记录已生成</p>
+              <p className="mt-2 break-all font-serif text-2xl text-[#7F1D1D]">{certificate.certificateNo}</p>
+              <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <CopyButton label="复制证书编号" text={certificate.certificateNo} />
+                <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href={`/certificate-query?certificateNo=${encodeURIComponent(certificate.certificateNo)}&holderName=${encodeURIComponent(certificate.holderName)}`}>
+                  查看证书
+                </Link>
+                <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href={`/application/query?number=${application.applicationNo}`}>
+                  申请进度查询入口
+                </Link>
+              </div>
             </div>
           ) : null}
           {certificateMessage ? <div className="mt-6 border-l-4 border-[#8a6b3e] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">{certificateMessage}</div> : null}

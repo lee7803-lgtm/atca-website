@@ -1,8 +1,13 @@
 import Link from "next/link";
+import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
+
+export const metadata: Metadata = {
+  title: "会员申请｜国际道教与文化协会 ITCA"
+};
 
 const memberTypes = [
   {
@@ -81,7 +86,7 @@ export default function MembershipPage() {
         eyebrow="Membership"
         title="会员申请"
         subtitle="Membership Application"
-        intro="ITCA 当前开放个人会员与机构会员申请，用于登记会员基础资料、文化交流意向、合作联系需求及认证体系相关沟通事项。"
+        intro="申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时联系补充相关材料。"
         imageSrc="/images/atca/member-gathering.jpg"
         imagePosition="center 46%"
         visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"
@@ -93,7 +98,7 @@ export default function MembershipPage() {
 
       <MembershipSection eyebrow="Application Notice" title="申请须知" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          个人会员与机构会员前台申请表已开放。个人会员申请编号格式为 ITCA-M-2026-000001，机构会员申请编号格式为 ITCA-O-2026-000001。提交后请妥善保存申请编号，可用于申请进度查询。
+          申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时与申请人联系补充相关材料。申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。
         </div>
       </MembershipSection>
 
