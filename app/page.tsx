@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { Metadata } from "next";
 import { CulturePattern } from "@/components/CulturePattern";
 import { CulturalImage } from "@/components/CulturalImage";
@@ -30,12 +31,12 @@ const certificationFeatures = [
 ];
 
 const organizationUnits = [
-  ["01", "理事会", "组织治理", "统筹协会发展方向、重大事项审议与协会公共事务。"],
-  ["02", "秘书处", "执行协调", "负责日常协调、资料受理、信息记录与对外联系。"],
-  ["03", "认证委员会", "标准审核", "负责道士资格认证材料审核、评审与备案建议。"],
-  ["04", "专家顾问委员会", "学术支持", "提供文化研究、学术交流与专业咨询支持。"],
-  ["05", "会员服务部门", "会员联结", "服务个人会员与机构会员申请、沟通与协作。"],
-  ["06", "合作发展部门", "合作拓展", "推动机构合作、国际项目、学术交流与资源共建。"]
+  ["01", "理事会", "组织治理", "统筹协会发展方向、重大事项审议与协会公共事务。", "/images/itca/organization/01-org-governance-council.png"],
+  ["02", "秘书处", "执行协调", "负责日常协调、资料受理、信息记录与对外联系。", "/images/itca/organization/02-org-secretariat.png"],
+  ["03", "认证委员会", "标准审核", "负责道士资格认证材料审核、评审与备案建议。", "/images/itca/organization/03-org-certification-review.png"],
+  ["04", "专家顾问委员会", "学术支持", "提供文化研究、学术交流与专业咨询支持。", "/images/itca/organization/04-org-academic-advisory.png"],
+  ["05", "会员服务部门", "会员联结", "服务个人会员与机构会员申请、沟通与协作。", "/images/itca/organization/05-org-member-service.png"],
+  ["06", "合作发展部门", "合作拓展", "推动机构合作、国际项目、学术交流与资源共建。", "/images/itca/organization/06-org-cooperation-development.png"]
 ];
 
 const announcements = [
@@ -205,14 +206,21 @@ export default function Home() {
         <div className="mx-auto max-w-7xl">
           <PortalTitle eyebrow="ORGANIZATION" title="协会组织与职能" intro="协会依据章程和实际工作需要，设立相应组织分工，负责会员服务、认证审核、文化交流与合作沟通等事务。" />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {organizationUnits.map(([index, title, tag, text]) => (
-              <article className="overflow-hidden rounded-[1.65rem] border border-[#e3dac8] bg-white shadow-[0_18px_48px_rgba(31,42,40,0.055)]" key={title}>
+            {organizationUnits.map(([index, title, tag, text, image]) => (
+              <article className="group overflow-hidden rounded-[1.65rem] border border-[#e3dac8] bg-white shadow-[0_18px_48px_rgba(31,42,40,0.055)] transition duration-500 hover:shadow-[0_22px_58px_rgba(31,42,40,0.09)]" key={title}>
                 <div className="relative min-h-[10.5rem] overflow-hidden bg-[#efe2c9]">
-                  <div className="absolute -right-10 -top-12 h-36 w-36 rounded-full border border-[#caa96a]/45" aria-hidden="true" />
-                  <div className="absolute bottom-6 left-6 h-20 w-20 rotate-45 border border-[#b88a48]/45 bg-[#fff7e3]/45" aria-hidden="true" />
-                  <div className="absolute bottom-0 right-0 h-24 w-40 rounded-tl-[5rem] bg-[#d9bf82]/32" aria-hidden="true" />
-                  <p className="absolute left-7 top-7 font-serif text-5xl leading-none text-[#A97A3D]/35">{index}</p>
-                  <span className="absolute right-7 top-7 inline-flex rounded-full border border-[#A97A3D]/30 bg-white/55 px-3 py-1 text-xs font-medium text-[#7b5a2e]">
+                  <Image
+                    src={image}
+                    alt=""
+                    fill
+                    sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
+                    className="object-cover opacity-80 transition duration-500 group-hover:scale-[1.03] group-hover:opacity-95"
+                    aria-hidden="true"
+                  />
+                  <div className="absolute inset-0 bg-[#efe0c1]/20 transition duration-500 group-hover:bg-[#efe0c1]/10" aria-hidden="true" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#2b1a12]/30 via-transparent to-transparent" aria-hidden="true" />
+                  <p className="absolute left-7 top-7 z-10 font-serif text-5xl leading-none text-[#F4E6C8]/90 [text-shadow:0_1px_3px_rgba(45,24,15,0.45)]">{index}</p>
+                  <span className="absolute right-7 top-7 z-10 inline-flex rounded-full border border-[#F4E6C8]/75 bg-[#301d14]/35 px-3 py-1 text-xs font-medium text-[#F4E6C8] shadow-[0_8px_22px_rgba(31,18,13,0.12)] backdrop-blur-[1px]">
                     {tag}
                   </span>
                 </div>
