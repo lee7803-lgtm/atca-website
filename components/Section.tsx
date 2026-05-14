@@ -13,18 +13,18 @@ export function Section({ eyebrow, title, intro, children, tone = "default" }: S
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
       <div className="mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28">
-        <div className="mb-12 grid gap-6 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? (
               <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">
                 {eyebrow}
               </p>
             ) : null}
-            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-5xl">
+            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.75rem]">
               {title}
             </h2>
           </div>
-          {intro ? <p className="max-w-2xl text-base leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
+          {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
         {children}
       </div>
@@ -46,7 +46,7 @@ export function InfoCard({
   children?: ReactNode;
 }) {
   return (
-    <article className="pattern-card min-h-full rounded-2xl border border-[#e5e0d5] bg-white/82 p-5 shadow-[0_18px_55px_rgba(31,42,40,0.055)] transition hover:-translate-y-0.5 hover:border-gold/35 sm:p-6">
+    <article className="pattern-card min-h-full rounded-[1.35rem] border border-[#e5e0d5] bg-white/86 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)] transition hover:-translate-y-0.5 hover:border-gold/35 sm:p-6">
       <div className="mb-6 flex items-start justify-between gap-4">
         {icon ?? (index ? <p className="font-serif text-3xl text-gold/72 sm:text-4xl">{index}</p> : <span />)}
         {index && icon ? <p className="font-serif text-2xl text-gold/65">{index}</p> : <span className="cultural-chip" aria-hidden="true" />}

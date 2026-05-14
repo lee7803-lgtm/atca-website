@@ -22,11 +22,11 @@ const consultationItems = ["认证咨询", "会员申请", "机构合作", "文�
 function ContactSection({ eyebrow, title, intro, children, compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean }) {
   return (
     <section>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-12 lg:py-16" : "py-14 lg:py-20"}`}>
-        <div className="mb-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
-            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.65rem]">{title}</h2>
+            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.75rem]">{title}</h2>
           </div>
           {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
@@ -72,8 +72,8 @@ export default function ContactPage() {
       </ContactSection>
 
       <ContactSection title="联系须知" compact>
-        <div className="grid gap-5 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="rounded-2xl border border-[#d8d0bf] bg-white/92 p-6 shadow-aureate sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
+          <div className="rounded-[1.5rem] border border-[#d8d0bf] bg-white/92 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8">
             <div className="mb-5 flex items-center gap-4">
               <ContactIcon name="contact" />
               <div>
@@ -92,7 +92,7 @@ export default function ContactPage() {
             </div>
           </div>
 
-          <div className="rounded-2xl border border-gold/35 bg-[#fbf8ef] p-6 shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-8">
+          <div className="rounded-[1.5rem] border border-gold/35 bg-[#fbf8ef] p-6 shadow-[0_14px_34px_rgba(176,138,69,0.07)] sm:p-8">
             <div className="mb-5 flex items-center gap-4">
               <ContactIcon name="cooperation" />
               <div>

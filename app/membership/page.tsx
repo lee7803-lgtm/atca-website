@@ -43,11 +43,11 @@ const process: Array<{ title: string; icon: IconBadgeName }> = [
 function MembershipSection({ eyebrow, title, intro, children, tone = "default", compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean }) {
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-12 lg:py-16" : "py-14 lg:py-20"}`}>
-        <div className="mb-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
-            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.65rem]">{title}</h2>
+            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.75rem]">{title}</h2>
           </div>
           {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
@@ -103,9 +103,9 @@ export default function MembershipPage() {
       </MembershipSection>
 
       <MembershipSection eyebrow="Member Types" title="会员类型">
-        <div className="grid gap-5 md:grid-cols-2">
+        <div className="grid gap-6 md:grid-cols-2">
           {memberTypes.map((item) => (
-            <article className="pattern-card rounded-2xl border border-[#e4ded0] bg-white/90 p-6 shadow-aureate sm:p-8" key={item.title}>
+            <article className="pattern-card rounded-[1.5rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8" key={item.title}>
               <MembershipIcon name={item.icon} />
               <h2 className="mt-5 text-2xl font-medium text-porcelain">{item.title}</h2>
               <p className="mt-4 text-sm leading-7 text-[#666666]">{item.text}</p>

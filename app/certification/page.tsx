@@ -28,11 +28,11 @@ const purposes: Array<{ title: string; text: string; icon: IconBadgeName }> = [
 function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean }) {
   return (
     <section className={tone === "soft" ? "bg-white/26" : ""}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-12 lg:py-16" : "py-14 lg:py-20"}`}>
-        <div className="mb-8 grid gap-4 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
+      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
-            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.65rem]">{title}</h2>
+            <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.75rem]">{title}</h2>
           </div>
           {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
@@ -70,7 +70,7 @@ export default function CertificationPage() {
       />
 
       <CertificationSection eyebrow="Open Project" title="道士资格认证">
-        <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
+        <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <InfoCard icon={<CertificationIcon name="certification" />} title="道士资格认证" text="道士资格认证围绕申请人的身份资料、师承关系、宗派背景、修道经历与相关证明文件进行审核，用于协会备案、证书签发及后续核验。" />
           <div className="min-h-full rounded-2xl border border-gold/35 bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
             申请人须提交身份资料、师承信息、宗教资质文件、实践经历及引荐资料，经协会审核后进入备案与证书签发流程。
@@ -87,10 +87,10 @@ export default function CertificationPage() {
       </CertificationSection>
 
       <CertificationSection eyebrow="Process" title="认证流程" tone="soft">
-        <div className="relative grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+        <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <div className="absolute left-6 right-6 top-8 hidden h-px bg-gradient-to-r from-transparent via-gold/45 to-transparent xl:block" aria-hidden="true" />
           {process.map((item, index) => (
-            <article className="relative rounded-2xl border border-[#e4ded0] bg-white/95 p-5 shadow-aureate" key={item.title}>
+            <article className="relative rounded-[1.35rem] border border-[#e4ded0] bg-white/95 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={item.title}>
               <CertificationIcon name={item.icon} />
               <p className="mt-4 text-xs tracking-[0.22em] text-gold">第 {index + 1} 步</p>
               <h3 className="mt-4 text-base font-medium leading-7 text-porcelain">{item.title}</h3>
