@@ -351,7 +351,7 @@ export default function TaoistPriestCertificationPage() {
         title="道士资格认证"
         subtitle="Taoist Qualification Certification"
         intro="国际道教与文化协会《道士资格认证》用于登记申请人的道教身份、师承传承、宗派背景、修道经历与相关证明材料，并纳入协会道士资格备案与审核流程。"
-        imageSrc="/images/atca/certification-detail.jpg"
+        imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
         visualEyebrow="ITCA Certification"

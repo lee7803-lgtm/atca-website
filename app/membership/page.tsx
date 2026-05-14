@@ -87,7 +87,7 @@ export default function MembershipPage() {
         title="会员申请"
         subtitle="Membership Application"
         intro="申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时联系补充相关材料。"
-        imageSrc="/images/atca/member-gathering.jpg"
+        imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 46%"
         visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"
         visualEyebrow="Membership Service"

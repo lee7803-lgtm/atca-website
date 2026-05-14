@@ -54,7 +54,7 @@ export default function ContactPage() {
         title="联系 ITCA"
         subtitle="Contact And Cooperation"
         intro="如需了解协会事务、会员申请、道士资格认证、证书核验、机构合作或网站信息更正，可通过本页面了解联系方向。正式联系方式以后续协会公布信息为准。"
-        imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
+        imageSrc="/images/itca/06-home-international-cooperation.png"
         imagePosition="center 48%"
         visualDescription="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"
         visualEyebrow="Cultural Exchange"

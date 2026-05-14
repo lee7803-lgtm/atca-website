@@ -81,7 +81,7 @@ export default function MemberApplyPage() {
         title="个人会员申请"
         subtitle="Individual Member Application"
         intro="请填写个人基础资料及相关说明。所提交资料将用于会员服务、资料建档、活动联系及后续审核沟通。"
-        imageSrc="/images/atca/member-gathering.jpg"
+        imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 46%"
         visualDescription="个人会员申请资料将用于协会会员服务、活动联系与后续审核沟通。"
         visualEyebrow="Application"

@@ -28,7 +28,7 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
         title="申请已提交"
         subtitle="Application Submitted"
         intro="申请资料已提交。请妥善保存以下申请编号，后续可用于查询办理进度或与协会秘书处沟通核对。"
-        imageSrc="/images/atca/member-gathering.jpg"
+        imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 46%"
         visualDescription="请保存申请编号，并通过申请进度查询页面查看后续审核状态。"
         visualEyebrow="Success"

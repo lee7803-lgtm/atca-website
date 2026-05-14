@@ -60,7 +60,7 @@ export default function CertificationPage() {
         title="认证体系"
         subtitle="Certification System"
         intro="当前认证系统仅开放“道士资格认证”，用于登记申请人的道教身份、师承传承、学习经历与相关证明材料，并纳入协会认证与资料建档流程。"
-        imageSrc="/images/atca/certification-detail.jpg"
+        imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
         visualEyebrow="ITCA Certification"

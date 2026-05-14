@@ -130,7 +130,7 @@ export default function Home() {
               overlaySeal="山门"
               tone="architecture"
               variant="portal"
-              className="min-h-[28rem] border-white/18 bg-[#f8f1e4] shadow-[0_24px_80px_rgba(0,0,0,0.18)]"
+              className="min-h-[28rem] border-[#79644E] bg-[#f8f1e4] shadow-[0_24px_80px_rgba(0,0,0,0.18)]"
             />
           </div>
         </div>

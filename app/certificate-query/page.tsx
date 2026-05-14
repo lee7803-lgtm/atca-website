@@ -58,7 +58,7 @@ export default function CertificateQueryPage() {
     <>
       <PageHero
         eyebrow="Certificate Query"
-        imageSrc="/images/atca/certificate-verification.jpg"
+        imageSrc="/images/itca/05-service-verification.png"
         intro="本页面用于查询 ITCA 道士资格认证证书记录。查询结果仅展示公开核验所需资料，并对持证人姓名进行脱敏处理。"
         subtitle="Certificate Verification And Query"
         title="证书查询"

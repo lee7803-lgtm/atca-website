@@ -85,7 +85,7 @@ export default function OrganizationApplyPage() {
         title="机构会员申请"
         subtitle="Organization Member Application"
         intro="请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。"
-        imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
+        imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 48%"
         visualDescription="面向宫观、文化机构、培训机构、企业及其他合作单位的会员申请入口。"
         visualEyebrow="Application"

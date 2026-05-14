@@ -95,7 +95,7 @@ function ApplicationQueryContent() {
         title="申请进度查询"
         subtitle="Application Status Query"
         intro="用于查询个人会员申请进度、机构会员申请进度、道士资格认证申请进度及发证处理进度。支持凭申请编号查询，也支持在忘记编号时按身份资料辅助查询。"
-        imageSrc="/images/atca/certificate-verification.jpg"
+        imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
         visualDescription="查询结果仅脱敏显示申请状态和必要备注，不公开完整申请资料。"
         visualEyebrow="Query"

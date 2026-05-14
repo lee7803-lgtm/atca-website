@@ -17,7 +17,7 @@ export function PageHero({
   title,
   subtitle,
   intro,
-  imageSrc = "/images/atca/about-cultural-space.jpg",
+  imageSrc = "/images/itca/02-home-association.png",
   imagePosition = "center",
   visualEyebrow,
   visualMark = "Culture",

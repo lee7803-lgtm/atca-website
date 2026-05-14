@@ -150,8 +150,10 @@ a {
   position: relative;
   isolation: isolate;
   overflow: hidden;
-  border: 1px solid rgba(228, 207, 151, 0.28);
+  border: 1px solid #79644e;
   border-radius: 1.5rem;
+  background-color: #2e1c17;
+  background-blend-mode: normal;
   background-size: cover;
   box-shadow: 0 24px 70px rgba(0, 0, 0, 0.18);
 }
@@ -161,9 +163,10 @@ a {
   inset: 0;
   content: "";
   background:
-    linear-gradient(180deg, rgba(42, 31, 26, 0.04), rgba(42, 31, 26, 0.18)),
-    linear-gradient(90deg, rgba(42, 31, 26, 0.44), rgba(42, 31, 26, 0.08) 68%),
-    rgba(111, 70, 36, 0.035);
+    linear-gradient(180deg, rgba(31, 18, 13, 0.08) 0%, rgba(31, 18, 13, 0.28) 48%, rgba(31, 18, 13, 0.66) 100%),
+    linear-gradient(35deg, rgba(31, 18, 13, 0.62) 0%, rgba(31, 18, 13, 0.3) 44%, rgba(31, 18, 13, 0.08) 100%),
+    rgba(111, 70, 36, 0.025);
+  pointer-events: none;
   z-index: 1;
 }
 
@@ -171,10 +174,10 @@ a {
   position: absolute;
   inset: 0.9rem;
   content: "";
-  border: 1px solid rgba(228, 207, 151, 0.32);
+  border: 1px solid rgba(199, 154, 82, 0.18);
   background-image:
-    linear-gradient(rgba(255, 250, 240, 0.045) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 250, 240, 0.035) 1px, transparent 1px);
+    linear-gradient(rgba(199, 154, 82, 0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(199, 154, 82, 0.014) 1px, transparent 1px);
   background-size: 56px 56px;
   pointer-events: none;
   z-index: 2;
@@ -192,13 +195,14 @@ a {
 
 .page-hero__image-label {
   align-self: flex-start;
-  border: 1px solid rgba(228, 207, 151, 0.36);
-  background: rgba(42, 31, 26, 0.34);
+  border: 1px solid rgba(248, 230, 194, 0.42);
+  background: rgba(31, 18, 13, 0.48);
   padding: 0.45rem 0.7rem;
-  color: #e4cf97;
+  color: #f2dca7;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.22em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
   text-transform: uppercase;
   backdrop-filter: blur(4px);
 }
@@ -211,26 +215,29 @@ a {
 }
 
 .page-hero__image-mark {
-  color: rgba(228, 207, 151, 0.34);
+  color: rgba(248, 230, 194, 0.34);
   font-family: var(--font-serif, Georgia), Georgia, serif;
   font-size: clamp(3.2rem, 8vw, 5.6rem);
   line-height: 0.82;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.28);
 }
 
 .page-hero__image-heading h2 {
   margin-top: 0.75rem;
-  color: #fffaf0;
+  color: #f8e6c2;
   font-family: var(--font-serif, Georgia), Georgia, serif;
   font-size: clamp(1.45rem, 3vw, 2rem);
   line-height: 1.2;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.42);
 }
 
 .page-hero__image-heading figcaption {
   max-width: 27rem;
   margin-top: 0.9rem;
-  color: rgba(255, 250, 240, 0.78);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.9rem;
   line-height: 1.8;
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.36);
 }
 
 .page-hero__image-heading > span {
@@ -239,11 +246,12 @@ a {
   min-height: 3.6rem;
   flex-shrink: 0;
   place-items: center;
-  border: 1px solid rgba(228, 207, 151, 0.52);
-  background: rgba(127, 29, 29, 0.38);
-  color: #fff6df;
+  border: 1px solid rgba(248, 230, 194, 0.48);
+  background: rgba(127, 29, 29, 0.54);
+  color: #f8e6c2;
   font-size: 0.82rem;
   text-align: center;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
 }
 
@@ -273,7 +281,7 @@ a {
   z-index: -1;
   max-width: min(100%, 22rem);
   overflow: hidden;
-  color: rgba(228, 207, 151, 0.28);
+  color: rgba(248, 230, 194, 0.3);
   font-size: clamp(2.45rem, 5.4vw, 4.25rem);
   line-height: 0.86;
   white-space: nowrap;
@@ -336,7 +344,7 @@ a {
   position: relative;
   min-height: 20rem;
   overflow: hidden;
-  border: 1px solid rgba(169, 122, 61, 0.28);
+  border: 1px solid #79644e;
   border-radius: 1.5rem;
   background:
     linear-gradient(180deg, rgba(255, 252, 245, 0.96), rgba(246, 237, 222, 0.94)),
@@ -350,7 +358,9 @@ a {
   inset: 0;
   background-position: center;
   background-size: cover;
-  filter: sepia(0.04) saturate(1) contrast(1.04) brightness(1);
+  filter: sepia(0.03) saturate(0.98) contrast(0.98) brightness(0.9);
+  transform: scale(1.012);
+  transform-origin: center;
   z-index: 0;
 }
 
@@ -359,10 +369,11 @@ a {
   inset: 0;
   content: "";
   background:
-    linear-gradient(180deg, rgba(42, 31, 26, 0.01), rgba(42, 31, 26, 0.16)),
-    linear-gradient(90deg, rgba(42, 31, 26, 0.18), transparent 54%),
-    radial-gradient(circle at 18% 12%, rgba(255, 250, 240, 0.12), transparent 18rem),
-    rgba(111, 70, 36, 0.025);
+    linear-gradient(180deg, rgba(31, 18, 13, 0.06) 0%, rgba(31, 18, 13, 0.28) 46%, rgba(31, 18, 13, 0.66) 100%),
+    linear-gradient(35deg, rgba(31, 18, 13, 0.6) 0%, rgba(31, 18, 13, 0.28) 42%, rgba(31, 18, 13, 0.06) 100%),
+    radial-gradient(circle at 18% 12%, rgba(255, 250, 240, 0.06), transparent 18rem),
+    rgba(111, 70, 36, 0.018);
+  pointer-events: none;
 }
 
 .cultural-visual::before {
@@ -375,11 +386,11 @@ a {
 }
 
 .cultural-visual--has-image {
-  background: #2a1f1a;
+  background: #2e1c17;
 }
 
 .cultural-visual--has-image::before {
-  border-color: rgba(216, 189, 122, 0.34);
+  border-color: rgba(199, 154, 82, 0.18);
 }
 
 .cultural-visual::after {
@@ -426,14 +437,7 @@ a {
 }
 
 .cultural-visual--has-image .cultural-visual__paper {
-  background-image:
-    repeating-linear-gradient(
-      0deg,
-      rgba(255, 250, 240, 0.012) 0,
-      rgba(255, 250, 240, 0.012) 1px,
-      transparent 1px,
-      transparent 18px
-    );
+  background-image: none;
   z-index: 1;
 }
 
@@ -450,7 +454,7 @@ a {
 }
 
 .cultural-visual--has-image .cultural-visual__frame {
-  border-color: rgba(216, 189, 122, 0.18);
+  border-color: rgba(199, 154, 82, 0.12);
 }
 
 .cultural-visual__mountains {
@@ -524,12 +528,13 @@ a {
   left: 1.5rem;
   top: 1.5rem;
   display: inline-flex;
-  border: 1px solid rgba(228, 207, 151, 0.38);
-  background: rgba(42, 31, 26, 0.28);
+  border: 1px solid rgba(248, 230, 194, 0.42);
+  background: rgba(31, 18, 13, 0.46);
   padding: 0.42rem 0.72rem;
-  color: #e4cf97;
+  color: #f2dca7;
   font-size: 0.72rem;
   letter-spacing: 0.18em;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);
   text-transform: uppercase;
   backdrop-filter: blur(5px);
 }
@@ -543,21 +548,21 @@ a {
 
 .cultural-visual__image-mark {
   margin-bottom: 0.35rem;
-  color: rgba(228, 207, 151, 0.46);
+  color: rgba(248, 230, 194, 0.34);
   font-family: Georgia, "Times New Roman", serif;
   font-size: 2.8rem;
   line-height: 0.92;
-  text-shadow: 0 1px 18px rgba(42, 31, 26, 0.28);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.3);
 }
 
 .cultural-visual__image-heading h3 {
   max-width: 20rem;
-  color: #fffaf0;
+  color: #f8e6c2;
   font-family: Georgia, "Times New Roman", serif;
   font-size: 1.58rem;
   font-weight: 500;
   line-height: 1.2;
-  text-shadow: 0 1px 16px rgba(42, 31, 26, 0.48);
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.42);
 }
 
 .cultural-visual--standard .cultural-visual__image-mark,
@@ -582,10 +587,10 @@ a {
 .cultural-visual__image-subtitle,
 .cultural-visual__image-heading figcaption {
   margin-top: 0.45rem;
-  color: rgba(255, 250, 240, 0.8);
+  color: rgba(255, 255, 255, 0.82);
   font-size: 0.92rem;
   line-height: 1.7;
-  text-shadow: 0 1px 14px rgba(42, 31, 26, 0.42);
+  text-shadow: 0 1px 10px rgba(0, 0, 0, 0.36);
 }
 
 .cultural-visual__image-heading figcaption {
@@ -597,13 +602,14 @@ a {
   min-width: 3.5rem;
   min-height: 3.5rem;
   place-items: center;
-  border: 1px solid rgba(228, 207, 151, 0.5);
-  background: rgba(127, 29, 29, 0.36);
+  border: 1px solid rgba(248, 230, 194, 0.48);
+  background: rgba(127, 29, 29, 0.54);
   padding: 0.35rem;
-  color: #fff6df;
+  color: #f8e6c2;
   font-size: 0.82rem;
   line-height: 1.25;
   text-align: center;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.3);
   backdrop-filter: blur(4px);
 }
 
