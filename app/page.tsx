@@ -17,9 +17,9 @@ const quickEntries = [
 ];
 
 const services: Array<{ title: string; text: string; href: string; icon: IconBadgeName; visual: "certification" | "membership" | "verification"; visualTitle: string; imageSrc: string; imagePosition: string }> = [
-  { title: "认证服务", text: "用于登记申请人的道教身份、师承传承、修道经历及相关证明材料，并按协会流程进行审核与备案。", href: "/certification/taoist-priest", icon: "certification", visual: "certification", visualTitle: "认证资料与备案", imageSrc: "/images/atca/certification-detail.jpg", imagePosition: "center 52%" },
-  { title: "会员申请", text: "面向个人与机构开放会员申请，用于建立会员档案、参与文化交流及后续合作沟通。", href: "/membership", icon: "membership", visual: "membership", visualTitle: "会员组织服务", imageSrc: "/images/atca/member-gathering.jpg", imagePosition: "center 46%" },
-  { title: "证书核验", text: "用于通过证书编号与持证人姓名核验证书状态，并保留人工复核说明。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书查询核验", imageSrc: "/images/atca/certificate-verification.jpg", imagePosition: "center 58%" }
+  { title: "认证服务", text: "用于登记申请人的道教身份、师承传承、修道经历及相关证明材料，并按协会流程进行审核与备案。", href: "/certification/taoist-priest", icon: "certification", visual: "certification", visualTitle: "认证资料与备案", imageSrc: "/images/itca/03-service-certification.png", imagePosition: "center 52%" },
+  { title: "会员申请", text: "面向个人与机构开放会员申请，用于建立会员档案、参与文化交流及后续合作沟通。", href: "/membership", icon: "membership", visual: "membership", visualTitle: "会员组织服务", imageSrc: "/images/itca/04-service-membership.png", imagePosition: "center 46%" },
+  { title: "证书核验", text: "用于通过证书编号与持证人姓名核验证书状态，并保留人工复核说明。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书查询核验", imageSrc: "/images/itca/05-service-verification.png", imagePosition: "center 58%" }
 ];
 
 const certificationFeatures = [
@@ -125,7 +125,7 @@ export default function Home() {
               eyebrow="Official Portal"
               title="文化传承与协会服务"
               caption="以协会信息、认证备案、会员服务与国际交流为官网核心入口。"
-              imageSrc="/images/atca/hero-architecture.jpg"
+              imageSrc="/images/itca/01-home-hero.png"
               imagePosition="center 48%"
               overlaySeal="山门"
               tone="architecture"
@@ -165,7 +165,7 @@ export default function Home() {
               eyebrow="Culture Inheritance"
               title="道教文化传承"
               caption="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"
-              imageSrc="/images/atca/about-cultural-space.jpg"
+              imageSrc="/images/itca/02-home-association.png"
               imagePosition="center 52%"
               overlaySeal="融合"
               tone="space"
@@ -261,7 +261,7 @@ export default function Home() {
             eyebrow="Cultural Exchange"
             title="国际文化交流与合作"
             caption="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"
-            imageSrc="/images/atca/cooperation-cultural-exchange.jpg"
+            imageSrc="/images/itca/06-home-international-cooperation.png"
             imagePosition="center 48%"
             overlaySeal="合作交流"
             tone="space"

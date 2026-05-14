@@ -47,7 +47,7 @@ const toneMap: Record<CulturalImageTone, { seal: string; mark: string; accent: s
 };
 
 function hasLocalPublicImage(imageSrc?: string) {
-  if (!imageSrc || !imageSrc.startsWith("/images/atca/")) {
+  if (!imageSrc || !imageSrc.startsWith("/images/")) {
     return false;
   }
 
