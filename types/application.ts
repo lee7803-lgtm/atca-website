@@ -70,7 +70,7 @@ export type ApplicationQueryResult = {
   applicationNo: string;
   applicationType: ApplicationType | "taoist_certification";
   name: string;
-  status: ApplicationStatus | "under_review" | "cert_issued" | "revoked";
+  status: ApplicationStatus | "under_review" | "certificate_issued" | "cert_issued" | "delivered" | "revoked";
   adminNote: string;
   certificateNo?: string;
   createdAt: string;

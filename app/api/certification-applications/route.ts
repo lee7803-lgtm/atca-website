@@ -199,8 +199,12 @@ export async function POST(request: Request) {
       applicationNo,
       status: "submitted",
       reviewNote: "",
+      internalReviewNote: "",
+      applicantFeedback: "",
       reviewer: "",
       reviewedAt: null,
+      deliveryStatus: "not_delivered",
+      deliveredAt: null,
       createdAt: now,
       updatedAt: now
     };

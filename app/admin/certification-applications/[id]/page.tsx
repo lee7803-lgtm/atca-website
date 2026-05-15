@@ -15,7 +15,10 @@ const statusText: Record<CertificationStatus, string> = {
   need_more_info: "需补充资料",
   approved: "已通过",
   rejected: "已驳回",
-  cert_issued: "已发证",
+  certificate_issued: "已生成证书",
+  cert_issued: "已生成证书",
+  delivered: "已下发",
+  archived: "已归档",
   revoked: "已撤销"
 };
 
@@ -100,6 +103,8 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="当前状态" value={statusText[application.status]} />
             <DetailItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
             <DetailItem label="证书状态" value={certificate ? certificateStatusText[certificate.status] : "尚未生成"} />
+            <DetailItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
+            <DetailItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />
             <DetailItem label="申请人中文姓名" value={application.applicantName} />
             <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
             <DetailItem label="道名 / 法名" value={application.taoistName} />
@@ -126,7 +131,9 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="隐私政策确认" value={application.privacyAccepted ? "已确认" : "未确认"} />
             <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
             <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
-            <DetailItem className="md:col-span-2" label="审核备注" value={application.reviewNote || "暂无备注"} />
+            <DetailItem className="md:col-span-2" label="内部审核备注" value={application.internalReviewNote || "暂无内部备注"} />
+            <DetailItem className="md:col-span-2" label="对申请人反馈" value={application.applicantFeedback || "暂无反馈"} />
+            <DetailItem className="md:col-span-2" label="证书项目备注" value={application.reviewNote || "暂无备注"} />
           </div>
           {certificate ? (
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
@@ -153,7 +160,18 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <AttachmentGroup attachments={supportingDocuments} title="补充证明材料" />
           </div>
         </section>
-        <CertificationReviewForm applicationId={application.id} initialReviewNote={application.reviewNote} initialStatus={application.status} />
+        <CertificationReviewForm
+          applicantName={application.applicantName}
+          applicationId={application.id}
+          applicationNo={application.applicationNo}
+          certificateNo={certificate?.certificateNo}
+          deliveredAt={application.deliveredAt}
+          deliveryStatus={application.deliveryStatus}
+          initialApplicantFeedback={application.applicantFeedback}
+          initialInternalReviewNote={application.internalReviewNote}
+          initialReviewNote={application.reviewNote}
+          initialStatus={application.status}
+        />
       </div>
     </section>
   );

@@ -19,7 +19,10 @@ const statusOptions: Array<{ value: "" | CertificationStatus; label: string }> =
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
   { value: "rejected", label: "已驳回" },
-  { value: "cert_issued", label: "已发证" },
+  { value: "certificate_issued", label: "已生成证书" },
+  { value: "cert_issued", label: "已生成证书（旧）" },
+  { value: "delivered", label: "已下发" },
+  { value: "archived", label: "已归档" },
   { value: "revoked", label: "已撤销" }
 ];
 

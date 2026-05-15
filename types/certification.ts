@@ -1,4 +1,14 @@
-export type CertificationStatus = "submitted" | "under_review" | "need_more_info" | "approved" | "rejected" | "cert_issued" | "revoked";
+export type CertificationStatus =
+  | "submitted"
+  | "under_review"
+  | "need_more_info"
+  | "approved"
+  | "rejected"
+  | "certificate_issued"
+  | "cert_issued"
+  | "delivered"
+  | "archived"
+  | "revoked";
 
 export type CertificateStatus = "valid" | "expired" | "revoked" | "suspended";
 
@@ -52,8 +62,12 @@ export type CertificationApplicationRecord = CertificationApplicationPayload & {
   applicationNo: string;
   status: CertificationStatus;
   reviewNote: string;
+  internalReviewNote: string;
+  applicantFeedback: string;
   reviewer: string;
   reviewedAt: string | null;
+  deliveryStatus: "not_delivered" | "delivered";
+  deliveredAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

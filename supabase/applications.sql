@@ -88,10 +88,14 @@ create table if not exists public.certification_applications (
   terms_accepted boolean default false,
   privacy_accepted boolean default false,
   confirmed_at timestamptz,
-  status text not null default 'submitted' check (status in ('submitted', 'under_review', 'need_more_info', 'approved', 'rejected', 'cert_issued', 'revoked')),
+  status text not null default 'submitted' check (status in ('submitted', 'under_review', 'need_more_info', 'approved', 'rejected', 'certificate_issued', 'cert_issued', 'delivered', 'archived', 'revoked')),
   review_note text,
+  internal_review_note text,
+  applicant_feedback text,
   reviewer text,
   reviewed_at timestamptz,
+  delivery_status text default 'not_delivered' check (delivery_status in ('not_delivered', 'delivered')),
+  delivered_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -106,7 +110,28 @@ alter table public.certification_applications
   add column if not exists certificate_public_accepted boolean default false,
   add column if not exists terms_accepted boolean default false,
   add column if not exists privacy_accepted boolean default false,
-  add column if not exists confirmed_at timestamptz;
+  add column if not exists confirmed_at timestamptz,
+  add column if not exists internal_review_note text,
+  add column if not exists applicant_feedback text,
+  add column if not exists delivery_status text default 'not_delivered',
+  add column if not exists delivered_at timestamptz;
+
+do $$
+begin
+  alter table public.certification_applications
+    drop constraint if exists certification_applications_status_check;
+
+  alter table public.certification_applications
+    add constraint certification_applications_status_check
+    check (status in ('submitted', 'under_review', 'need_more_info', 'approved', 'rejected', 'certificate_issued', 'cert_issued', 'delivered', 'archived', 'revoked'));
+
+  alter table public.certification_applications
+    drop constraint if exists certification_applications_delivery_status_check;
+
+  alter table public.certification_applications
+    add constraint certification_applications_delivery_status_check
+    check (delivery_status in ('not_delivered', 'delivered'));
+end $$;
 
 alter table public.certification_applications
   alter column existing_certificates type jsonb using

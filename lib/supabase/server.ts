@@ -72,8 +72,12 @@ type SupabaseCertificationApplicationRow = {
   confirmed_at: string | null;
   status: string;
   review_note: string | null;
+  internal_review_note: string | null;
+  applicant_feedback: string | null;
   reviewer: string | null;
   reviewed_at: string | null;
+  delivery_status: string | null;
+  delivered_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -188,7 +192,7 @@ function toApplicationQueryResult(row: Pick<SupabaseApplicationRow, "application
 }
 
 function toCertificationQueryResult(
-  row: Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "created_at" | "updated_at">,
+  row: Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "created_at" | "updated_at">,
   certificateNo?: string
 ): ApplicationQueryResult {
   return {
@@ -196,7 +200,7 @@ function toCertificationQueryResult(
     applicationType: "taoist_certification",
     name: row.applicant_name,
     status: row.status as ApplicationQueryResult["status"],
-    adminNote: row.review_note ?? "",
+    adminNote: row.applicant_feedback ?? row.review_note ?? "",
     certificateNo,
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -263,8 +267,12 @@ function toCertificationRow(application: CertificationApplicationRecord) {
     confirmed_at: application.confirmedAt,
     status: application.status,
     review_note: application.reviewNote,
+    internal_review_note: application.internalReviewNote,
+    applicant_feedback: application.applicantFeedback,
     reviewer: application.reviewer,
     reviewed_at: application.reviewedAt,
+    delivery_status: application.deliveryStatus,
+    delivered_at: application.deliveredAt,
     created_at: application.createdAt,
     updated_at: application.updatedAt
   };
@@ -347,8 +355,12 @@ function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): C
     confirmedAt: row.confirmed_at ?? "",
     status: row.status as CertificationStatus,
     reviewNote: row.review_note ?? "",
+    internalReviewNote: row.internal_review_note ?? "",
+    applicantFeedback: row.applicant_feedback ?? row.review_note ?? "",
     reviewer: row.reviewer ?? "",
     reviewedAt: row.reviewed_at,
+    deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
+    deliveredAt: row.delivered_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -470,7 +482,7 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "id,application_no,applicant_name,status,review_note,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
@@ -482,7 +494,7 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "created_at" | "updated_at">>;
   const row = rows[0];
   const certificate = row ? await findCertificateByApplicationIdSafe(row.id) : null;
 
@@ -495,7 +507,7 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
     applicant_name: `eq.${filters.applicantName}`,
     taoist_name: `eq.${filters.taoistName}`,
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "id,application_no,applicant_name,status,review_note,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,created_at,updated_at",
     order: "created_at.desc",
     limit: "10"
   });
@@ -508,7 +520,7 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "created_at" | "updated_at">>;
 
   const results: ApplicationQueryResult[] = [];
   for (const row of rows) {
@@ -654,18 +666,37 @@ export async function getCertificationApplicationById(id: string) {
   return row ? toCertificationAdminRecord(row) : null;
 }
 
-export async function updateCertificationReview(id: string, values: { status: CertificationStatus; reviewNote: string; reviewer: string }) {
+export async function updateCertificationReview(
+  id: string,
+  values: {
+    status: CertificationStatus;
+    reviewNote?: string;
+    internalReviewNote?: string;
+    applicantFeedback?: string;
+    reviewer: string;
+    deliveryStatus?: "not_delivered" | "delivered";
+    deliveredAt?: string | null;
+  }
+) {
   const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const body: Record<string, string | null> = {
+    status: values.status,
+    reviewer: values.reviewer,
+    reviewed_at: now,
+    updated_at: now
+  };
+
+  if (values.reviewNote !== undefined) body.review_note = values.reviewNote;
+  if (values.internalReviewNote !== undefined) body.internal_review_note = values.internalReviewNote;
+  if (values.applicantFeedback !== undefined) body.applicant_feedback = values.applicantFeedback;
+  if (values.deliveryStatus !== undefined) body.delivery_status = values.deliveryStatus;
+  if (values.deliveredAt !== undefined) body.delivered_at = values.deliveredAt;
+
   const response = await fetch(`${config.url}/rest/v1/certification_applications?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: getHeaders(config, "return=representation"),
-    body: JSON.stringify({
-      status: values.status,
-      review_note: values.reviewNote,
-      reviewer: values.reviewer,
-      reviewed_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    })
+    body: JSON.stringify(body)
   });
 
   if (!response.ok) {
@@ -676,6 +707,18 @@ export async function updateCertificationReview(id: string, values: { status: Ce
   const row = rows[0];
 
   return row ? toCertificationAdminRecord(row) : null;
+}
+
+export async function deleteCertificateByNo(certificateNo: string) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/certificates?certificate_no=eq.${encodeURIComponent(certificateNo)}`, {
+    method: "DELETE",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
 }
 
 export async function insertCertificate(certificate: CertificateRecord) {

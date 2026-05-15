@@ -17,7 +17,9 @@ const statusText: Record<string, string> = {
   approved: "已通过",
   rejected: "已驳回",
   archived: "已建档",
+  certificate_issued: "已生成证书",
   cert_issued: "已发证",
+  delivered: "已下发",
   revoked: "已撤销"
 };
 
@@ -237,14 +239,16 @@ function ApplicationQueryContent() {
 function nextStepText(status: string) {
   if (status === "need_more_info") return "请按审核说明补充资料，并等待协会秘书处进一步联系。";
   if (status === "approved") return "审核已通过，请等待证书记录生成或协会秘书处进一步通知。";
-  if (status === "cert_issued") return "证书已生成，可前往证书查询页面核验证书记录。";
+  if (status === "certificate_issued" || status === "cert_issued") return "证书已生成，可前往证书查询页面核验证书记录。";
+  if (status === "delivered") return "证书已完成下发，可前往证书查询页面核验证书记录。";
   if (status === "rejected" || status === "revoked") return "如需复核，请联系协会秘书处协助核对。";
   return "请等待协会秘书处审核；如联系方式变更，请主动联系更新。";
 }
 
 function currentStatusText(application: ApplicationQueryResult) {
   if (application.applicationType === "taoist_certification" && application.status === "approved" && !application.certificateNo) return "已通过，待生成证书";
-  if (application.applicationType === "taoist_certification" && application.status === "cert_issued" && application.certificateNo) return "审核已通过，证书记录已生成";
+  if (application.applicationType === "taoist_certification" && (application.status === "certificate_issued" || application.status === "cert_issued") && application.certificateNo) return "审核已通过，证书记录已生成";
+  if (application.applicationType === "taoist_certification" && application.status === "delivered" && application.certificateNo) return "证书记录已生成并已下发";
   return statusText[application.status];
 }
 
