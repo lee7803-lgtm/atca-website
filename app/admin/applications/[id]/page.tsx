@@ -51,6 +51,10 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="国家 / 地区" value={application.country} />
             <DetailItem label="机构类型" value={application.organizationType || "不适用"} />
             <DetailItem label="是否接收通知" value={application.receiveNotice ? "是" : "否"} />
+            <DetailItem label="资料真实性确认" value={application.truthConfirmed ? "已确认" : "未确认"} />
+            <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="隐私政策确认" value={application.privacyAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
             <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
             <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />

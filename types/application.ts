@@ -18,6 +18,10 @@ export type ApplicationRecord = {
   purpose: string;
   organizationType?: OrganizationType;
   receiveNotice?: boolean;
+  truthConfirmed: boolean;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  confirmedAt: string;
   adminNote?: string;
   createdAt: string;
   updatedAt: string;
@@ -27,6 +31,10 @@ export type ApplicationAdminRecord = Required<Pick<ApplicationRecord, "applicati
   id: string;
   organizationType: OrganizationType | null;
   receiveNotice: boolean;
+  truthConfirmed: boolean;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  confirmedAt: string;
   adminNote: string;
 };
 
@@ -41,6 +49,9 @@ export type ApplicationSubmitPayload = {
   purpose: string;
   organizationType?: OrganizationType;
   receiveNotice?: boolean;
+  truthConfirmed: boolean;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
 };
 
 export type ApplicationSubmitResponse =

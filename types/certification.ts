@@ -2,6 +2,8 @@ export type CertificationStatus = "submitted" | "under_review" | "need_more_info
 
 export type CertificateStatus = "valid" | "expired" | "revoked" | "suspended";
 
+export type CertificationType = "taoist_priest";
+
 export type CertificationAttachment = {
   originalName: string;
   storagePath?: string;
@@ -13,6 +15,7 @@ export type CertificationAttachment = {
 };
 
 export type CertificationApplicationPayload = {
+  certificationType: CertificationType;
   applicantName: string;
   applicantNameEn: string;
   taoistName: string;
@@ -30,11 +33,18 @@ export type CertificationApplicationPayload = {
   sect: string;
   practiceYears: string;
   experienceSummary: string;
+  applicationReason: string;
+  additionalNote: string;
   existingCertificates: CertificationAttachment[];
   supportingDocuments: CertificationAttachment[];
   declarationAccepted: boolean;
   ethicsConfirmed: boolean;
   boundaryConfirmed: boolean;
+  dataUseAccepted: boolean;
+  certificatePublicAccepted: boolean;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
+  confirmedAt: string;
 };
 
 export type CertificationApplicationRecord = CertificationApplicationPayload & {

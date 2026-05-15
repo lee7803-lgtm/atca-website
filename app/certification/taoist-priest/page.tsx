@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { FormEvent, useMemo, useState } from "react";
+import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import type { CertificationSubmitResponse } from "@/types/certification";
@@ -39,12 +40,13 @@ const steps: Step[] = [
       {
         title: "身份与联络资料",
         fields: [
+          { id: "certificationType", label: "申请认证类型", kind: "select", required: true, options: ["道士资格认证"] },
           { id: "nameCn", label: "姓名（中文）", required: true },
           { id: "nameEn", label: "英文名 / 拼音", required: true },
           { id: "taoistName", label: "法名 / 道名", required: true },
           { id: "gender", label: "性别", kind: "select", required: true, options: ["男", "女", "其他"] },
           { id: "birthDate", label: "出生日期", kind: "date", required: true },
-          { id: "nationality", label: "国籍", required: true },
+          { id: "nationality", label: "国家 / 地区", required: true },
           { id: "residence", label: "现居地", required: true },
           { id: "phone", label: "电话", required: true },
           { id: "email", label: "邮箱", kind: "email", required: true },
@@ -102,7 +104,9 @@ const steps: Step[] = [
           { id: "templeName", label: "所属道场 / 宫观名称", badge: "按情况提交" },
           { id: "templeAddress", label: "道场 / 宫观地址", badge: "按情况提交" },
           { id: "position", label: "职务", kind: "select", options: ["住持", "高功", "执事", "经生", "其他"], badge: "按情况提交" },
-          { id: "practiceHistory", label: "近五年实践经历", kind: "textarea", required: true },
+          { id: "practiceHistory", label: "道教履历说明", kind: "textarea", required: true },
+          { id: "applicationReason", label: "申请理由", kind: "textarea", required: true },
+          { id: "additionalNote", label: "补充备注", kind: "textarea", badge: "选填" },
           { id: "practiceType", label: "实践类型", badge: "按情况提交" },
           { id: "practiceTime", label: "时间", badge: "按情况提交" },
           { id: "practicePlace", label: "地点", badge: "按情况提交" },
@@ -144,9 +148,12 @@ const steps: Step[] = [
       {
         title: "声明承诺",
         fields: [
-          { id: "truthConfirm", label: "资料真实性确认", kind: "checkbox", required: true },
-          { id: "ethicsConfirm", label: "遵守《道士伦理守则》", kind: "checkbox", required: true },
-          { id: "boundaryConfirm", label: "认证边界确认", kind: "checkbox", required: true }
+          { id: "truthConfirm", label: "我确认所填写的申请资料真实、完整、合法。", kind: "checkbox", required: true },
+          { id: "dataUseConfirm", label: "我同意 ITCA 将本人提交的资料用于认证申请审核、资料核对、证书记录建立及后续联系。", kind: "checkbox", required: true },
+          { id: "reviewConfirm", label: "我理解申请提交后将进入人工审核，审核结果以 ITCA 审核记录为准。", kind: "checkbox", required: true },
+          { id: "supplementConfirm", label: "我理解如资料不完整，ITCA 可要求补充材料；如资料不实，ITCA 可驳回申请或撤销相关记录。", kind: "checkbox", required: true },
+          { id: "certificatePublicConfirm", label: "我同意审核通过并生成证书后，证书编号、姓名、认证类型、签发日期及证书状态等必要信息可用于官网证书核验。", kind: "checkbox", required: true },
+          { id: "termsPrivacyConfirm", label: "我已阅读并同意《申请须知》《资料使用说明》《服务条款》《隐私政策》。", kind: "checkbox", required: true }
         ]
       }
     ],
@@ -155,6 +162,7 @@ const steps: Step[] = [
 ];
 
 const apiFieldToFormId: Record<string, string> = {
+  certificationType: "certificationType",
   applicantName: "nameCn",
   applicantNameEn: "nameEn",
   taoistName: "taoistName",
@@ -168,10 +176,57 @@ const apiFieldToFormId: Record<string, string> = {
   lineage: "lineage",
   sect: "lineage",
   experienceSummary: "practiceHistory",
+  applicationReason: "applicationReason",
+  additionalNote: "additionalNote",
   declarationAccepted: "truthConfirm",
-  ethicsConfirmed: "ethicsConfirm",
-  boundaryConfirmed: "boundaryConfirm"
+  dataUseAccepted: "dataUseConfirm",
+  certificatePublicAccepted: "certificatePublicConfirm",
+  termsAccepted: "termsPrivacyConfirm",
+  privacyAccepted: "termsPrivacyConfirm"
 };
+
+const textareaTemplates: Record<string, { hint: string; template: string }> = {
+  practiceHistory: {
+    hint: "请说明真实学习、师承、实践和服务经历，30–2000 字。",
+    template: `本人接触道教文化及相关学习实践的时间为：【请填写年份或时间段】。
+
+主要学习 / 实践经历包括：
+1. 【请填写学习内容、课程、经典、科仪、养生、文化研究等经历】
+2. 【请填写师承、指导老师、宫观、机构或学习来源】
+3. 【请填写参与活动、服务、讲座、课程或实践情况】
+
+目前本人申请认证的主要原因是：【请填写申请目的】。
+
+本人确认以上内容真实，并愿意配合 ITCA 后续审核及资料补充。`
+  },
+  applicationReason: {
+    hint: "请说明申请认证的真实目的和使用场景，20–1500 字。",
+    template: `本人申请本项认证，主要基于以下原因：
+
+第一，希望对本人已有的相关学习、实践和服务经历进行规范登记。
+
+第二，希望通过 ITCA 的审核流程，获得相应的认证记录与证书核验信息。
+
+第三，希望未来在相关文化交流、学习传播、活动参与或服务场景中，更规范地展示本人身份与经历。
+
+本人理解本申请需经过人工审核，最终结果以 ITCA 审核记录为准。`
+  },
+  additionalNote: {
+    hint: "可补充说明经历、证明材料、联系方式或其他事项，最多 1000 字。",
+    template: `补充说明如下：
+
+1. 关于本人经历或资料的补充说明：【请填写】
+2. 关于证明材料的补充说明：【请填写】
+3. 关于联系方式、证书信息或其他事项的说明：【请填写】
+
+如以上内容仍需补充，本人愿意配合 ITCA 后续审核要求。`
+  }
+};
+
+const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
+const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+const maxFileSize = 10 * 1024 * 1024;
+const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
 function ApplicationIcon({ name }: { name: IconBadgeName }) {
   return (
@@ -186,7 +241,7 @@ function ApplicationIcon({ name }: { name: IconBadgeName }) {
 export default function TaoistPriestCertificationPage() {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
-  const [values, setValues] = useState<Record<string, string>>({});
+  const [values, setValues] = useState<Record<string, string>>({ certificationType: "道士资格认证" });
   const [files, setFiles] = useState<Record<string, File>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -218,6 +273,23 @@ export default function TaoistPriestCertificationPage() {
   };
 
   const setFileValue = (id: string, file: File | null) => {
+    setErrors((prev) => {
+      const next = { ...prev };
+      delete next[id];
+      return next;
+    });
+    if (file) {
+      const lowerName = file.name.toLowerCase();
+      const hasAllowedExtension = allowedFileExtensions.some((extension) => lowerName.endsWith(extension));
+      if (!allowedFileTypes.includes(file.type) && !hasAllowedExtension) {
+        setErrors((prev) => ({ ...prev, [id]: "文件格式不支持，请上传 PDF、JPG、JPEG 或 PNG 文件" }));
+        return;
+      }
+      if (file.size > maxFileSize) {
+        setErrors((prev) => ({ ...prev, [id]: "文件大小超过限制，请上传不超过 10MB 的文件" }));
+        return;
+      }
+    }
     setFiles((prev) => {
       const next = { ...prev };
       if (file) next[id] = file;
@@ -234,7 +306,22 @@ export default function TaoistPriestCertificationPage() {
     });
     step.groups.flatMap((group) => group.fields).forEach((field) => {
       if (field.kind === "email" && values[field.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values[field.id])) {
-        nextErrors[field.id] = "邮箱格式不正确";
+        nextErrors[field.id] = "请输入有效邮箱地址";
+      }
+      if (field.id === "phone" && values[field.id] && !phonePattern.test(values[field.id])) {
+        nextErrors[field.id] = "请填写有效联系电话";
+      }
+      if (field.id === "nameCn" && values[field.id] && (values[field.id].length < 2 || values[field.id].length > 50)) {
+        nextErrors[field.id] = "姓名长度需为 2–50 个字符";
+      }
+      if (field.id === "practiceHistory" && values[field.id] && (values[field.id].length < 30 || values[field.id].length > 2000)) {
+        nextErrors[field.id] = "请填写道教履历说明，且不少于 30 字、不超过 2000 字";
+      }
+      if (field.id === "applicationReason" && values[field.id] && (values[field.id].length < 20 || values[field.id].length > 1500)) {
+        nextErrors[field.id] = "申请理由需不少于 20 字、不超过 1500 字";
+      }
+      if (field.id === "additionalNote" && values[field.id] && values[field.id].length > 1000) {
+        nextErrors[field.id] = "补充备注不能超过 1000 字";
       }
     });
     setErrors(nextErrors);
@@ -253,7 +340,32 @@ export default function TaoistPriestCertificationPage() {
       }
 
       if (field.kind === "email" && values[field.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values[field.id])) {
-        const message = "邮箱格式不正确";
+        const message = "请输入有效邮箱地址";
+        nextErrors[field.id] = message;
+        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
+      }
+      if (field.id === "phone" && values[field.id] && !phonePattern.test(values[field.id])) {
+        const message = "请填写有效联系电话";
+        nextErrors[field.id] = message;
+        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
+      }
+      if (field.id === "nameCn" && values[field.id] && (values[field.id].length < 2 || values[field.id].length > 50)) {
+        const message = "姓名长度需为 2–50 个字符";
+        nextErrors[field.id] = message;
+        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
+      }
+      if (field.id === "practiceHistory" && values[field.id] && (values[field.id].length < 30 || values[field.id].length > 2000)) {
+        const message = "请填写道教履历说明，且不少于 30 字、不超过 2000 字";
+        nextErrors[field.id] = message;
+        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
+      }
+      if (field.id === "applicationReason" && values[field.id] && (values[field.id].length < 20 || values[field.id].length > 1500)) {
+        const message = "申请理由需不少于 20 字、不超过 1500 字";
+        nextErrors[field.id] = message;
+        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
+      }
+      if (field.id === "additionalNote" && values[field.id] && values[field.id].length > 1000) {
+        const message = "补充备注不能超过 1000 字";
         nextErrors[field.id] = message;
         issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
       }
@@ -291,6 +403,7 @@ export default function TaoistPriestCertificationPage() {
     try {
       const formData = new FormData();
       const fields = {
+        certificationType: "taoist_priest",
         applicantName: values.nameCn,
         applicantNameEn: values.nameEn,
         taoistName: values.taoistName,
@@ -308,9 +421,15 @@ export default function TaoistPriestCertificationPage() {
         sect: values.sectFullName || values.lineage,
         practiceYears: values.practiceTime,
         experienceSummary: values.practiceHistory,
+        applicationReason: values.applicationReason,
+        additionalNote: values.additionalNote,
         declarationAccepted: values.truthConfirm === "true" ? "true" : "false",
-        ethicsConfirmed: values.ethicsConfirm === "true" ? "true" : "false",
-        boundaryConfirmed: values.boundaryConfirm === "true" ? "true" : "false"
+        ethicsConfirmed: values.dataUseConfirm === "true" ? "true" : "false",
+        boundaryConfirmed: values.certificatePublicConfirm === "true" ? "true" : "false",
+        dataUseAccepted: values.dataUseConfirm === "true" ? "true" : "false",
+        certificatePublicAccepted: values.certificatePublicConfirm === "true" ? "true" : "false",
+        termsAccepted: values.termsPrivacyConfirm === "true" ? "true" : "false",
+        privacyAccepted: values.termsPrivacyConfirm === "true" ? "true" : "false"
       };
 
       Object.entries(fields).forEach(([key, value]) => formData.set(key, value || ""));
@@ -393,7 +512,15 @@ export default function TaoistPriestCertificationPage() {
                 <h3 className="mb-5 text-base font-medium text-porcelain">{group.title}</h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   {group.fields.map((field) => (
-                    <FormField errors={errors} field={field} key={field.id} setFileValue={setFileValue} setValue={setValue} value={values[field.id] ?? ""} />
+                    <FormField
+                      errors={errors}
+                      field={field}
+                      key={field.id}
+                      setFileValue={setFileValue}
+                      setValue={setValue}
+                      template={textareaTemplates[field.id]}
+                      value={values[field.id] ?? ""}
+                    />
                   ))}
                 </div>
               </div>
@@ -467,12 +594,14 @@ function FormField({
   value,
   setValue,
   setFileValue,
+  template,
   errors
 }: {
   field: Field;
   value: string;
   setValue: (id: string, value: string) => void;
   setFileValue: (id: string, file: File | null) => void;
+  template?: { hint: string; template: string };
   errors: Record<string, string>;
 }) {
   const badge = field.required ? "*" : field.badge;
@@ -494,16 +623,19 @@ function FormField({
           {field.options?.map((item) => <option key={item} value={item}>{item}</option>)}
         </select>
       ) : field.kind === "textarea" ? (
-        <textarea className={`${commonClass} min-h-32 resize-y`} value={value} onChange={(event) => setValue(field.id, event.target.value)} />
+        <>
+          <textarea className={`${commonClass} min-h-32 resize-y`} maxLength={field.id === "practiceHistory" ? 2000 : field.id === "applicationReason" ? 1500 : field.id === "additionalNote" ? 1000 : undefined} value={value} onChange={(event) => setValue(field.id, event.target.value)} />
+          {template ? <FormTemplateHelper hint={template.hint} template={template.template} onApply={() => setValue(field.id, template.template)} /> : null}
+        </>
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
-          <input className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setFileValue(field.id, event.target.files?.[0] ?? null)} />
-          <span className="block text-xs leading-5 text-[#8a6b3e]">当前表单先记录文件名称，原件或影本可按协会后续审核要求补充。</span>
+          <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setFileValue(field.id, event.target.files?.[0] ?? null)} />
+          <span className="block text-xs leading-5 text-[#8a6b3e]">请上传 PDF、JPG、JPEG 或 PNG 文件，单个文件不超过 10MB。文件用途仅用于申请审核，不公开展示。</span>
         </span>
       ) : field.kind === "checkbox" ? (
         <span className="flex items-center gap-3 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3">
           <input className="h-4 w-4 accent-[#7F1D1D]" type="checkbox" checked={value === "true"} onChange={(event) => setValue(field.id, event.target.checked ? "true" : "")} />
-          <span className="text-sm text-[#5f5148]">我已阅读并确认</span>
+          <span className="text-sm text-[#5f5148]">确认</span>
         </span>
       ) : (
         <input className={commonClass} type={field.kind ?? "text"} value={value} onChange={(event) => setValue(field.id, event.target.value)} />

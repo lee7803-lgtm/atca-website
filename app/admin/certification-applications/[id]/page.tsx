@@ -116,12 +116,17 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="所属道派" value={application.sect || "未填写"} />
             <DetailItem label="宫观 / 机构" value={application.templeOrOrganization || "未填写"} />
             <DetailItem label="实践年限" value={application.practiceYears || "未填写"} />
-            <DetailItem className="md:col-span-2" label="实践经历" value={application.experienceSummary || "未填写"} />
-            <DetailItem label="声明确认" value={application.declarationAccepted ? "已确认" : "未确认"} />
+            <DetailItem className="md:col-span-2" label="道教履历说明" value={application.experienceSummary || "未填写"} />
+            <DetailItem className="md:col-span-2" label="申请理由" value={application.applicationReason || "未填写"} />
+            <DetailItem className="md:col-span-2" label="补充备注" value={application.additionalNote || "未填写"} />
+            <DetailItem label="资料真实性确认" value={application.declarationAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="资料使用确认" value={application.dataUseAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="证书核验信息公开确认" value={application.certificatePublicAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="隐私政策确认" value={application.privacyAccepted ? "已确认" : "未确认"} />
+            <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
             <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
             <DetailItem className="md:col-span-2" label="审核备注" value={application.reviewNote || "暂无备注"} />
-            <DetailItem label="伦理确认" value={application.ethicsConfirmed ? "已确认" : "未确认"} />
-            <DetailItem label="边界确认" value={application.boundaryConfirmed ? "已确认" : "未确认"} />
           </div>
           {certificate ? (
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">

@@ -3,6 +3,12 @@ import { generateCertificationApplicationNo } from "@/lib/application-number";
 import { insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
 import type { CertificationApplicationPayload, CertificationApplicationRecord, CertificationSubmitResponse, CertificationAttachment } from "@/types/certification";
 
+const validCertificationTypes = ["taoist_priest"];
+const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
+const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
+const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
+const maxFileSize = 10 * 1024 * 1024;
+
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
 }
@@ -18,7 +24,7 @@ function formDataToRecord(formData: FormData) {
     record[key] = value;
   });
 
-  ["declarationAccepted", "ethicsConfirmed", "boundaryConfirmed"].forEach((key) => {
+  ["declarationAccepted", "ethicsConfirmed", "boundaryConfirmed", "dataUseAccepted", "certificatePublicAccepted", "termsAccepted", "privacyAccepted"].forEach((key) => {
     record[key] = record[key] === "true";
   });
 
@@ -29,11 +35,38 @@ function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function isValidLength(value: string, min: number, max: number) {
+  return value.length >= min && value.length <= max;
+}
+
+function validateFiles(formData: FormData | null) {
+  const fieldErrors: Record<string, string> = {};
+  if (!formData) return fieldErrors;
+
+  formData.forEach((value, key) => {
+    if (!(value instanceof File) || value.size === 0) return;
+
+    const lowerName = value.name.toLowerCase();
+    const hasAllowedExtension = allowedFileExtensions.some((extension) => lowerName.endsWith(extension));
+    if (!allowedFileTypes.includes(value.type) && !hasAllowedExtension) {
+      fieldErrors[key] = "文件格式不支持，请上传 PDF、JPG、JPEG 或 PNG 文件。";
+      return;
+    }
+
+    if (value.size > maxFileSize) {
+      fieldErrors[key] = "文件大小超过限制，请上传不超过 10MB 的文件。";
+    }
+  });
+
+  return fieldErrors;
+}
+
 function validatePayload(payload: unknown) {
   const fieldErrors: Record<string, string> = {};
   if (!isRecord(payload)) return { fieldErrors: { request: "认证申请资料格式不正确。" }, values: null };
 
   const values: CertificationApplicationPayload = {
+    certificationType: asString(payload.certificationType) as CertificationApplicationPayload["certificationType"],
     applicantName: asString(payload.applicantName),
     applicantNameEn: asString(payload.applicantNameEn),
     taoistName: asString(payload.taoistName),
@@ -51,25 +84,38 @@ function validatePayload(payload: unknown) {
     sect: asString(payload.sect),
     practiceYears: asString(payload.practiceYears),
     experienceSummary: asString(payload.experienceSummary),
+    applicationReason: asString(payload.applicationReason),
+    additionalNote: asString(payload.additionalNote),
     existingCertificates: [],
     supportingDocuments: [],
     declarationAccepted: payload.declarationAccepted === true,
     ethicsConfirmed: payload.ethicsConfirmed === true,
-    boundaryConfirmed: payload.boundaryConfirmed === true
+    boundaryConfirmed: payload.boundaryConfirmed === true,
+    dataUseAccepted: payload.dataUseAccepted === true,
+    certificatePublicAccepted: payload.certificatePublicAccepted === true,
+    termsAccepted: payload.termsAccepted === true,
+    privacyAccepted: payload.privacyAccepted === true,
+    confirmedAt: asString(payload.confirmedAt)
   };
 
+  if (!validCertificationTypes.includes(values.certificationType)) fieldErrors.certificationType = "请选择申请认证类型。";
   if (!values.applicantName) fieldErrors.applicantName = "请填写中文姓名。";
+  if (values.applicantName && !isValidLength(values.applicantName, 2, 50)) fieldErrors.applicantName = "姓名长度需为 2–50 个字符。";
   if (!values.taoistName) fieldErrors.taoistName = "请填写道名 / 法名。";
-  if (!values.phone) fieldErrors.phone = "请填写手机或 WhatsApp。";
+  if (!values.nationality && !values.residence) fieldErrors.nationality = "请选择所在国家或地区。";
+  if (!values.phone) fieldErrors.phone = "请填写联系电话。";
+  if (values.phone && !phonePattern.test(values.phone)) fieldErrors.phone = "请填写有效联系电话。";
   if (!values.email) fieldErrors.email = "请填写邮箱。";
-  if (values.email && !isEmail(values.email)) fieldErrors.email = "邮箱格式不正确。";
+  if (values.email && !isEmail(values.email)) fieldErrors.email = "请输入有效邮箱地址。";
   if (!values.masterName) fieldErrors.masterName = "请填写师父姓名。";
   if (!values.lineage) fieldErrors.lineage = "请填写传承信息。";
   if (!values.sect) fieldErrors.sect = "请填写所属道派。";
-  if (!values.experienceSummary) fieldErrors.experienceSummary = "请填写实践经历。";
-  if (!values.declarationAccepted) fieldErrors.declarationAccepted = "请确认资料真实性声明。";
-  if (!values.ethicsConfirmed) fieldErrors.ethicsConfirmed = "请确认遵守《道士伦理守则》。";
-  if (!values.boundaryConfirmed) fieldErrors.boundaryConfirmed = "请确认认证说明与适用范围。";
+  if (!values.experienceSummary || !isValidLength(values.experienceSummary, 30, 2000)) fieldErrors.experienceSummary = "请填写道教履历说明，且不少于 30 字、不超过 2000 字。";
+  if (values.applicationReason && !isValidLength(values.applicationReason, 20, 1500)) fieldErrors.applicationReason = "申请理由需不少于 20 字、不超过 1500 字。";
+  if (values.additionalNote && values.additionalNote.length > 1000) fieldErrors.additionalNote = "补充备注不能超过 1000 字。";
+  if (!values.declarationAccepted || !values.dataUseAccepted || !values.certificatePublicAccepted || !values.termsAccepted || !values.privacyAccepted) {
+    fieldErrors.declarationAccepted = "请确认声明承诺后再提交。";
+  }
 
   return { fieldErrors, values };
 }
@@ -92,6 +138,8 @@ export async function POST(request: Request) {
   }
 
   const { fieldErrors, values } = validatePayload(payload);
+  const fileErrors = validateFiles(formData);
+  Object.assign(fieldErrors, fileErrors);
   if (!values || Object.keys(fieldErrors).length > 0) {
     const response: CertificationSubmitResponse = { success: false, message: "认证申请资料未通过基础校验，请补充或修正后重新提交。", fieldErrors };
     return NextResponse.json(response, { status: 400 });
@@ -124,6 +172,7 @@ export async function POST(request: Request) {
 
     const application: CertificationApplicationRecord = {
       ...values,
+      confirmedAt: now,
       existingCertificates,
       supportingDocuments,
       applicationNo,

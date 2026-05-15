@@ -28,6 +28,10 @@ type SupabaseApplicationRow = {
   profile: string | null;
   purpose: string | null;
   receive_notice: boolean | null;
+  truth_confirmed: boolean | null;
+  terms_accepted: boolean | null;
+  privacy_accepted: boolean | null;
+  confirmed_at: string | null;
   admin_note: string | null;
   created_at: string;
   updated_at: string;
@@ -36,6 +40,7 @@ type SupabaseApplicationRow = {
 type SupabaseCertificationApplicationRow = {
   id: string;
   application_no: string;
+  certification_type: string | null;
   applicant_name: string;
   applicant_name_en: string | null;
   taoist_name: string | null;
@@ -53,11 +58,18 @@ type SupabaseCertificationApplicationRow = {
   sect: string | null;
   practice_years: string | null;
   experience_summary: string | null;
+  application_reason: string | null;
+  additional_note: string | null;
   existing_certificates: unknown;
   supporting_documents: unknown;
   declaration_accepted: boolean | null;
   ethics_confirmed: boolean | null;
   boundary_confirmed: boolean | null;
+  data_use_accepted: boolean | null;
+  certificate_public_accepted: boolean | null;
+  terms_accepted: boolean | null;
+  privacy_accepted: boolean | null;
+  confirmed_at: string | null;
   status: string;
   review_note: string | null;
   reviewer: string | null;
@@ -153,6 +165,10 @@ function toSupabaseRow(application: ApplicationRecord) {
     profile: application.profile,
     purpose: application.purpose,
     receive_notice: application.receiveNotice ?? false,
+    truth_confirmed: application.truthConfirmed,
+    terms_accepted: application.termsAccepted,
+    privacy_accepted: application.privacyAccepted,
+    confirmed_at: application.confirmedAt,
     admin_note: application.adminNote ?? "",
     created_at: application.createdAt,
     updated_at: application.updatedAt
@@ -202,6 +218,10 @@ function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdmin
     profile: row.profile ?? "",
     purpose: row.purpose ?? "",
     receiveNotice: row.receive_notice ?? false,
+    truthConfirmed: row.truth_confirmed ?? false,
+    termsAccepted: row.terms_accepted ?? false,
+    privacyAccepted: row.privacy_accepted ?? false,
+    confirmedAt: row.confirmed_at ?? "",
     adminNote: row.admin_note ?? "",
     createdAt: row.created_at,
     updatedAt: row.updated_at
@@ -211,6 +231,7 @@ function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdmin
 function toCertificationRow(application: CertificationApplicationRecord) {
   return {
     application_no: application.applicationNo,
+    certification_type: application.certificationType,
     applicant_name: application.applicantName,
     applicant_name_en: application.applicantNameEn,
     taoist_name: application.taoistName,
@@ -228,11 +249,18 @@ function toCertificationRow(application: CertificationApplicationRecord) {
     sect: application.sect,
     practice_years: application.practiceYears,
     experience_summary: application.experienceSummary,
+    application_reason: application.applicationReason,
+    additional_note: application.additionalNote,
     existing_certificates: application.existingCertificates,
     supporting_documents: application.supportingDocuments,
     declaration_accepted: application.declarationAccepted,
     ethics_confirmed: application.ethicsConfirmed,
     boundary_confirmed: application.boundaryConfirmed,
+    data_use_accepted: application.dataUseAccepted,
+    certificate_public_accepted: application.certificatePublicAccepted,
+    terms_accepted: application.termsAccepted,
+    privacy_accepted: application.privacyAccepted,
+    confirmed_at: application.confirmedAt,
     status: application.status,
     review_note: application.reviewNote,
     reviewer: application.reviewer,
@@ -287,6 +315,7 @@ function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): C
   return {
     id: row.id,
     applicationNo: row.application_no,
+    certificationType: (row.certification_type || "taoist_priest") as CertificationApplicationAdminRecord["certificationType"],
     applicantName: row.applicant_name,
     applicantNameEn: row.applicant_name_en ?? "",
     taoistName: row.taoist_name ?? "",
@@ -304,11 +333,18 @@ function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): C
     sect: row.sect ?? "",
     practiceYears: row.practice_years ?? "",
     experienceSummary: row.experience_summary ?? "",
+    applicationReason: row.application_reason ?? "",
+    additionalNote: row.additional_note ?? "",
     existingCertificates: normalizeAttachments(row.existing_certificates, "existing_certificates"),
     supportingDocuments: normalizeAttachments(row.supporting_documents, "supporting_documents"),
     declarationAccepted: row.declaration_accepted ?? false,
-    ethicsConfirmed: row.ethics_confirmed ?? false,
-    boundaryConfirmed: row.boundary_confirmed ?? false,
+    ethicsConfirmed: row.ethics_confirmed ?? row.data_use_accepted ?? false,
+    boundaryConfirmed: row.boundary_confirmed ?? row.certificate_public_accepted ?? false,
+    dataUseAccepted: row.data_use_accepted ?? row.ethics_confirmed ?? false,
+    certificatePublicAccepted: row.certificate_public_accepted ?? row.boundary_confirmed ?? false,
+    termsAccepted: row.terms_accepted ?? false,
+    privacyAccepted: row.privacy_accepted ?? false,
+    confirmedAt: row.confirmed_at ?? "",
     status: row.status as CertificationStatus,
     reviewNote: row.review_note ?? "",
     reviewer: row.reviewer ?? "",
@@ -486,7 +522,8 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
 export async function listApplications(filters: { applicationType?: ApplicationType; status?: ApplicationStatus } = {}) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
-    select: "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,admin_note,created_at,updated_at",
+    select:
+      "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,created_at,updated_at",
     order: "created_at.desc"
   });
 
@@ -512,7 +549,8 @@ export async function getApplicationById(id: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     id: `eq.${id}`,
-    select: "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,admin_note,created_at,updated_at",
+    select:
+      "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {

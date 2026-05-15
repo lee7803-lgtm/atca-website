@@ -14,10 +14,20 @@ create table if not exists public.applications (
   profile text,
   purpose text,
   receive_notice boolean default false,
+  truth_confirmed boolean default false,
+  terms_accepted boolean default false,
+  privacy_accepted boolean default false,
+  confirmed_at timestamptz,
   admin_note text,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+alter table public.applications
+  add column if not exists truth_confirmed boolean default false,
+  add column if not exists terms_accepted boolean default false,
+  add column if not exists privacy_accepted boolean default false,
+  add column if not exists confirmed_at timestamptz;
 
 create index if not exists applications_lookup_idx
   on public.applications (application_no, email);
@@ -48,6 +58,7 @@ alter table public.applications enable row level security;
 create table if not exists public.certification_applications (
   id uuid primary key default gen_random_uuid(),
   application_no text unique not null,
+  certification_type text not null default 'taoist_priest' check (certification_type in ('taoist_priest')),
   applicant_name text not null,
   applicant_name_en text,
   taoist_name text,
@@ -65,11 +76,18 @@ create table if not exists public.certification_applications (
   sect text,
   practice_years text,
   experience_summary text,
+  application_reason text,
+  additional_note text,
   existing_certificates jsonb default '[]'::jsonb,
   supporting_documents jsonb default '[]'::jsonb,
   declaration_accepted boolean default false,
   ethics_confirmed boolean default false,
   boundary_confirmed boolean default false,
+  data_use_accepted boolean default false,
+  certificate_public_accepted boolean default false,
+  terms_accepted boolean default false,
+  privacy_accepted boolean default false,
+  confirmed_at timestamptz,
   status text not null default 'submitted' check (status in ('submitted', 'under_review', 'need_more_info', 'approved', 'rejected', 'cert_issued', 'revoked')),
   review_note text,
   reviewer text,
@@ -79,8 +97,16 @@ create table if not exists public.certification_applications (
 );
 
 alter table public.certification_applications
+  add column if not exists certification_type text not null default 'taoist_priest',
+  add column if not exists application_reason text,
+  add column if not exists additional_note text,
   add column if not exists ethics_confirmed boolean default false,
-  add column if not exists boundary_confirmed boolean default false;
+  add column if not exists boundary_confirmed boolean default false,
+  add column if not exists data_use_accepted boolean default false,
+  add column if not exists certificate_public_accepted boolean default false,
+  add column if not exists terms_accepted boolean default false,
+  add column if not exists privacy_accepted boolean default false,
+  add column if not exists confirmed_at timestamptz;
 
 alter table public.certification_applications
   alter column existing_certificates type jsonb using

@@ -3,6 +3,7 @@
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
+import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { PageHero } from "@/components/PageHero";
 import type { ApplicationSubmitResponse } from "@/types/application";
 
@@ -17,12 +18,61 @@ type FormValues = {
   organizationType: string;
   profile: string;
   cooperation: string;
+  truthConfirmed: boolean;
+  termsAccepted: boolean;
+  privacyAccepted: boolean;
 };
+
+const organizationProfileTemplate = `本机构基本情况如下：
+
+1. 机构名称：【请填写】
+2. 主要业务 / 服务方向：【请填写】
+3. 过往相关活动或合作经历：【请填写】
+4. 与道教文化、传统文化或文化交流相关的基础情况：【请填写】
+
+本机构确认所提交资料真实有效，并愿意配合 ITCA 后续审核及沟通。`;
+
+const cooperationTemplate = `本机构希望与 ITCA 在以下方向建立联系或合作：
+
+1. 文化交流活动
+2. 会员服务
+3. 认证服务
+4. 课程或研修项目
+5. 其他合作方向：【请填写】
+
+具体合作设想如下：【请根据实际情况填写】
+
+本机构确认以上内容真实，并愿意配合后续沟通和资料补充。`;
+
+const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
+
+function validateValues(values: FormValues) {
+  const errors: Partial<Record<keyof FormValues, string>> = {};
+
+  if (!values.organizationName.trim()) errors.organizationName = "请填写机构名称。";
+  else if (values.organizationName.trim().length < 2 || values.organizationName.trim().length > 80) errors.organizationName = "机构名称长度需为 2–80 个字符。";
+  if (!values.principalName.trim()) errors.principalName = "请填写负责人姓名。";
+  else if (values.principalName.trim().length < 2 || values.principalName.trim().length > 50) errors.principalName = "联系人姓名长度需为 2–50 个字符。";
+  if (!values.contact.trim()) errors.contact = "请填写联系电话。";
+  else if (!phonePattern.test(values.contact.trim())) errors.contact = "请填写有效联系电话。";
+  if (!values.email.trim()) errors.email = "请填写邮箱。";
+  else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errors.email = "请输入有效邮箱地址。";
+  if (!values.region.trim()) errors.region = "请选择所在国家或地区。";
+  if (!organizationTypes.includes(values.organizationType)) errors.organizationType = "请选择机构类型。";
+  if (values.profile.trim().length < 30 || values.profile.trim().length > 2000) errors.profile = "请填写机构介绍，且不少于 30 字、不超过 2000 字。";
+  if (values.cooperation.trim().length > 1500) errors.cooperation = "合作意向说明不能超过 1500 字。";
+  if (!values.truthConfirmed) errors.truthConfirmed = "请确认所提交资料真实有效。";
+  if (!values.termsAccepted) errors.termsAccepted = "请确认服务条款后再提交。";
+  if (!values.privacyAccepted) errors.privacyAccepted = "请确认隐私政策后再提交。";
+
+  return errors;
+}
 
 export default function OrganizationApplyPage() {
   const router = useRouter();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
   const [values, setValues] = useState<FormValues>({
     organizationName: "",
     principalName: "",
@@ -31,12 +81,16 @@ export default function OrganizationApplyPage() {
     region: "",
     organizationType: "",
     profile: "",
-    cooperation: ""
+    cooperation: "",
+    truthConfirmed: false,
+    termsAccepted: false,
+    privacyAccepted: false
   });
 
-  const updateValue = (field: keyof FormValues, value: string) => {
+  const updateValue = (field: keyof FormValues, value: string | boolean) => {
     setValues((current) => ({ ...current, [field]: value }));
     setErrorMessage("");
+    setFieldErrors((current) => ({ ...current, [field]: "" }));
   };
 
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
@@ -45,6 +99,12 @@ export default function OrganizationApplyPage() {
     if (isSubmitting) return;
 
     setErrorMessage("");
+    const nextErrors = validateValues(values);
+    setFieldErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) {
+      setErrorMessage("请补充或修正标记的内容后再提交。");
+      return;
+    }
     setIsSubmitting(true);
 
     try {
@@ -60,7 +120,10 @@ export default function OrganizationApplyPage() {
           country: values.region,
           profile: values.profile,
           purpose: values.cooperation,
-          organizationType: values.organizationType
+          organizationType: values.organizationType,
+          truthConfirmed: values.truthConfirmed,
+          termsAccepted: values.termsAccepted,
+          privacyAccepted: values.privacyAccepted
         })
       });
       const result = (await response.json()) as ApplicationSubmitResponse;
@@ -114,22 +177,22 @@ export default function OrganizationApplyPage() {
             </div>
 
             <div className="grid gap-5 md:grid-cols-2">
-              <Field label="机构名称" required>
+              <Field error={fieldErrors.organizationName} label="机构名称" required>
                 <input className="form-input" required value={values.organizationName} onChange={(event) => updateValue("organizationName", event.target.value)} />
               </Field>
-              <Field label="负责人姓名" required>
+              <Field error={fieldErrors.principalName} label="负责人姓名" required>
                 <input className="form-input" required value={values.principalName} onChange={(event) => updateValue("principalName", event.target.value)} />
               </Field>
-              <Field label="手机 / WhatsApp" required>
+              <Field error={fieldErrors.contact} label="手机 / WhatsApp" required>
                 <input className="form-input" required value={values.contact} onChange={(event) => updateValue("contact", event.target.value)} />
               </Field>
-              <Field label="邮箱" required>
+              <Field error={fieldErrors.email} label="邮箱" required>
                 <input className="form-input" required type="email" value={values.email} onChange={(event) => updateValue("email", event.target.value)} />
               </Field>
-              <Field label="所在国家 / 地区" required>
+              <Field error={fieldErrors.region} label="所在国家 / 地区" required>
                 <input className="form-input" required value={values.region} onChange={(event) => updateValue("region", event.target.value)} />
               </Field>
-              <Field label="机构类型" required>
+              <Field error={fieldErrors.organizationType} label="机构类型" required>
                 <select className="form-input" required value={values.organizationType} onChange={(event) => updateValue("organizationType", event.target.value)}>
                   <option value="">请选择机构类型</option>
                   {organizationTypes.map((item) => (
@@ -137,12 +200,17 @@ export default function OrganizationApplyPage() {
                   ))}
                 </select>
               </Field>
-              <Field className="md:col-span-2" label="机构简介" required>
-                <textarea className="form-input min-h-32 resize-y" required value={values.profile} onChange={(event) => updateValue("profile", event.target.value)} />
+              <Field error={fieldErrors.profile} className="md:col-span-2" label="机构介绍" required>
+                <textarea className="form-input min-h-32 resize-y" maxLength={2000} required value={values.profile} onChange={(event) => updateValue("profile", event.target.value)} />
+                <FormTemplateHelper hint="请说明机构基本情况、业务方向和相关文化交流基础，30–2000 字。" template={organizationProfileTemplate} onApply={() => updateValue("profile", organizationProfileTemplate)} />
               </Field>
-              <Field className="md:col-span-2" label="合作意向" required>
-                <textarea className="form-input min-h-36 resize-y" required value={values.cooperation} onChange={(event) => updateValue("cooperation", event.target.value)} />
+              <Field error={fieldErrors.cooperation} className="md:col-span-2" label="合作意向说明">
+                <textarea className="form-input min-h-36 resize-y" maxLength={1500} value={values.cooperation} onChange={(event) => updateValue("cooperation", event.target.value)} />
+                <FormTemplateHelper hint="可说明拟合作方向和具体设想，最多 1500 字。" template={cooperationTemplate} onApply={() => updateValue("cooperation", cooperationTemplate)} />
               </Field>
+              <ConfirmCheckbox checked={values.truthConfirmed} error={fieldErrors.truthConfirmed} label="本机构确认所填写的申请资料真实、完整、合法。" onChange={(checked) => updateValue("truthConfirmed", checked)} />
+              <ConfirmCheckbox checked={values.termsAccepted} error={fieldErrors.termsAccepted} label="本机构已阅读并同意《服务条款》。" onChange={(checked) => updateValue("termsAccepted", checked)} />
+              <ConfirmCheckbox checked={values.privacyAccepted} error={fieldErrors.privacyAccepted} label="本机构已阅读并同意《隐私政策》及资料使用说明。" onChange={(checked) => updateValue("privacyAccepted", checked)} />
             </div>
 
             {errorMessage ? (
@@ -164,7 +232,7 @@ export default function OrganizationApplyPage() {
   );
 }
 
-function Field({ children, className = "", label, required = false }: { children: ReactNode; className?: string; label: string; required?: boolean }) {
+function Field({ children, className = "", error = "", label, required = false }: { children: ReactNode; className?: string; error?: string; label: string; required?: boolean }) {
   return (
     <label className={`grid gap-3 rounded-2xl bg-white/45 p-3 ${className}`}>
       <span className="flex items-center gap-2 text-sm font-medium text-porcelain">
@@ -172,6 +240,19 @@ function Field({ children, className = "", label, required = false }: { children
         {required ? <span className="rounded-full bg-[#f8e8e8] px-2 py-0.5 text-xs text-[#7F1D1D]">*</span> : null}
       </span>
       {children}
+      {error ? <span className="text-xs text-[#7F1D1D]">{error}</span> : null}
+    </label>
+  );
+}
+
+function ConfirmCheckbox({ checked, error, label, onChange }: { checked: boolean; error?: string; label: string; onChange: (checked: boolean) => void }) {
+  return (
+    <label className="grid gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52] md:col-span-2">
+      <span className="flex items-start gap-3">
+        <input className="mt-1 h-4 w-4 accent-[#7F1D1D]" checked={checked} type="checkbox" onChange={(event) => onChange(event.target.checked)} />
+        <span>{label}</span>
+      </span>
+      {error ? <span className="text-xs text-[#7F1D1D]">{error}</span> : null}
     </label>
   );
 }
