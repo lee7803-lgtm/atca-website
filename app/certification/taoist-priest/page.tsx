@@ -630,7 +630,7 @@ function FormField({
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
           <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setFileValue(field.id, event.target.files?.[0] ?? null)} />
-          <span className="block text-xs leading-5 text-[#8a6b3e]">请上传 PDF、JPG、JPEG 或 PNG 文件，单个文件不超过 10MB。文件用途仅用于申请审核，不公开展示。</span>
+          <span className="block text-xs leading-5 text-[#8a6b3e]">请上传 PDF、JPG、JPEG 或 PNG 文件，单个文件不超过 10MB。上传材料仅用于申请审核，不公开展示；请确保材料清晰、完整、可读，且不得上传与申请无关的文件。</span>
         </span>
       ) : field.kind === "checkbox" ? (
         <span className="flex items-center gap-3 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3">

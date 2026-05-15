@@ -8,6 +8,22 @@ const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
 const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
 const maxFileSize = 10 * 1024 * 1024;
+const allowedUploadFields = new Set([
+  "luDocument",
+  "jieDocument",
+  "duDocument",
+  "guanJinDocument",
+  "lineageProof",
+  "templeProof",
+  "internalVoucher",
+  "idProof",
+  "photo",
+  "criminalRecord",
+  "educationProof",
+  "practiceReport",
+  "organizationLetter",
+  "crossCulturePlan"
+]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -45,6 +61,11 @@ function validateFiles(formData: FormData | null) {
 
   formData.forEach((value, key) => {
     if (!(value instanceof File) || value.size === 0) return;
+
+    if (!allowedUploadFields.has(key)) {
+      fieldErrors[key] = "请勿上传与申请无关的文件。";
+      return;
+    }
 
     const lowerName = value.name.toLowerCase();
     const hasAllowedExtension = allowedFileExtensions.some((extension) => lowerName.endsWith(extension));
