@@ -192,7 +192,7 @@ function toApplicationQueryResult(row: Pick<SupabaseApplicationRow, "application
 }
 
 function toCertificationQueryResult(
-  row: Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "created_at" | "updated_at">,
+  row: Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">,
   certificateNo?: string
 ): ApplicationQueryResult {
   return {
@@ -202,6 +202,9 @@ function toCertificationQueryResult(
     status: row.status as ApplicationQueryResult["status"],
     adminNote: row.applicant_feedback ?? row.review_note ?? "",
     certificateNo,
+    certificateDetailUrl: certificateNo ? `/certificates/${encodeURIComponent(certificateNo)}` : undefined,
+    deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
+    deliveredAt: row.delivered_at,
     createdAt: row.created_at,
     updatedAt: row.updated_at
   };
@@ -388,13 +391,11 @@ function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQuery
   return {
     certificateNo: row.certificate_no,
     holderName: row.holder_name,
-    taoistName: row.taoist_name ?? "",
-    taoistRank: row.taoist_rank ?? "",
-    sect: row.sect ?? "",
+    certificationType: row.taoist_rank || "道士资格认证",
+    issuer: "International Taoisme And Cultural Association",
     issuedDate: row.issued_date,
-    validFrom: row.valid_from,
-    validUntil: row.valid_until,
-    status: row.status as CertificateQueryResult["status"]
+    status: row.status as CertificateQueryResult["status"],
+    detailUrl: `/certificates/${encodeURIComponent(row.certificate_no)}`
   };
 }
 
@@ -482,7 +483,7 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,delivery_status,delivered_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
@@ -494,7 +495,7 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
   const row = rows[0];
   const certificate = row ? await findCertificateByApplicationIdSafe(row.id) : null;
 
@@ -507,7 +508,7 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
     applicant_name: `eq.${filters.applicantName}`,
     taoist_name: `eq.${filters.taoistName}`,
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,delivery_status,delivered_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "10"
   });
@@ -520,7 +521,7 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
 
   const results: ApplicationQueryResult[] = [];
   for (const row of rows) {
@@ -740,6 +741,30 @@ export async function findCertificateByApplicationId(applicationId: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_id: `eq.${applicationId}`,
+    select: "*",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const row = rows[0];
+
+  return row ? toCertificateQueryResult(row) : null;
+}
+
+export async function findPublicCertificateByNo(certificateNo: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    certificate_no: `eq.${certificateNo}`,
+    public_query_enabled: "eq.true",
     select: "*",
     limit: "1"
   });

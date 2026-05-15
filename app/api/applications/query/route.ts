@@ -81,7 +81,7 @@ export async function GET(request: Request) {
     if (applications.length === 0) {
       const response: ApplicationQueryResponse = {
         success: false,
-        message: "未查询到相关申请记录，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。"
+        message: "未查询到匹配的申请记录。请确认申请编号和联系方式是否准确。"
       };
 
       return NextResponse.json(response, { status: 404 });

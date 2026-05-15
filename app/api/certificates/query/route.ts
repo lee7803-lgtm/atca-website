@@ -15,7 +15,7 @@ export async function GET(request: Request) {
   try {
     const certificate = await findCertificateByNoAndHolder(certificateNo, holderName);
     if (!certificate) {
-      const response: CertificateQueryResponse = { success: false, message: "未查询到匹配的证书记录，请确认资料是否正确，或联系协会秘书处协助核验。" };
+      const response: CertificateQueryResponse = { success: false, message: "未查询到匹配证书记录。请确认姓名和证书编号是否准确，或联系 ITCA 进行核对。" };
       return NextResponse.json(response, { status: 404 });
     }
 

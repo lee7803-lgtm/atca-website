@@ -57,8 +57,11 @@ function buildNotice(params: {
     base.push("", params.certificateNo ? `您的证书记录已生成，证书编号：${params.certificateNo}。` : "您的证书记录已生成或已完成下发。");
   }
 
-  base.push("", "申请进度查询入口：https://www.itca.org/application/query");
-  if (params.certificateNo) base.push(`证书核验入口：https://www.itca.org/certificate-query?certificateNo=${encodeURIComponent(params.certificateNo)}&holderName=${encodeURIComponent(params.applicantName)}`);
+  base.push("", "申请进度查询入口：/application/query");
+  if (params.certificateNo) {
+    base.push(`证书核验入口：/certificate-query?certificateNo=${encodeURIComponent(params.certificateNo)}&holderName=${encodeURIComponent(params.applicantName)}`);
+    base.push(`证书详情入口：/certificates/${encodeURIComponent(params.certificateNo)}`);
+  }
   base.push("", "如联系方式或资料需更新，请联系 ITCA 秘书处协助处理。");
 
   return base.join("\n");

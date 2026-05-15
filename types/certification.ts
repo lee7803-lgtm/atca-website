@@ -10,7 +10,7 @@ export type CertificationStatus =
   | "archived"
   | "revoked";
 
-export type CertificateStatus = "valid" | "expired" | "revoked" | "suspended";
+export type CertificateStatus = "pending" | "valid" | "expired" | "revoked" | "suspended";
 
 export type CertificationType = "taoist_priest";
 
@@ -108,13 +108,11 @@ export type CertificateRecord = {
 export type CertificateQueryResult = {
   certificateNo: string;
   holderName: string;
-  taoistName: string;
-  taoistRank: string;
-  sect: string;
+  certificationType: string;
+  issuer: string;
   issuedDate: string;
-  validFrom: string;
-  validUntil: string;
   status: CertificateStatus;
+  detailUrl: string;
 };
 
 export type CertificateQueryResponse =

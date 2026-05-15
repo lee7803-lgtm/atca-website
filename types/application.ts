@@ -73,6 +73,9 @@ export type ApplicationQueryResult = {
   status: ApplicationStatus | "under_review" | "certificate_issued" | "cert_issued" | "delivered" | "revoked";
   adminNote: string;
   certificateNo?: string;
+  certificateDetailUrl?: string;
+  deliveryStatus?: "not_delivered" | "delivered";
+  deliveredAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };

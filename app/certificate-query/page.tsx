@@ -9,6 +9,7 @@ import { maskName } from "@/lib/masking";
 import type { CertificateQueryResponse, CertificateQueryResult } from "@/types/certification";
 
 const statusText: Record<string, string> = {
+  pending: "待确认",
   valid: "有效",
   expired: "已过期",
   revoked: "已撤销",
@@ -88,7 +89,7 @@ export default function CertificateQueryPage() {
                 <input className="form-input" placeholder="ITCA-TAO-********" required value={certificateNo} onChange={(event) => setCertificateNo(event.target.value)} />
               </label>
               <label className="grid gap-2">
-                <span className="text-sm font-medium text-porcelain">持证人姓名</span>
+                <span className="text-sm font-medium text-porcelain">姓名</span>
                 <input className="form-input" required value={holderName} onChange={(event) => setHolderName(event.target.value)} />
               </label>
             </div>
@@ -104,18 +105,20 @@ export default function CertificateQueryPage() {
             {certificate ? (
               <div className="mt-6 grid gap-3">
                 <ResultRow label="证书编号" value={certificate.certificateNo} />
-                <ResultRow label="持证人姓名" value={maskName(certificate.holderName)} />
-                <ResultRow label="道名 / 法名" value={certificate.taoistName || "未登记"} />
-                <ResultRow label="认证项目" value="道士资格认证" />
-                <ResultRow label="道士等级" value={certificate.taoistRank || "未登记"} />
-                <ResultRow label="签发机构" value="International Taoisme And Cultural Association" />
+                <ResultRow label="姓名" value={maskName(certificate.holderName)} />
+                <ResultRow label="认证类型" value={certificate.certificationType} />
+                <ResultRow label="签发机构" value={certificate.issuer} />
                 <ResultRow label="签发日期" value={certificate.issuedDate} />
-                <ResultRow label="有效期" value={`${certificate.validFrom} 至 ${certificate.validUntil}`} />
                 <ResultRow label="证书状态" value={statusText[certificate.status]} />
-                <ResultRow label="核验说明" value="本结果仅用于核验证书记录是否存在及当前状态，最终解释以 ITCA 秘书处备案记录为准。" />
+                <ResultRow label="核验说明" value="本页面用于核对 ITCA 登记系统中是否存在对应证书记录。查询结果用于确认该证书的登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。" />
+                <div className="mt-2">
+                  <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={certificate.detailUrl}>
+                    查看证书详情
+                  </Link>
+                </div>
               </div>
             ) : (
-              <p className="mt-4 text-sm leading-7 text-[#666666]">请输入证书编号与持证人姓名后查询。查询不到记录时，请确认资料是否正确，或联系协会秘书处协助核验。</p>
+              <p className="mt-4 text-sm leading-7 text-[#666666]">请输入证书编号与姓名后查询。查询不到记录时，请确认姓名和证书编号是否准确，或联系 ITCA 进行核对。</p>
             )}
           </div>
         </div>
@@ -123,7 +126,7 @@ export default function CertificateQueryPage() {
 
       <Section title="证书核验说明" tone="soft">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          证书查询结果用于核验证书编号、持证人信息、认证项目、签发日期、有效状态及协会备案记录。查询结果仅代表 ITCA 系统内的认证与建档状态，不作为任何政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可证明。
+          本页面用于核对 ITCA 登记系统中是否存在对应证书记录。查询结果用于确认该证书的登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。
         </div>
       </Section>
     </>

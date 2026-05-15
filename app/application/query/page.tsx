@@ -11,16 +11,21 @@ type QueryType = "personal_member" | "organization_member" | "taoist_certificati
 
 const statusText: Record<string, string> = {
   submitted: "已提交",
-  pending_review: "审核中",
+  pending_review: "待审核",
   under_review: "审核中",
-  need_more_info: "需补充资料",
-  approved: "已通过",
-  rejected: "已驳回",
-  archived: "已建档",
+  need_more_info: "需补充材料",
+  approved: "审核通过",
+  rejected: "审核未通过",
+  archived: "已归档",
   certificate_issued: "已生成证书",
-  cert_issued: "已发证",
+  cert_issued: "已生成证书",
   delivered: "已下发",
   revoked: "已撤销"
+};
+
+const deliveryStatusText: Record<string, string> = {
+  not_delivered: "待下发",
+  delivered: "已下发"
 };
 
 const typeText: Record<string, string> = {
@@ -115,6 +120,7 @@ function ApplicationQueryContent() {
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询申请记录</h2>
+            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度。</p>
 
             <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
               <button className={mode === "number" ? "rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#7F1D1D] shadow-sm" : "rounded-xl px-4 py-2.5 text-sm font-medium text-[#66594d]"} type="button" onClick={() => setMode("number")}>
@@ -189,20 +195,33 @@ function ApplicationQueryContent() {
             ) : null}
             {selectedApplication ? (
               <div className="mt-7 grid gap-4">
-                <StatusRow label="申请编号" value={maskApplicationNo(selectedApplication.applicationNo)} />
+                <StatusRow label="申请编号" value={selectedApplication.applicationNo} />
                 <StatusRow label="申请类型" value={typeText[selectedApplication.applicationType]} />
                 <StatusRow label="申请人 / 机构名称" value={maskName(selectedApplication.name)} />
                 <StatusRow label="当前状态" value={currentStatusText(selectedApplication)} />
                 <StatusRow label="提交时间" value={formatDateTime(selectedApplication.createdAt)} />
-                <StatusRow label="审核说明" value={selectedApplication.adminNote || "暂无审核说明"} />
+                <StatusRow label={selectedApplication.applicationType === "taoist_certification" ? "对申请人的反馈" : "审核反馈"} value={selectedApplication.adminNote || "暂无反馈"} />
+                {selectedApplication.applicationType === "taoist_certification" ? (
+                  <>
+                    <StatusRow label="是否需要补充材料" value={selectedApplication.status === "need_more_info" ? "是，请查看反馈说明" : "否"} />
+                    <StatusRow label="证书是否已生成" value={selectedApplication.certificateNo ? "是" : "否"} />
+                    <StatusRow label="证书下发状态" value={deliveryStatusText[selectedApplication.deliveryStatus || "not_delivered"]} />
+                    <StatusRow label="下发时间" value={selectedApplication.deliveredAt ? formatDateTime(selectedApplication.deliveredAt) : "尚未下发"} />
+                  </>
+                ) : null}
                 <StatusRow label="下一步提示" value={nextStepText(selectedApplication.status)} />
                 {selectedApplication.certificateNo ? (
                   <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
                     <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
                     <p className="mt-2 break-all text-sm leading-7 text-porcelain">{selectedApplication.certificateNo}</p>
-                    <a className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
-                      前往证书查询
-                    </a>
+                    <div className="mt-3 flex flex-wrap gap-2">
+                      <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href={selectedApplication.certificateDetailUrl || `/certificates/${encodeURIComponent(selectedApplication.certificateNo)}`}>
+                        查看证书详情
+                      </a>
+                      <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
+                        前往证书查询
+                      </a>
+                    </div>
                   </div>
                 ) : null}
               </div>
@@ -220,7 +239,7 @@ function ApplicationQueryContent() {
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">状态说明</h2>
             <div className="mt-5 flex flex-wrap gap-2">
-              {["已提交", "审核中", "需补充资料", "已通过", "已驳回", "已建档", "已发证", "已撤销"].map((item) => (
+              {["已提交", "待审核", "审核中", "需补充材料", "审核通过", "审核未通过", "已生成证书", "已下发", "已归档", "已撤销"].map((item) => (
                 <span className="rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>{item}</span>
               ))}
             </div>
@@ -237,12 +256,17 @@ function ApplicationQueryContent() {
 }
 
 function nextStepText(status: string) {
-  if (status === "need_more_info") return "请按审核说明补充资料，并等待协会秘书处进一步联系。";
-  if (status === "approved") return "审核已通过，请等待证书记录生成或协会秘书处进一步通知。";
-  if (status === "certificate_issued" || status === "cert_issued") return "证书已生成，可前往证书查询页面核验证书记录。";
-  if (status === "delivered") return "证书已完成下发，可前往证书查询页面核验证书记录。";
-  if (status === "rejected" || status === "revoked") return "如需复核，请联系协会秘书处协助核对。";
-  return "请等待协会秘书处审核；如联系方式变更，请主动联系更新。";
+  if (status === "submitted") return "您的申请已提交，请等待工作人员审核。";
+  if (status === "pending_review") return "您的申请已进入待审核队列，请等待工作人员处理。";
+  if (status === "under_review") return "您的申请正在审核中，请耐心等待。";
+  if (status === "need_more_info") return "您的申请需要补充材料，请根据反馈内容准备资料，并联系 ITCA 工作人员。";
+  if (status === "approved") return "您的申请已审核通过，后续将生成证书记录。";
+  if (status === "certificate_issued" || status === "cert_issued") return "您的证书已生成，可查看证书详情或等待工作人员下发。";
+  if (status === "delivered") return "您的证书已标记为下发，如未收到请联系 ITCA 工作人员。";
+  if (status === "rejected") return "您的申请未通过审核，请查看反馈说明。";
+  if (status === "archived") return "该申请已归档，如需查询请联系 ITCA 工作人员。";
+  if (status === "revoked") return "该记录已撤销，如需核对请联系 ITCA 工作人员。";
+  return "请等待工作人员审核；如联系方式变更，请主动联系更新。";
 }
 
 function currentStatusText(application: ApplicationQueryResult) {
