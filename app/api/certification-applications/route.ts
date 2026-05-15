@@ -7,7 +7,7 @@ const validCertificationTypes = ["taoist_priest"];
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
 const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
-const maxFileSize = 10 * 1024 * 1024;
+const maxFileSize = 2 * 1024 * 1024;
 const allowedUploadFields = new Set([
   "luDocument",
   "jieDocument",
@@ -75,7 +75,7 @@ function validateFiles(formData: FormData | null) {
     }
 
     if (value.size > maxFileSize) {
-      fieldErrors[key] = "文件大小超过限制，请上传不超过 10MB 的文件。";
+      fieldErrors[key] = "文件大小超过限制，请上传不超过 2MB 的文件。";
     }
   });
 
