@@ -19,7 +19,7 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-4 max-w-sm text-sm leading-6 text-white/70 sm:mt-5">
-            ITCA · International Taoisme And Cultural Association（国际道教与文化协会）面向道教文化传承、认证建档、会员服务与国际交流合作提供协会平台服务。
+            本网站用于 ITCA / 国际道教与文化协会的协会介绍、认证申请、会员申请、证书核验与合作联系等信息服务。
           </p>
         </div>
         <div>
@@ -33,11 +33,16 @@ export function Footer() {
           </div>
         </div>
         <div>
-          <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">服务方向</p>
+          <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">服务说明</p>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-1">
-            {["认证咨询", "会员申请", "机构合作", "文化交流", "资料核验"].map((item) => (
+            {["网站说明", "申请须知", "资料使用说明", "核验说明", "重要提示"].map((item) => (
               <span key={item}>{item}</span>
             ))}
+          </div>
+          <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-white/70">
+            <Link href="/certificate-query">证书核验入口</Link>
+            <Link href="/application/query">申请进度查询</Link>
+            <Link href="/membership">隐私政策与服务条款</Link>
           </div>
         </div>
         <div>
@@ -52,7 +57,7 @@ export function Footer() {
       </div>
       <div className="relative border-t border-white/10 px-5 py-3.5 text-center text-xs leading-5 text-white/55 sm:py-4">
         <p className="mx-auto max-w-4xl text-white/58">
-          ITCA 认证属于协会资料核验与建档服务，不等同于政府许可、法定职业资格或宗教职务任命。
+          相关申请与证书信息以 ITCA 官方审核及登记记录为准。证书状态以官网核验结果为准。
         </p>
         <p className="mt-1.5">
           © 2026 ITCA · International Taoisme And Cultural Association. All Rights Reserved.

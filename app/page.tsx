@@ -5,6 +5,7 @@ import { CulturePattern } from "@/components/CulturePattern";
 import { CulturalImage } from "@/components/CulturalImage";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { InkLandscape } from "@/components/InkLandscape";
+import { announcements } from "@/lib/announcements";
 
 export const metadata: Metadata = {
   title: "国际道教与文化协会 ITCA 官网"
@@ -27,8 +28,17 @@ const certificationFeatures = [
   ["可查询", "通过证书编号与姓名核验证书状态，保留人工复核通道。"],
   ["可建档", "围绕身份资料、师承关系、学习经历与实践资料形成协会认证档案。"],
   ["可追溯", "申请、审核、建档、签发与核验流程保持记录链路。"],
-  ["边界清晰", "协会认证不等同于政府许可、法定职业资格、商业授权或宗教职务任命。"]
+  ["说明清晰", "协会认证用于资料审核、登记记录与文化交流场景中的身份信息展示。"]
 ];
+
+const trustFeatures = [
+  ["官网可核验", "证书可通过官网证书编号与持证人姓名核验公开登记信息。"],
+  ["审核有记录", "申请提交、材料补充、审核决定与证书生成均围绕登记记录留存。"],
+  ["档案可留存", "认证与会员资料用于协会审核、建档、后续联系和服务管理。"],
+  ["适用于国际文化交流场景", "申请与证书信息可作为文化交流、学习传播和合作沟通中的身份信息展示。"]
+];
+
+const certificationFlow = ["选择认证", "填写资料", "提交申请", "初步审核", "补充材料", "审核决定", "生成证书", "官网核验", "证书下发"];
 
 const organizationUnits = [
   ["01", "理事会", "组织治理", "统筹协会发展方向、重大事项审议与协会公共事务。", "/images/itca/organization/01-org-governance-council.png"],
@@ -37,13 +47,6 @@ const organizationUnits = [
   ["04", "专家顾问委员会", "学术支持", "提供文化研究、学术交流与专业咨询支持。", "/images/itca/organization/04-org-academic-advisory.png"],
   ["05", "会员服务部门", "会员联结", "服务个人会员与机构会员申请、沟通与协作。", "/images/itca/organization/05-org-member-service.png"],
   ["06", "合作发展部门", "合作拓展", "推动机构合作、国际项目、学术交流与资源共建。", "/images/itca/organization/06-org-cooperation-development.png"]
-];
-
-const announcements = [
-  ["ITCA 官网信息服务已开放", "本网站用于发布协会介绍、认证须知、会员申请、证书核验与联系合作等信息。"],
-  ["道士资格认证为当前认证重点", "协会当前以道士资格认证为主要认证方向，相关申请、审核与备案事项将按协会流程逐步完善。"],
-  ["会员申请事项", "个人会员与机构会员可通过官网了解申请要求、资料准备与后续联系方式。"],
-  ["证书核验事项", "证书核验可通过官网证书查询页面提交证书编号与持证人姓名进行核验；查询不到或资料需复核时，可联系协会秘书处协助确认。"]
 ];
 
 const cooperation = [
@@ -179,7 +182,7 @@ export default function Home() {
 
       <section className="bg-[#efe7d8] px-5 py-18 sm:px-8 lg:py-28">
         <div className="mx-auto max-w-7xl">
-          <PortalTitle eyebrow="Official Entries" title="核心服务" intro="官网当前提供认证服务、会员申请与证书核验三类核心入口，并公开说明申请边界与查询方式。" />
+          <PortalTitle eyebrow="Official Entries" title="核心服务" intro="官网当前提供认证服务、会员申请与证书核验三类核心入口，并公开说明申请须知、资料使用说明与查询方式。" />
           <div className="grid gap-7 lg:grid-cols-3">
             {services.map((item) => <PortalCard key={item.title} {...item} />)}
           </div>
@@ -198,7 +201,34 @@ export default function Home() {
           ))}
         </div>
         <div className="mt-9 border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_14px_34px_rgba(176,138,69,0.07)]">
-          ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。
+          ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。
+        </div>
+      </section>
+
+      <section className="bg-[#efe7d8] px-5 py-18 sm:px-8 lg:py-28">
+        <div className="mx-auto max-w-7xl">
+          <PortalTitle eyebrow="Trust Service" title="为什么选择 ITCA" intro="以官网核验、审核记录、资料建档和文化交流服务为基础，提供清晰、可查询、可沟通的申请与核验入口。" />
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {trustFeatures.map(([title, text], index) => (
+              <article className="rounded-[1.35rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
+                <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
+                <h3 className="mt-4 text-lg font-medium text-[#1B1B1B]">{title}</h3>
+                <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{text}</p>
+              </article>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="mx-auto max-w-7xl px-5 py-18 sm:px-8 lg:py-28">
+        <PortalTitle eyebrow="Certification Flow" title="认证流程图" intro="道士资格认证采用资料提交、人工审核、必要时补充材料、审核决定、证书生成与官网核验的流程。" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          {certificationFlow.map((title, index) => (
+            <article className="relative rounded-[1.35rem] border border-[#e4ded0] bg-white/92 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
+              <p className="text-xs tracking-[0.22em] text-gold">第 {index + 1} 步</p>
+              <h3 className="mt-4 text-lg font-medium text-porcelain">{title}</h3>
+            </article>
+          ))}
         </div>
       </section>
 
@@ -234,7 +264,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-5 py-18 sm:px-8 lg:py-28">
+      <section className="px-5 py-18 sm:px-8 lg:py-28" id="announcements">
         <div className="mx-auto grid max-w-7xl gap-7 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch">
           <article className="relative overflow-hidden rounded-[1.85rem] bg-[#7F1D1D] p-8 text-white shadow-[0_22px_58px_rgba(127,29,29,0.16)] sm:p-10">
             <div className="absolute -right-14 -top-16 h-44 w-44 rounded-full border border-white/12" aria-hidden="true" />
@@ -251,11 +281,12 @@ export default function Home() {
           </article>
           <article className="rounded-[1.85rem] border border-[#e4ded0] bg-white/92 p-7 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-9">
             <div className="divide-y divide-[#e4ded0]">
-              {announcements.map(([title, text]) => (
-                <div className="py-5 first:pt-0 last:pb-0" key={title}>
-                  <h3 className="text-lg font-medium text-[#1B1B1B]">{title}</h3>
-                  <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{text}</p>
-                </div>
+              {announcements.map((item) => (
+                <Link className="block py-5 transition hover:bg-[#fbf8ef] first:pt-0 last:pb-0 sm:px-3" href={`/announcements/${item.slug}`} key={item.slug}>
+                  <h3 className="text-lg font-medium text-[#1B1B1B]">{item.title}</h3>
+                  <p className="mt-2 text-xs text-[#8a6b3e]">{item.date}</p>
+                  <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{item.summary}</p>
+                </Link>
               ))}
             </div>
           </article>

@@ -105,7 +105,7 @@ function ApplicationQueryContent() {
         eyebrow="Application Query"
         title="申请进度查询"
         subtitle="Application Status Query"
-        intro="申请进度查询用于查看资料受理、审核状态与后续办理结果，服务申请人与协会秘书处沟通确认。"
+        intro="申请进度查询用于申请人查看本人申请的资料受理、审核状态、反馈说明与后续办理结果。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
         visualDescription="查询结果仅脱敏显示申请状态和必要备注，不公开完整申请资料。"
@@ -120,7 +120,7 @@ function ApplicationQueryContent() {
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询申请记录</h2>
-            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度。</p>
+            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度和审核反馈。</p>
 
             <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
               <button className={mode === "number" ? "rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#7F1D1D] shadow-sm" : "rounded-xl px-4 py-2.5 text-sm font-medium text-[#66594d]"} type="button" onClick={() => setMode("number")}>
@@ -176,7 +176,7 @@ function ApplicationQueryContent() {
               {isQuerying ? "正在查询..." : "查询申请进度"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果会脱敏显示，不展示完整个人资料、邮箱或手机号码。
+              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果用于申请人查看本人申请进度，会脱敏显示，不展示完整个人资料、邮箱或手机号码。
             </div>
           </form>
 
@@ -216,7 +216,7 @@ function ApplicationQueryContent() {
                     <p className="mt-2 break-all text-sm leading-7 text-porcelain">{selectedApplication.certificateNo}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href={selectedApplication.certificateDetailUrl || `/certificates/${encodeURIComponent(selectedApplication.certificateNo)}`}>
-                        查看证书详情
+                        查看证书核验详情
                       </a>
                       <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
                         前往证书查询
@@ -228,7 +228,7 @@ function ApplicationQueryContent() {
             ) : (
               <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
                 <p className="font-medium text-porcelain">暂无查询结果</p>
-                <p className="mt-2">请选择查询模式并填写资料。若查询不到结果，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。</p>
+                <p className="mt-2">请选择查询模式并填写资料。若查询不到结果，请确认申请编号、姓名及联系方式是否与提交申请时一致，或联系协会秘书处协助核对。</p>
               </div>
             )}
           </div>
@@ -245,9 +245,9 @@ function ApplicationQueryContent() {
             </div>
           </div>
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Boundary</p>
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Notice</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">认证说明与适用范围</h2>
-            <p className="mt-5">ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。</p>
+            <p className="mt-5">ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。</p>
           </div>
         </section>
       </main>
@@ -261,7 +261,7 @@ function nextStepText(status: string) {
   if (status === "under_review") return "您的申请正在审核中，请耐心等待。";
   if (status === "need_more_info") return "您的申请需要补充材料，请根据反馈内容准备资料，并联系 ITCA 工作人员。";
   if (status === "approved") return "您的申请已审核通过，后续将生成证书记录。";
-  if (status === "certificate_issued" || status === "cert_issued") return "您的证书已生成，可查看证书详情或等待工作人员下发。";
+  if (status === "certificate_issued" || status === "cert_issued") return "您的证书已生成，可查看证书核验详情或等待工作人员下发。";
   if (status === "delivered") return "您的证书已标记为下发，如未收到请联系 ITCA 工作人员。";
   if (status === "rejected") return "您的申请未通过审核，请查看反馈说明。";
   if (status === "archived") return "该申请已归档，如需查询请联系 ITCA 工作人员。";
@@ -289,7 +289,7 @@ function QueryPageFallback() {
         <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>
           <h1 className="mt-3 font-serif text-3xl text-porcelain">申请进度查询</h1>
-          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于查询个人会员申请进度、机构会员申请进度、道士资格认证申请进度及发证处理进度。</p>
+          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人查询个人会员申请、机构会员申请、道士资格认证申请及发证处理进度。</p>
           <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
             <span className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-[#7F1D1D] shadow-sm">我有申请编号</span>
             <span className="rounded-xl px-4 py-2.5 text-center text-sm font-medium text-[#66594d]">我忘记申请编号</span>

@@ -10,11 +10,11 @@ export const metadata: Metadata = {
 };
 
 const process: Array<{ title: string; icon: IconBadgeName }> = [
-  { title: "提交申请", icon: "certificate" },
-  { title: "资料审核", icon: "query" },
-  { title: "学习 / 考核", icon: "value" },
-  { title: "协会审定", icon: "association" },
-  { title: "发证备案", icon: "certification" },
+  { title: "选择认证", icon: "certificate" },
+  { title: "填写资料", icon: "value" },
+  { title: "提交申请", icon: "certification" },
+  { title: "人工审核", icon: "association" },
+  { title: "审核决定", icon: "query" },
   { title: "证书核验", icon: "query" }
 ];
 
@@ -24,6 +24,15 @@ const purposes: Array<{ title: string; text: string; icon: IconBadgeName }> = [
   { title: "纳入协会认证备案", text: "将通过审核的认证资料纳入协会认证与备案体系，作为后续核验依据。", icon: "certification" },
   { title: "作为协会活动参与依据", text: "作为申请参与协会相关道教文化交流、经典学习、礼仪活动等事项的参考依据之一。", icon: "international" }
 ];
+
+const overview: Array<{ title: string; text: string; icon: IconBadgeName }> = [
+  { title: "认证是什么", text: "认证是协会依据申请资料开展审核、记录建档和证书核验的信息服务。", icon: "certification" },
+  { title: "为什么需要认证", text: "用于整理个人身份、师承、修学与实践资料，便于后续核验和文化交流场景中的信息展示。", icon: "query" },
+  { title: "适合谁", text: "适合需要提交道教身份、师承信息、修学经历和相关证明材料进行协会审核的申请人。", icon: "individual" },
+  { title: "审核方式", text: "申请提交后进入人工审核，ITCA 可根据资料完整性和核验需要要求补充材料。", icon: "association" }
+];
+
+const futureDirections = ["个人认证", "传承认证", "专业能力认证", "机构认证"];
 
 function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
@@ -63,7 +72,7 @@ export default function CertificationPage() {
         eyebrow="Certification"
         title="认证体系"
         subtitle="Certification System"
-        intro="ITCA 认证体系用于发布认证范围、申请流程、资料核验与证书查询说明，服务道士资格认证与档案管理。"
+        intro="ITCA 认证体系用于发布认证范围、申请流程、资料核验与证书查询说明，服务道士资格认证申请、记录建档与官网核验。"
         imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
@@ -73,11 +82,24 @@ export default function CertificationPage() {
         visualTitle="认证资料与备案"
       />
 
-      <CertificationSection eyebrow="Open Project" title="道士资格认证" afterHero>
+      <CertificationSection eyebrow="Overview" title="认证说明" afterHero>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {overview.map((item, index) => (
+            <InfoCard icon={<CertificationIcon name={item.icon} />} index={`0${index + 1}`} key={item.title} text={item.text} title={item.title} />
+          ))}
+        </div>
+      </CertificationSection>
+
+      <CertificationSection eyebrow="Open Project" title="当前开放认证类别" tone="soft">
         <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <InfoCard icon={<CertificationIcon name="certification" />} title="道士资格认证" text="道士资格认证围绕申请人的身份资料、师承关系、宗派背景、修道经历与相关证明文件进行审核，用于协会备案、证书签发及后续核验。" />
           <div className="min-h-full rounded-2xl border border-gold/35 bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-            申请人须提交身份资料、师承信息、宗教资质文件、实践经历及引荐资料，经协会审核后进入备案与证书签发流程。
+            申请人须提交身份资料、师承信息、资质文件、实践经历及引荐资料，经协会人工审核后进入记录建档与证书签发流程。
+            <div className="mt-5">
+              <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification/taoist-priest">
+                查看道士资格认证详情
+              </Link>
+            </div>
           </div>
         </div>
       </CertificationSection>
@@ -90,7 +112,7 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Process" title="认证流程" tone="soft">
+      <CertificationSection eyebrow="Process" title="认证流程">
         <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
           <div className="absolute left-6 right-6 top-8 hidden h-px bg-gradient-to-r from-transparent via-gold/45 to-transparent xl:block" aria-hidden="true" />
           {process.map((item, index) => (
@@ -103,11 +125,31 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Scope" title="认证说明与适用范围" compact>
+      <CertificationSection eyebrow="Verification" title="证书核验方式" tone="soft" compact>
+        <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
+          <InfoCard icon={<CertificationIcon name="query" />} title="官网核验" text="证书生成后，可通过证书编号与持证人姓名在官网核验证书公开信息。查询结果仅展示公开核验所需字段。" />
+          <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
+            证书状态以 ITCA 官网核验结果为准。如查询不到记录，请确认输入信息是否与证书登记信息一致，或联系协会秘书处协助核对。
+          </div>
+        </div>
+      </CertificationSection>
+
+      <CertificationSection eyebrow="Future" title="未来认证方向" compact>
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          {futureDirections.map((item) => (
+            <article className="rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={item}>
+              <h3 className="text-lg font-medium text-porcelain">{item}</h3>
+              <p className="mt-3 text-sm leading-7 text-[#666666]">陆续开放</p>
+            </article>
+          ))}
+        </div>
+      </CertificationSection>
+
+      <CertificationSection eyebrow="Notice" title="重要提示" tone="soft" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。
           <br />
-          ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。
+          ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification/taoist-priest">

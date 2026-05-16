@@ -46,6 +46,14 @@ const cooperationTemplate = `本机构希望与 ITCA 在以下方向建立联系
 
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
+const organizationNotices = [
+  ["机构会员申请说明", "机构会员申请用于提交机构资料、负责人信息、所在地区、机构类型与合作意向，服务协会审核、建档与联系。"],
+  ["机构资料用途说明", "所提交资料用于机构会员申请审核、资料建档、合作沟通、服务联系及必要的申请记录留存。"],
+  ["审核与联系说明", "申请提交后将进入人工审核与联系流程，如需进一步核对或补充资料，协会可通过预留联系方式沟通。"],
+  ["合作意向说明", "合作意向用于了解机构关注方向与后续沟通重点，不代表合作关系已自动成立。"],
+  ["服务条款与隐私政策确认说明", "提交前请确认已阅读并同意服务条款、隐私政策及资料使用说明。"]
+];
+
 function validateValues(values: FormValues) {
   const errors: Partial<Record<keyof FormValues, string>> = {};
 
@@ -168,6 +176,14 @@ export default function OrganizationApplyPage() {
             <p className="mt-3">
               请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。
             </p>
+            <div className="mt-5 grid gap-4">
+              {organizationNotices.map(([title, text]) => (
+                <div className="border-t border-[#e4ded0] pt-4" key={title}>
+                  <p className="font-medium text-porcelain">{title}</p>
+                  <p className="mt-2">{text}</p>
+                </div>
+              ))}
+            </div>
           </aside>
 
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>

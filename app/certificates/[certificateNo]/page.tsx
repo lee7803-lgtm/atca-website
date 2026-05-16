@@ -1,6 +1,5 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { PrintButton } from "@/components/PrintButton";
 import { findPublicCertificateByNo, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { CertificateQueryResult } from "@/types/certification";
 
@@ -15,7 +14,7 @@ const statusText: Record<string, string> = {
 };
 
 export const metadata: Metadata = {
-  title: "证书详情｜国际道教与文化协会 ITCA"
+  title: "证书公开核验详情｜国际道教与文化协会 ITCA"
 };
 
 export default async function CertificateDetailPage({ params }: { params: { certificateNo: string } }) {
@@ -41,10 +40,10 @@ export default async function CertificateDetailPage({ params }: { params: { cert
     return (
       <main className="mx-auto max-w-4xl px-5 py-12 sm:px-8 lg:py-16">
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-8 text-center shadow-aureate">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Detail</p>
-          <h1 className="mt-3 font-serif text-3xl text-porcelain">未查询到对应证书记录</h1>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Verification Detail</p>
+          <h1 className="mt-3 font-serif text-3xl text-porcelain">未查询到对应公开核验记录</h1>
           <p className="mx-auto mt-5 max-w-2xl text-sm leading-8 text-[#5f5b52]">
-            {message || "未查询到对应证书记录。请确认链接是否正确，或返回证书查询页重新核验。"}
+            {message || "未查询到对应公开证书记录。请确认链接是否正确，或返回证书查询页重新核验。"}
           </p>
           <Link className="mt-7 inline-flex rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white" href="/certificate-query">
             返回证书查询页
@@ -75,7 +74,9 @@ export default async function CertificateDetailPage({ params }: { params: { cert
         <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/certificate-query">
           返回证书查询页
         </Link>
-        <PrintButton />
+      </div>
+      <div className="no-print mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
+        本页为证书公开核验详情，仅展示公开证书信息，不展示申请编号、联系方式、上传材料、审核反馈或内部备注。证书状态以 ITCA 官网核验结果为准。
       </div>
 
       <section className="certificate-print rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-8 text-center shadow-aureate sm:p-12">
@@ -85,8 +86,8 @@ export default async function CertificateDetailPage({ params }: { params: { cert
 
         <div className="mx-auto my-8 h-px max-w-xl bg-[#d8d0bf]" />
 
-        <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-5xl">道士资格认证证书</h1>
-        <p className="mt-4 text-sm uppercase tracking-[0.26em] text-gold">Certificate of Taoist Qualification Certification</p>
+        <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-5xl">证书公开核验详情</h1>
+        <p className="mt-4 text-sm uppercase tracking-[0.26em] text-gold">Public Certificate Verification Result</p>
 
         <div className="mx-auto mt-10 grid max-w-2xl gap-4 text-left">
           <CertificateRow label="证书编号" value={certificate.certificateNo} />
@@ -99,15 +100,11 @@ export default async function CertificateDetailPage({ params }: { params: { cert
 
         <div className="mx-auto mt-10 grid max-w-2xl gap-5 text-left sm:grid-cols-[1fr_9rem] sm:items-start">
           <div className="rounded-xl border border-[#e4ded0] bg-white/72 p-5 text-sm leading-8 text-[#5f5b52]">
-            本页面用于核对 ITCA 登记系统中是否存在对应证书记录。查询结果用于确认该证书的登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。
+            本页面用于核对 ITCA 登记系统中是否存在对应公开证书记录。核验结果用于确认该证书的登记状态、签发信息及当前有效状态，不作为证书原件展示。证书状态以 ITCA 官网核验结果为准。
           </div>
           <div className="grid aspect-square place-items-center rounded-xl border border-dashed border-[#b08a45] bg-[#fbf8ef] p-4 text-center text-xs leading-6 text-[#8a6b3e]">
             二维码预留位
           </div>
-        </div>
-
-        <div className="no-print mx-auto mt-8 max-w-2xl rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
-          下载 / PDF 入口预留。本阶段支持浏览器打印，不自动生成 PDF。
         </div>
       </section>
     </main>

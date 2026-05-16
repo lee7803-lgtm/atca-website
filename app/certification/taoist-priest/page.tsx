@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { FormEvent, useMemo, useState } from "react";
+import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
@@ -228,6 +228,15 @@ const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
 const maxFileSize = 2 * 1024 * 1024;
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
+const applicationNotices = [
+  ["申请须知", "申请人应如实填写身份资料、师承信息、修学经历、实践说明及申请理由。提交后将进入人工审核，审核结果以 ITCA 审核记录为准。"],
+  ["材料要求", "请上传清晰、可识别的证明材料。附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。"],
+  ["审核流程说明", "协会将进行资料初步审核；如资料不完整或需进一步核对，可要求申请人补充材料。"],
+  ["资料使用说明", "申请资料用于认证申请审核、资料核对、记录建档、证书记录建立及后续联系。"],
+  ["证书核验信息说明", "审核通过并生成证书后，证书编号、姓名、认证类型、签发日期及证书状态等必要信息可用于官网核验。"],
+  ["重要提示", "道士资格认证用于协会资料审核、记录建档及文化交流场景中的身份信息展示。"]
+];
+
 function ApplicationIcon({ name }: { name: IconBadgeName }) {
   return (
     <IconBadge
@@ -246,6 +255,8 @@ export default function TaoistPriestCertificationPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
+  const stepTopRef = useRef<HTMLFormElement>(null);
+  const hasMountedRef = useRef(false);
   const step = steps[current];
 
   const requiredIds = useMemo(() => step.groups.flatMap((group) => group.fields).filter((field) => field.required).map((field) => field.id), [step]);
@@ -261,6 +272,18 @@ export default function TaoistPriestCertificationPage() {
       ),
     []
   );
+
+  const scrollToStepTop = () => {
+    stepTopRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
+
+  useEffect(() => {
+    if (!hasMountedRef.current) {
+      hasMountedRef.current = true;
+      return;
+    }
+    scrollToStepTop();
+  }, [current]);
 
   const setValue = (id: string, value: string) => {
     setValues((prev) => ({ ...prev, [id]: value }));
@@ -325,6 +348,7 @@ export default function TaoistPriestCertificationPage() {
       }
     });
     setErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) requestAnimationFrame(scrollToStepTop);
     return Object.keys(nextErrors).length === 0;
   };
 
@@ -378,6 +402,7 @@ export default function TaoistPriestCertificationPage() {
       setErrorMessage(
         ["请补充以下必填资料后再提交：", ...issues.map((issue) => `- 第 ${issue.stepIndex + 1} 步：${issue.fieldLabel}`), "请返回对应步骤补充资料后重新提交。"].join("\n")
       );
+      requestAnimationFrame(scrollToStepTop);
       return false;
     }
 
@@ -487,6 +512,14 @@ export default function TaoistPriestCertificationPage() {
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
           申请人需提交与道教身份、师承关系、学习经历及相关证明有关的资料。协会将依据提交材料进行资料核验、审核记录及认证建档。
         </div>
+        <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+          {applicationNotices.map(([title, text]) => (
+            <article className="rounded-2xl border border-[#e4ded0] bg-white/92 p-5 text-sm leading-7 text-[#5f5b52] shadow-[0_12px_28px_rgba(31,42,40,0.04)]" key={title}>
+              <h2 className="text-base font-medium text-porcelain">{title}</h2>
+              <p className="mt-3">{text}</p>
+            </article>
+          ))}
+        </section>
         <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between">
           <span>已提交认证申请？查询认证申请进度</span>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/application/query">
@@ -496,7 +529,7 @@ export default function TaoistPriestCertificationPage() {
 
         <StepNav current={current} onSelect={setCurrent} steps={steps.map((item) => item.title)} />
 
-        <form className="rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+        <form ref={stepTopRef} className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
           <div className="mb-7 flex items-start gap-4">
             <ApplicationIcon name={step.icon} />
             <div>
@@ -538,7 +571,7 @@ export default function TaoistPriestCertificationPage() {
               <div className="rounded-2xl border border-gold/35 bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
                 <h3 className="font-serif text-xl text-porcelain">认证说明与适用范围</h3>
                 <p className="mt-3">提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。</p>
-                <p className="mt-3">ITCA 道士资格认证属于协会认证与资料建档服务，不等同于政府许可、行政许可、法定职业资格、商业授权、宗教职务任命或任何法定执业许可。</p>
+                <p className="mt-3">ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。</p>
               </div>
             </div>
           ) : null}

@@ -10,14 +10,14 @@ export const metadata: Metadata = {
 };
 
 const profileItems = [
-  ["组织定位", "协会以道教文化交流、会员服务、资格认证与资料备案为主要工作方向，服务相关个人、机构及文化交流合作事项。", "association"],
-  ["当前工作", "协会当前重点开展道士资格认证、个人会员与机构会员申请、证书核验说明及文化合作联络等工作。", "certification"],
-  ["边界说明", "协会认证与会员服务属于协会内部审核、备案与服务体系，不等同于政府许可、行政许可、宗教执法资格或商业授权。", "value"]
+  ["协会定位", "ITCA 官网作为国际道教与文化协会相关展示与服务平台，用于协会介绍、认证申请、会员申请、证书核验与合作联系。", "association"],
+  ["服务范围", "协会当前重点提供道士资格认证申请、个人会员与机构会员申请、证书核验说明及文化合作联络等信息服务。", "certification"],
+  ["服务说明", "认证服务用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。", "value"]
 ] as const;
 
 const values = [
   ["尊重传统", "尊重道教传承、师承关系与文化脉络，在资料登记、认证审核与文化交流中保持对传统的敬畏。", "value"],
-  ["规范认证", "依照协会流程审核认证申请，确保认证记录有据可查、边界明确。", "certification"],
+  ["规范认证", "依照协会流程审核认证申请，推动认证记录有据可查、流程说明清晰。", "certification"],
   ["国际交流", "面向不同国家和地区，促进道教文化、传统文化与相关机构之间的交流合作。", "international"],
   ["公开透明", "通过官网公开协会信息、认证须知、会员申请与证书核验事项，减少信息不对称。", "query"],
   ["稳健发展", "立足认证、会员与证书核验等基础工作，逐步拓展文化交流与合作服务。", "cooperation"]
@@ -79,7 +79,7 @@ export default function AssociationPage() {
         eyebrow="About ITCA"
         title="关于协会"
         subtitle="International Taoisme And Cultural Association"
-        intro="ITCA 用于发布协会介绍、组织职能、会员服务、资格认证与合作方向，服务道教文化传承与国际交流。"
+        intro="ITCA 官网用于协会介绍、认证申请、会员申请、证书核验与合作联系等信息服务，服务道教文化传承与国际交流。"
         imageSrc="/images/itca/02-home-association.png"
         imagePosition="center 52%"
         visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"
@@ -92,7 +92,7 @@ export default function AssociationPage() {
       <AssociationSection
         eyebrow="Profile"
         title="协会简介"
-        intro="协会围绕道教文化交流、会员服务、资格认证与资料备案开展工作，服务相关个人、机构及文化交流合作事项。"
+        intro="协会围绕道教文化交流、会员服务、认证申请与资料建档开展工作，服务相关个人、机构及文化交流合作事项。"
         afterHero
       >
         <div className="grid gap-5 md:grid-cols-3">
@@ -105,7 +105,15 @@ export default function AssociationPage() {
       <AssociationSection eyebrow="Mission" title="宗旨使命" tone="soft">
         <div className="grid gap-5 md:grid-cols-2">
           <InfoCard icon={<AssociationIcon name="value" />} title="宗旨" text="弘扬道教清净自然、济世利人、尊师重道的文化精神，促进道教文化与传统文化在国际语境中的交流、传承与规范发展。" />
-          <InfoCard icon={<AssociationIcon name="cooperation" />} title="使命" text="服务道士资格认证、资料备案、会员工作、文化交流与机构合作，推动相关事务规范有序开展。" />
+          <InfoCard icon={<AssociationIcon name="cooperation" />} title="使命" text="服务道士资格认证申请、资料建档、会员工作、文化交流与机构合作，推动相关事务规范有序开展。" />
+        </div>
+      </AssociationSection>
+
+      <AssociationSection eyebrow="Service Relationship" title="认证与会员服务关系">
+        <div className="grid gap-5 md:grid-cols-3">
+          <InfoCard icon={<AssociationIcon name="membership" />} title="会员服务" text="个人会员与机构会员申请用于建立会员档案、沟通参与意向，并承接后续文化交流、活动联系与合作服务。" />
+          <InfoCard icon={<AssociationIcon name="certification" />} title="认证申请服务" text="认证申请服务围绕身份资料、师承信息、学习经历、实践说明和证明材料进行审核与记录建档。" />
+          <InfoCard icon={<AssociationIcon name="international" />} title="国际文化交流定位" text="协会面向不同国家和地区，以文化交流、资料整理、会员联络和合作沟通推动道教文化的规范表达。" />
         </div>
       </AssociationSection>
 

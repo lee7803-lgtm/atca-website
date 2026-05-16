@@ -64,10 +64,10 @@ export default function CertificateQueryPage() {
         ]}
         eyebrow="Certificate Query"
         imageSrc="/images/itca/05-service-verification.png"
-        intro="证书查询用于核验 ITCA 道士资格认证记录与公开信息，服务持证资料查询、结果确认与申请进度关联。"
+        intro="证书查询用于公众核验 ITCA 道士资格认证公开证书信息，查询结果仅展示公开核验所需内容。"
         subtitle="Certificate Verification And Query"
         title="证书查询"
-        visualDescription="通过证书编号与持证人姓名核验证书状态，提升认证服务的公开性与可信度。"
+        visualDescription="通过证书编号与持证人姓名核验证书状态，证书状态以官网核验结果为准。"
         visualEyebrow="Certificate Verify"
         visualMark="Verify"
         visualSeal="核验"
@@ -78,6 +78,7 @@ export default function CertificateQueryPage() {
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <form className="rounded-2xl border border-[#d8d0bf] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <div className="mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+              <p className="mb-3">请输入证书编号与持证人姓名，用于核验公开证书信息。查询结果不展示申请编号、联系方式、上传材料、审核反馈或内部备注。</p>
               <p>已提交认证申请，想查询审核或发证进度？</p>
               <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href="/application/query">
                 查询认证申请进度
@@ -113,12 +114,12 @@ export default function CertificateQueryPage() {
                 <ResultRow label="核验说明" value="本页面用于核对 ITCA 登记系统中是否存在对应证书记录。查询结果用于确认该证书的登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。" />
                 <div className="mt-2">
                   <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={certificate.detailUrl}>
-                    查看证书详情
+                    查看公开核验详情
                   </Link>
                 </div>
               </div>
             ) : (
-              <p className="mt-4 text-sm leading-7 text-[#666666]">请输入证书编号与姓名后查询。查询不到记录时，请确认姓名和证书编号是否准确，或联系 ITCA 进行核对。</p>
+              <p className="mt-4 text-sm leading-7 text-[#666666]">请输入证书编号与姓名后查询。若查询不到记录，请确认姓名和证书编号是否与证书登记信息一致，或联系 ITCA 进行核对。</p>
             )}
           </div>
         </div>
@@ -126,7 +127,7 @@ export default function CertificateQueryPage() {
 
       <Section title="证书核验说明" tone="soft">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          本页面用于核对 ITCA 登记系统中是否存在对应证书记录。查询结果用于确认该证书的登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。
+          本页面用于核对 ITCA 登记系统中是否存在对应证书记录。查询结果用于确认该证书的公开登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。
         </div>
       </Section>
     </>

@@ -42,6 +42,14 @@ const supplementalTemplate = `补充说明如下：
 
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
+const memberNotices = [
+  ["会员申请说明", "个人会员申请用于提交基础资料、联系方式、学习经历与参与意向，服务协会会员审核、建档与后续联系。"],
+  ["会员类型说明", "当前开放个人会员申请。后续会员服务安排以官网说明或协会秘书处通知为准。"],
+  ["资料用途说明", "所提交资料用于会员申请审核、资料建档、活动联系、服务沟通及必要的申请记录留存。"],
+  ["审核与联系说明", "申请提交后将进入人工审核与联系流程，如需补充资料，协会可通过申请人预留联系方式沟通。"],
+  ["服务条款与隐私政策确认说明", "提交前请确认已阅读并同意服务条款、隐私政策及资料使用说明。"]
+];
+
 function validateValues(values: FormValues) {
   const errors: Partial<Record<keyof FormValues, string>> = {};
 
@@ -162,6 +170,14 @@ export default function MemberApplyPage() {
             <p className="mt-3">
               请填写个人基础资料及相关说明。所提交资料将用于会员服务、资料建档、活动联系及后续审核沟通。
             </p>
+            <div className="mt-5 grid gap-4">
+              {memberNotices.map(([title, text]) => (
+                <div className="border-t border-[#e4ded0] pt-4" key={title}>
+                  <p className="font-medium text-porcelain">{title}</p>
+                  <p className="mt-2">{text}</p>
+                </div>
+              ))}
+            </div>
           </aside>
 
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>

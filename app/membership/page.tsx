@@ -143,9 +143,9 @@ export default function MembershipPage() {
         </div>
       </MembershipSection>
 
-      <MembershipSection eyebrow="Boundary" title="会员身份说明" tone="soft" compact>
+      <MembershipSection eyebrow="Notice" title="会员身份说明" tone="soft" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          会员身份属于协会会员服务与档案管理体系，不等同于道士资格认证、行政许可、商业授权或任何法定资质。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
+          会员身份属于协会会员服务与档案管理体系。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>
