@@ -81,7 +81,7 @@ export default function CertificateQueryPage() {
               <p className="mb-3">请输入证书编号与持证人姓名，用于核验公开证书信息。查询结果不展示申请编号、联系方式、上传材料、审核反馈或内部备注。</p>
               <p>已提交认证申请，想查询审核或发证进度？</p>
               <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href="/application/query">
-                查询认证申请进度
+                返回申请进度查询
               </Link>
             </div>
             <div className="grid gap-5">

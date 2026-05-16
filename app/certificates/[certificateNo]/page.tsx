@@ -14,7 +14,7 @@ const statusText: Record<string, string> = {
 };
 
 export const metadata: Metadata = {
-  title: "证书公开核验详情｜国际道教与文化协会 ITCA"
+  title: "证书核验详情｜国际道教与文化协会 ITCA"
 };
 
 export default async function CertificateDetailPage({ params }: { params: { certificateNo: string } }) {
@@ -26,13 +26,13 @@ export default async function CertificateDetailPage({ params }: { params: { cert
     certificate = certificateNo ? await findPublicCertificateByNo(certificateNo) : null;
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      message = `证书详情服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`;
+      message = `证书核验详情服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`;
     } else if (isSupabaseSchemaError(error)) {
       message = "证书数据表尚未配置。请先确认 Supabase 数据库结构。";
     } else if (error instanceof SupabaseRequestError) {
-      message = "证书详情服务暂时无法访问数据库，请稍后重试。";
+      message = "证书核验详情服务暂时无法访问数据库，请稍后重试。";
     } else {
-      message = "证书详情服务暂时不可用，请稍后重试。";
+      message = "证书核验详情服务暂时不可用，请稍后重试。";
     }
   }
 
@@ -47,6 +47,9 @@ export default async function CertificateDetailPage({ params }: { params: { cert
           </p>
           <Link className="mt-7 inline-flex rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white" href="/certificate-query">
             返回证书查询页
+          </Link>
+          <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink" href="/application/query">
+            返回申请进度查询
           </Link>
         </section>
       </main>
@@ -70,13 +73,16 @@ export default async function CertificateDetailPage({ params }: { params: { cert
         }
       `}</style>
 
-      <div className="no-print mb-6 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+      <div className="no-print mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+        <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/application/query">
+          返回申请进度查询
+        </Link>
         <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/certificate-query">
-          返回证书查询页
+          返回证书查询
         </Link>
       </div>
       <div className="no-print mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
-        本页为证书公开核验详情，仅展示公开证书信息，不展示申请编号、联系方式、上传材料、审核反馈或内部备注。证书状态以 ITCA 官网核验结果为准。
+        本页为证书核验详情，仅展示公开证书信息，不展示申请编号、联系方式、上传材料、审核反馈或内部备注。证书状态以 ITCA 官网核验结果为准。
       </div>
 
       <section className="certificate-print rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-8 text-center shadow-aureate sm:p-12">
@@ -86,7 +92,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
 
         <div className="mx-auto my-8 h-px max-w-xl bg-[#d8d0bf]" />
 
-        <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-5xl">证书公开核验详情</h1>
+        <h1 className="font-serif text-4xl leading-tight text-porcelain sm:text-5xl">证书核验详情</h1>
         <p className="mt-4 text-sm uppercase tracking-[0.26em] text-gold">Public Certificate Verification Result</p>
 
         <div className="mx-auto mt-10 grid max-w-2xl gap-4 text-left">
@@ -100,7 +106,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
 
         <div className="mx-auto mt-10 grid max-w-2xl gap-5 text-left sm:grid-cols-[1fr_9rem] sm:items-start">
           <div className="rounded-xl border border-[#e4ded0] bg-white/72 p-5 text-sm leading-8 text-[#5f5b52]">
-            本页面用于核对 ITCA 登记系统中是否存在对应公开证书记录。核验结果用于确认该证书的登记状态、签发信息及当前有效状态，不作为证书原件展示。证书状态以 ITCA 官网核验结果为准。
+            本页面用于核对 ITCA 登记系统中是否存在对应公开证书记录。核验结果用于确认该证书的登记状态、签发信息及当前有效状态。证书状态以 ITCA 官网核验结果为准。
           </div>
           <div className="grid aspect-square place-items-center rounded-xl border border-dashed border-[#b08a45] bg-[#fbf8ef] p-4 text-center text-xs leading-6 text-[#8a6b3e]">
             二维码预留位

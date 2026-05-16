@@ -6,9 +6,6 @@ import { PageHero } from "@/components/PageHero";
 import { maskApplicationNo, maskName } from "@/lib/masking";
 import type { ApplicationQueryResponse, ApplicationQueryResult } from "@/types/application";
 
-type QueryMode = "number" | "forgot";
-type QueryType = "personal_member" | "organization_member" | "taoist_certification";
-
 const statusText: Record<string, string> = {
   submitted: "已提交",
   pending_review: "待审核",
@@ -44,12 +41,7 @@ export default function ApplicationQueryPage() {
 
 function ApplicationQueryContent() {
   const searchParams = useSearchParams();
-  const [mode, setMode] = useState<QueryMode>("number");
-  const [applicationType, setApplicationType] = useState<QueryType>("personal_member");
   const [applicationNumber, setApplicationNumber] = useState(searchParams.get("number") || "");
-  const [name, setName] = useState("");
-  const [contactName, setContactName] = useState("");
-  const [taoistName, setTaoistName] = useState("");
   const [contact, setContact] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
@@ -68,16 +60,7 @@ function ApplicationQueryContent() {
     setSelectedIndex(0);
 
     try {
-      const params = new URLSearchParams({ mode, contact: contact.trim() });
-
-      if (mode === "number") {
-        params.set("applicationNo", applicationNumber.trim());
-      } else {
-        params.set("applicationType", applicationType);
-        params.set("name", name.trim());
-        if (applicationType === "organization_member") params.set("contactName", contactName.trim());
-        if (applicationType === "taoist_certification") params.set("taoistName", taoistName.trim());
-      }
+      const params = new URLSearchParams({ mode: "number", applicationNo: applicationNumber.trim(), contact: contact.trim() });
 
       const response = await fetch(`/api/applications/query?${params.toString()}`);
       const result = (await response.json()) as ApplicationQueryResponse;
@@ -100,7 +83,7 @@ function ApplicationQueryContent() {
       <PageHero
         actions={[
           { label: "申请进度查询", href: "/application/query" },
-          { label: "证书查询", href: "/certificate-query" }
+          { label: "公众证书查询", href: "/certificate-query" }
         ]}
         eyebrow="Application Query"
         title="申请进度查询"
@@ -120,53 +103,19 @@ function ApplicationQueryContent() {
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询申请记录</h2>
-            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度和审核反馈。</p>
+            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度、审核反馈、证书生成状态与下发状态。证书生成后，申请编号仍可继续查询。</p>
 
-            <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
-              <button className={mode === "number" ? "rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#7F1D1D] shadow-sm" : "rounded-xl px-4 py-2.5 text-sm font-medium text-[#66594d]"} type="button" onClick={() => setMode("number")}>
-                我有申请编号
-              </button>
-              <button className={mode === "forgot" ? "rounded-xl bg-white px-4 py-2.5 text-sm font-semibold text-[#7F1D1D] shadow-sm" : "rounded-xl px-4 py-2.5 text-sm font-medium text-[#66594d]"} type="button" onClick={() => setMode("forgot")}>
-                我忘记申请编号
-              </button>
+            <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
+              申请进度查询仅面向申请人本人。请使用“申请编号 + 邮箱”或“申请编号 + 手机号 / WhatsApp”查询；公众证书核验请使用证书查询页。
             </div>
 
             <div className="mt-7 grid gap-5">
-              {mode === "number" ? (
-                <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                  <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
-                  <input className="form-input" placeholder="例如 ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
-                </label>
-              ) : (
-                <>
-                  <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                    <span className="text-sm font-medium text-porcelain">申请类型 <span className="text-[#7F1D1D]">*</span></span>
-                    <select className="form-input" value={applicationType} onChange={(event) => setApplicationType(event.target.value as QueryType)}>
-                      <option value="personal_member">个人会员申请</option>
-                      <option value="organization_member">机构会员申请</option>
-                      <option value="taoist_certification">道士资格认证申请</option>
-                    </select>
-                  </label>
-                  <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                    <span className="text-sm font-medium text-porcelain">{applicationType === "organization_member" ? "机构名称" : "中文姓名"} <span className="text-[#7F1D1D]">*</span></span>
-                    <input className="form-input" required value={name} onChange={(event) => setName(event.target.value)} />
-                  </label>
-                  {applicationType === "organization_member" ? (
-                    <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                      <span className="text-sm font-medium text-porcelain">联系人姓名 <span className="text-[#7F1D1D]">*</span></span>
-                      <input className="form-input" required value={contactName} onChange={(event) => setContactName(event.target.value)} />
-                    </label>
-                  ) : null}
-                  {applicationType === "taoist_certification" ? (
-                    <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                      <span className="text-sm font-medium text-porcelain">道名 / 法名 <span className="text-[#7F1D1D]">*</span></span>
-                      <input className="form-input" required value={taoistName} onChange={(event) => setTaoistName(event.target.value)} />
-                    </label>
-                  ) : null}
-                </>
-              )}
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-                <span className="text-sm font-medium text-porcelain">手机 / WhatsApp 或邮箱 <span className="text-[#7F1D1D]">*</span></span>
+                <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
+                <input className="form-input" placeholder="例如 ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
+              </label>
+              <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
+                <span className="text-sm font-medium text-porcelain">邮箱或手机 / WhatsApp <span className="text-[#7F1D1D]">*</span></span>
                 <input className="form-input" placeholder="请输入提交申请时填写的联络方式" required value={contact} onChange={(event) => setContact(event.target.value)} />
               </label>
             </div>
@@ -176,7 +125,7 @@ function ApplicationQueryContent() {
               {isQuerying ? "正在查询..." : "查询申请进度"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果用于申请人查看本人申请进度，会脱敏显示，不展示完整个人资料、邮箱或手机号码。
+              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果用于申请人查看本人申请进度，会脱敏显示，不展示完整个人资料、邮箱、手机号码或上传材料。
             </div>
           </form>
 
@@ -218,9 +167,6 @@ function ApplicationQueryContent() {
                       <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href={selectedApplication.certificateDetailUrl || `/certificates/${encodeURIComponent(selectedApplication.certificateNo)}`}>
                         查看证书核验详情
                       </a>
-                      <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
-                        前往证书查询
-                      </a>
                     </div>
                   </div>
                 ) : null}
@@ -228,7 +174,7 @@ function ApplicationQueryContent() {
             ) : (
               <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
                 <p className="font-medium text-porcelain">暂无查询结果</p>
-                <p className="mt-2">请选择查询模式并填写资料。若查询不到结果，请确认申请编号、姓名及联系方式是否与提交申请时一致，或联系协会秘书处协助核对。</p>
+                <p className="mt-2">请填写申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp。若查询不到结果，请确认申请编号和联系方式是否与提交申请时一致，或联系协会秘书处协助核对。</p>
               </div>
             )}
           </div>
@@ -289,18 +235,14 @@ function QueryPageFallback() {
         <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>
           <h1 className="mt-3 font-serif text-3xl text-porcelain">申请进度查询</h1>
-          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人查询个人会员申请、机构会员申请、道士资格认证申请及发证处理进度。</p>
-          <div className="mt-6 grid grid-cols-2 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-1.5">
-            <span className="rounded-xl bg-white px-4 py-2.5 text-center text-sm font-semibold text-[#7F1D1D] shadow-sm">我有申请编号</span>
-            <span className="rounded-xl px-4 py-2.5 text-center text-sm font-medium text-[#66594d]">我忘记申请编号</span>
-          </div>
+          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人通过申请编号和预留联系方式查询个人会员申请、机构会员申请、道士资格认证申请及发证处理进度。</p>
           <div className="mt-7 grid gap-5">
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">申请编号</span>
               <input className="form-input" placeholder="例如 ITCA-M-2026-000001" readOnly />
             </label>
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
-              <span className="text-sm font-medium text-porcelain">手机 / WhatsApp 或邮箱</span>
+              <span className="text-sm font-medium text-porcelain">邮箱或手机 / WhatsApp</span>
               <input className="form-input" placeholder="请输入提交申请时填写的联络方式" readOnly />
             </label>
           </div>
@@ -313,7 +255,7 @@ function QueryPageFallback() {
           <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询结果</h2>
           <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
             <p className="font-medium text-porcelain">暂无查询结果</p>
-            <p className="mt-2">请选择查询模式并填写资料。若查询不到结果，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。</p>
+            <p className="mt-2">请填写申请编号和提交申请时使用的联系方式。若查询不到结果，请确认填写信息是否与提交申请时一致，或联系协会秘书处协助核对。</p>
           </div>
         </div>
       </section>

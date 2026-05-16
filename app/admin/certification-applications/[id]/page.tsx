@@ -142,7 +142,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <CopyButton label="复制证书编号" text={certificate.certificateNo} />
                 <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href={`/certificates/${encodeURIComponent(certificate.certificateNo)}`}>
-                  证书详情页
+                  查看证书核验详情
                 </Link>
                 <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href={`/certificate-query?certificateNo=${encodeURIComponent(certificate.certificateNo)}&holderName=${encodeURIComponent(certificate.holderName)}`}>
                   公开核验入口
