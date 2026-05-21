@@ -5,6 +5,10 @@ import type {
   CertificationAttachment,
   CertificationApplicationAdminRecord,
   CertificationApplicationRecord,
+  CertificationLevel,
+  CertificationPath,
+  MaterialReview,
+  MaterialReviewStatus,
   CertificationStatus
 } from "@/types/certification";
 
@@ -41,6 +45,8 @@ type SupabaseCertificationApplicationRow = {
   id: string;
   application_no: string;
   certification_type: string | null;
+  certification_path: string | null;
+  requested_level: string | null;
   applicant_name: string;
   applicant_name_en: string | null;
   taoist_name: string | null;
@@ -74,6 +80,11 @@ type SupabaseCertificationApplicationRow = {
   review_note: string | null;
   internal_review_note: string | null;
   applicant_feedback: string | null;
+  approved_path: string | null;
+  approved_level: string | null;
+  material_review: unknown;
+  committee_review_note: string | null;
+  certificate_photo_path: string | null;
   reviewer: string | null;
   reviewed_at: string | null;
   delivery_status: string | null;
@@ -90,6 +101,10 @@ type SupabaseCertificateRow = {
   taoist_name: string | null;
   taoist_rank: string | null;
   sect: string | null;
+  certification_path: string | null;
+  certification_level: string | null;
+  lineage_or_temple: string | null;
+  certificate_photo_path: string | null;
   issued_date: string;
   valid_from: string;
   valid_until: string;
@@ -98,6 +113,47 @@ type SupabaseCertificateRow = {
   created_at: string;
   updated_at: string;
 };
+
+const materialReviewKeys: Array<keyof MaterialReview> = [
+  "identity",
+  "lineage",
+  "credential",
+  "practice",
+  "recommendation",
+  "ethics",
+  "photo",
+  "completeness",
+  "international"
+];
+
+const materialReviewStatuses: MaterialReviewStatus[] = ["pending", "passed", "need_more_info", "questionable", "not_applicable"];
+
+export const defaultMaterialReview: MaterialReview = {
+  identity: "pending",
+  lineage: "pending",
+  credential: "pending",
+  practice: "pending",
+  recommendation: "pending",
+  ethics: "pending",
+  photo: "pending",
+  completeness: "pending",
+  international: "pending"
+};
+
+export function normalizeMaterialReview(value: unknown): MaterialReview {
+  if (!value || typeof value !== "object" || Array.isArray(value)) return { ...defaultMaterialReview };
+  const record = value as Record<string, unknown>;
+  const review = { ...defaultMaterialReview };
+
+  materialReviewKeys.forEach((key) => {
+    const status = record[key];
+    if (typeof status === "string" && materialReviewStatuses.includes(status as MaterialReviewStatus)) {
+      review[key] = status as MaterialReviewStatus;
+    }
+  });
+
+  return review;
+}
 
 export class SupabaseConfigError extends Error {
   constructor(public readonly missing: string[]) {
@@ -239,6 +295,8 @@ function toCertificationRow(application: CertificationApplicationRecord) {
   return {
     application_no: application.applicationNo,
     certification_type: application.certificationType,
+    certification_path: application.certificationPath || null,
+    requested_level: application.requestedLevel || null,
     applicant_name: application.applicantName,
     applicant_name_en: application.applicantNameEn,
     taoist_name: application.taoistName,
@@ -272,6 +330,11 @@ function toCertificationRow(application: CertificationApplicationRecord) {
     review_note: application.reviewNote,
     internal_review_note: application.internalReviewNote,
     applicant_feedback: application.applicantFeedback,
+    approved_path: application.approvedPath || null,
+    approved_level: application.approvedLevel || null,
+    material_review: application.materialReview,
+    committee_review_note: application.committeeReviewNote,
+    certificate_photo_path: application.certificatePhotoPath || null,
     reviewer: application.reviewer,
     reviewed_at: application.reviewedAt,
     delivery_status: application.deliveryStatus,
@@ -279,6 +342,10 @@ function toCertificationRow(application: CertificationApplicationRecord) {
     created_at: application.createdAt,
     updated_at: application.updatedAt
   };
+}
+
+function findCertificatePhotoPath(attachments: CertificationAttachment[]) {
+  return attachments.find((item) => item.fieldName === "photo" && item.storagePath)?.storagePath || "";
 }
 
 function normalizeAttachments(value: unknown, fallbackFieldName: string): CertificationAttachment[] {
@@ -327,6 +394,8 @@ function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): C
     id: row.id,
     applicationNo: row.application_no,
     certificationType: (row.certification_type || "taoist_priest") as CertificationApplicationAdminRecord["certificationType"],
+    certificationPath: (row.certification_path || "") as CertificationPath | "",
+    requestedLevel: (row.requested_level || "") as CertificationLevel | "",
     applicantName: row.applicant_name,
     applicantNameEn: row.applicant_name_en ?? "",
     taoistName: row.taoist_name ?? "",
@@ -360,6 +429,11 @@ function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): C
     reviewNote: row.review_note ?? "",
     internalReviewNote: row.internal_review_note ?? "",
     applicantFeedback: row.applicant_feedback ?? row.review_note ?? "",
+    approvedPath: (row.approved_path || "") as CertificationPath | "",
+    approvedLevel: (row.approved_level || "") as CertificationLevel | "",
+    materialReview: normalizeMaterialReview(row.material_review),
+    committeeReviewNote: row.committee_review_note ?? "",
+    certificatePhotoPath: row.certificate_photo_path || findCertificatePhotoPath(normalizeAttachments(row.supporting_documents, "supporting_documents")),
     reviewer: row.reviewer ?? "",
     reviewedAt: row.reviewed_at,
     deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
@@ -377,6 +451,10 @@ function toCertificateRow(certificate: CertificateRecord) {
     taoist_name: certificate.taoistName,
     taoist_rank: certificate.taoistRank,
     sect: certificate.sect,
+    certification_path: certificate.certificationPath || null,
+    certification_level: certificate.certificationLevel || null,
+    lineage_or_temple: certificate.lineageOrTemple,
+    certificate_photo_path: certificate.certificatePhotoPath || null,
     issued_date: certificate.issuedDate,
     valid_from: certificate.validFrom,
     valid_until: certificate.validUntil,
@@ -392,8 +470,12 @@ function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQuery
     certificateNo: row.certificate_no,
     holderName: row.holder_name,
     certificationType: row.taoist_rank || "道士资格认证",
+    certificationPath: (row.certification_path || "") as CertificationPath | "",
+    certificationLevel: row.certification_level || row.taoist_rank || "道士资格认证",
     issuer: "International Taoisme And Cultural Association",
     issuedDate: row.issued_date,
+    validFrom: row.valid_from,
+    validUntil: row.valid_until,
     status: row.status as CertificateQueryResult["status"],
     detailUrl: `/certificates/${encodeURIComponent(row.certificate_no)}`
   };
@@ -674,6 +756,10 @@ export async function updateCertificationReview(
     reviewNote?: string;
     internalReviewNote?: string;
     applicantFeedback?: string;
+    approvedPath?: CertificationPath | "";
+    approvedLevel?: CertificationLevel | "";
+    materialReview?: MaterialReview;
+    committeeReviewNote?: string;
     reviewer: string;
     deliveryStatus?: "not_delivered" | "delivered";
     deliveredAt?: string | null;
@@ -681,7 +767,7 @@ export async function updateCertificationReview(
 ) {
   const config = getSupabaseConfig();
   const now = new Date().toISOString();
-  const body: Record<string, string | null> = {
+  const body: Record<string, string | MaterialReview | null> = {
     status: values.status,
     reviewer: values.reviewer,
     reviewed_at: now,
@@ -691,6 +777,10 @@ export async function updateCertificationReview(
   if (values.reviewNote !== undefined) body.review_note = values.reviewNote;
   if (values.internalReviewNote !== undefined) body.internal_review_note = values.internalReviewNote;
   if (values.applicantFeedback !== undefined) body.applicant_feedback = values.applicantFeedback;
+  if (values.approvedPath !== undefined) body.approved_path = values.approvedPath || null;
+  if (values.approvedLevel !== undefined) body.approved_level = values.approvedLevel || null;
+  if (values.materialReview !== undefined) body.material_review = values.materialReview;
+  if (values.committeeReviewNote !== undefined) body.committee_review_note = values.committeeReviewNote;
   if (values.deliveryStatus !== undefined) body.delivery_status = values.deliveryStatus;
   if (values.deliveredAt !== undefined) body.delivered_at = values.deliveredAt;
 

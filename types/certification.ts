@@ -10,9 +10,66 @@ export type CertificationStatus =
   | "archived"
   | "revoked";
 
-export type CertificateStatus = "pending" | "valid" | "expired" | "revoked" | "suspended";
+export type CertificateStatus = "pending" | "valid" | "revoked" | "expired";
 
 export type CertificationType = "taoist_priest";
+
+export type CertificationPath = "zhengyi" | "quanzhen" | "other_international";
+
+export type CertificationLevel =
+  | "refuge_entry"
+  | "transmission_or_crowning"
+  | "register_or_precept"
+  | "senior_taoist"
+  | "special_lineage";
+
+export type MaterialReviewStatus = "pending" | "passed" | "need_more_info" | "questionable" | "not_applicable";
+
+export type MaterialReview = {
+  identity: MaterialReviewStatus;
+  lineage: MaterialReviewStatus;
+  credential: MaterialReviewStatus;
+  practice: MaterialReviewStatus;
+  recommendation: MaterialReviewStatus;
+  ethics: MaterialReviewStatus;
+  photo: MaterialReviewStatus;
+  completeness: MaterialReviewStatus;
+  international: MaterialReviewStatus;
+};
+
+export const certificationPathLabels: Record<CertificationPath, string> = {
+  zhengyi: "正一路径",
+  quanzhen: "全真路径",
+  other_international: "其他 / 国际传承"
+};
+
+export const certificationLevelLabels: Record<CertificationLevel, string> = {
+  refuge_entry: "皈依 / 入道确认",
+  transmission_or_crowning: "传度 / 冠巾资格确认",
+  register_or_precept: "授箓 / 传戒资格确认",
+  senior_taoist: "高道 / 资深道职确认",
+  special_lineage: "其他特殊传承说明"
+};
+
+export const materialReviewStatusLabels: Record<MaterialReviewStatus, string> = {
+  pending: "待审核",
+  passed: "通过",
+  need_more_info: "需补充",
+  questionable: "存疑",
+  not_applicable: "不适用"
+};
+
+export const materialReviewItemLabels: Record<keyof MaterialReview, string> = {
+  identity: "身份真实性审核",
+  lineage: "师承 / 传承审核",
+  credential: "资质凭证审核",
+  practice: "实践经历审核",
+  recommendation: "推荐证明审核",
+  ethics: "伦理承诺审核",
+  photo: "二寸道装照审核",
+  completeness: "材料完整性审核",
+  international: "国际申请补充材料审核"
+};
 
 export type CertificationAttachment = {
   originalName: string;
@@ -26,6 +83,8 @@ export type CertificationAttachment = {
 
 export type CertificationApplicationPayload = {
   certificationType: CertificationType;
+  certificationPath: CertificationPath | "";
+  requestedLevel: CertificationLevel | "";
   applicantName: string;
   applicantNameEn: string;
   taoistName: string;
@@ -55,6 +114,7 @@ export type CertificationApplicationPayload = {
   termsAccepted: boolean;
   privacyAccepted: boolean;
   confirmedAt: string;
+  certificatePhotoPath: string;
 };
 
 export type CertificationApplicationRecord = CertificationApplicationPayload & {
@@ -64,6 +124,10 @@ export type CertificationApplicationRecord = CertificationApplicationPayload & {
   reviewNote: string;
   internalReviewNote: string;
   applicantFeedback: string;
+  approvedPath: CertificationPath | "";
+  approvedLevel: CertificationLevel | "";
+  materialReview: MaterialReview;
+  committeeReviewNote: string;
   reviewer: string;
   reviewedAt: string | null;
   deliveryStatus: "not_delivered" | "delivered";
@@ -96,6 +160,10 @@ export type CertificateRecord = {
   taoistName: string;
   taoistRank: string;
   sect: string;
+  certificationPath: CertificationPath | "";
+  certificationLevel: CertificationLevel | string;
+  lineageOrTemple: string;
+  certificatePhotoPath: string;
   issuedDate: string;
   validFrom: string;
   validUntil: string;
@@ -109,8 +177,12 @@ export type CertificateQueryResult = {
   certificateNo: string;
   holderName: string;
   certificationType: string;
+  certificationPath: CertificationPath | "";
+  certificationLevel: string;
   issuer: string;
   issuedDate: string;
+  validFrom: string;
+  validUntil: string;
   status: CertificateStatus;
   detailUrl: string;
 };

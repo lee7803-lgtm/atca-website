@@ -5,7 +5,18 @@ import { CertificationReviewForm } from "../ReviewForm";
 import { CopyButton } from "@/components/CopyButton";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
-import type { CertificateQueryResult, CertificationApplicationAdminRecord, CertificationAttachment, CertificationStatus } from "@/types/certification";
+import {
+  certificationLevelLabels,
+  certificationPathLabels,
+  materialReviewItemLabels,
+  materialReviewStatusLabels,
+  type CertificateQueryResult,
+  type CertificationApplicationAdminRecord,
+  type CertificationAttachment,
+  type CertificationLevel,
+  type CertificationPath,
+  type CertificationStatus
+} from "@/types/certification";
 
 export const dynamic = "force-dynamic";
 
@@ -23,8 +34,8 @@ const statusText: Record<CertificationStatus, string> = {
 };
 
 const certificateStatusText: Record<string, string> = {
+  pending: "待确认",
   valid: "有效",
-  suspended: "暂停",
   revoked: "已撤销",
   expired: "已过期"
 };
@@ -85,6 +96,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
   const existingCertificates = await attachSignedUrls(application.existingCertificates);
   const supportingDocuments = await attachSignedUrls(application.supportingDocuments);
+  const certificatePhoto = await getCertificatePhoto(application, supportingDocuments);
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
@@ -105,6 +117,10 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="证书状态" value={certificate ? certificateStatusText[certificate.status] : "尚未生成"} />
             <DetailItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
             <DetailItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />
+            <DetailItem label="申请路径" value={formatCertificationPath(application.certificationPath)} />
+            <DetailItem label="申请等级" value={formatCertificationLevel(application.requestedLevel)} />
+            <DetailItem label="后台核定路径" value={formatCertificationPath(application.approvedPath)} />
+            <DetailItem label="后台核定等级" value={formatCertificationLevel(application.approvedLevel)} />
             <DetailItem label="申请人中文姓名" value={application.applicantName} />
             <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
             <DetailItem label="道名 / 法名" value={application.taoistName} />
@@ -133,6 +149,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
             <DetailItem className="md:col-span-2" label="内部审核备注" value={application.internalReviewNote || "暂无内部备注"} />
             <DetailItem className="md:col-span-2" label="对申请人反馈" value={application.applicantFeedback || "暂无反馈"} />
+            <DetailItem className="md:col-span-2" label="认证委员会审核意见" value={application.committeeReviewNote || "暂无意见"} />
             <DetailItem className="md:col-span-2" label="证书项目备注" value={application.reviewNote || "暂无备注"} />
           </div>
           {certificate ? (
@@ -158,6 +175,29 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8 lg:col-span-2">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
           <h2 className="mt-3 font-serif text-3xl text-porcelain">附件资料</h2>
+          <div className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+            <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+              <h3 className="font-medium text-porcelain">二寸道装证件照</h3>
+              {certificatePhoto?.signedUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
+                <img alt="二寸道装证件照" className="mt-4 max-h-72 rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
+              ) : (
+                <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到二寸道装证件照。旧数据会尝试从 supporting_documents 中 fieldName 为 photo 的附件回退识别。</p>
+              )}
+              {certificatePhoto?.storagePath ? <p className="mt-3 break-all text-xs leading-5 text-[#8a6b3e]">{certificatePhoto.storagePath}</p> : null}
+            </div>
+            <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+              <h3 className="font-medium text-porcelain">材料审核清单</h3>
+              <div className="mt-4 grid gap-3 sm:grid-cols-2">
+                {Object.entries(materialReviewItemLabels).map(([key, label]) => (
+                  <div className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3" key={key}>
+                    <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
+                    <p className="mt-2 text-sm text-porcelain">{materialReviewStatusLabels[application.materialReview[key as keyof typeof application.materialReview]]}</p>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
           <div className="mt-6 grid gap-6 lg:grid-cols-2">
             <AttachmentGroup attachments={existingCertificates} title="资质说明 / 既有证书" />
             <AttachmentGroup attachments={supportingDocuments} title="补充证明材料" />
@@ -170,14 +210,49 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           certificateNo={certificate?.certificateNo}
           deliveredAt={application.deliveredAt}
           deliveryStatus={application.deliveryStatus}
+          initialApprovedLevel={application.approvedLevel}
+          initialApprovedPath={application.approvedPath}
           initialApplicantFeedback={application.applicantFeedback}
+          initialCommitteeReviewNote={application.committeeReviewNote}
           initialInternalReviewNote={application.internalReviewNote}
+          initialMaterialReview={application.materialReview}
           initialReviewNote={application.reviewNote}
           initialStatus={application.status}
         />
       </div>
     </section>
   );
+}
+
+async function getCertificatePhoto(application: CertificationApplicationAdminRecord, supportingDocuments: CertificationAttachment[]) {
+  const storagePath = application.certificatePhotoPath || supportingDocuments.find((attachment) => attachment.fieldName === "photo" && attachment.storagePath)?.storagePath || "";
+  if (!storagePath) return null;
+
+  const existing = supportingDocuments.find((attachment) => attachment.storagePath === storagePath);
+  if (existing?.signedUrl) return existing;
+
+  try {
+    return {
+      originalName: existing?.originalName || "二寸道装证件照",
+      fieldName: "photo",
+      storagePath,
+      signedUrl: await createCertificationAttachmentSignedUrl(storagePath, 3600)
+    } satisfies CertificationAttachment;
+  } catch {
+    return {
+      originalName: existing?.originalName || "二寸道装证件照",
+      fieldName: "photo",
+      storagePath
+    } satisfies CertificationAttachment;
+  }
+}
+
+function formatCertificationPath(value: CertificationPath | "") {
+  return value ? certificationPathLabels[value] : "未填写";
+}
+
+function formatCertificationLevel(value: CertificationLevel | "") {
+  return value ? certificationLevelLabels[value] : "未填写";
 }
 
 async function attachSignedUrls(attachments: CertificationAttachment[]) {

@@ -7,14 +7,17 @@ import {
   getCertificationApplicationById,
   insertCertificate,
   isSupabaseSchemaError,
+  normalizeMaterialReview,
   SupabaseConfigError,
   SupabaseRequestError,
   updateCertificationReview
 } from "@/lib/supabase/server";
-import type { CertificateRecord, CertificationStatus } from "@/types/certification";
+import { certificationLevelLabels, type CertificateRecord, type CertificationLevel, type CertificationPath, type CertificationStatus, type MaterialReview } from "@/types/certification";
 
 const validStatuses: CertificationStatus[] = ["submitted", "under_review", "need_more_info", "approved", "rejected", "certificate_issued", "cert_issued", "delivered", "archived", "revoked"];
 const certificateIssuedStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered"];
+const validCertificationPaths: CertificationPath[] = ["zhengyi", "quanzhen", "other_international"];
+const validCertificationLevels: CertificationLevel[] = ["refuge_entry", "transmission_or_crowning", "register_or_precept", "senior_taoist", "special_lineage"];
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
@@ -42,6 +45,26 @@ function formatDate(date: Date) {
   return date.toISOString().slice(0, 10);
 }
 
+function asCertificationPath(value: unknown) {
+  const path = asString(value) as CertificationPath | "";
+  return path && validCertificationPaths.includes(path) ? path : "";
+}
+
+function asCertificationLevel(value: unknown) {
+  const level = asString(value) as CertificationLevel | "";
+  return level && validCertificationLevels.includes(level) ? level : "";
+}
+
+function asMaterialReview(value: unknown): MaterialReview | undefined {
+  if (value === undefined) return undefined;
+  return normalizeMaterialReview(value);
+}
+
+function buildLineageOrTemple(application: Awaited<ReturnType<typeof getCertificationApplicationById>>) {
+  if (!application) return "";
+  return [application.sect, application.lineage, application.templeOrOrganization].filter(Boolean).join(" / ");
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
 
@@ -60,8 +83,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (!application) return NextResponse.json({ success: false, message: "未找到认证申请。" }, { status: 404 });
 
     const action = asString(payload.action);
-    const internalReviewNote = asString(payload.internalReviewNote);
-    const applicantFeedback = asString(payload.applicantFeedback);
+    const internalReviewNote = asString(payload.internalReviewNote) || asString(payload.internal_review_note);
+    const applicantFeedback = asString(payload.applicantFeedback) || asString(payload.applicant_feedback);
+    const approvedPath = asCertificationPath(payload.approvedPath) || asCertificationPath(payload.approved_path);
+    const approvedLevel = asCertificationLevel(payload.approvedLevel) || asCertificationLevel(payload.approved_level);
+    const materialReview = asMaterialReview(payload.materialReview ?? payload.material_review);
+    const committeeReviewNote = asString(payload.committeeReviewNote) || asString(payload.committee_review_note);
     const reviewer = asString(payload.reviewer) || "admin";
 
     if (payload.generateCertificate === true || action === "generate_certificate") {
@@ -74,13 +101,19 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
       const today = new Date();
       const now = today.toISOString();
+      const finalLevel = approvedLevel || application.approvedLevel || application.requestedLevel;
+      const finalLevelLabel = finalLevel ? certificationLevelLabels[finalLevel] : asString(payload.taoistRank) || "道士资格认证";
       const certificate: CertificateRecord = {
         certificateNo: generateCertificateNo(today),
         applicationId: params.id,
         holderName: application.applicantName,
         taoistName: application.taoistName,
-        taoistRank: asString(payload.taoistRank) || "道士资格认证",
+        taoistRank: finalLevelLabel,
         sect: application.sect || application.lineage,
+        certificationPath: approvedPath || application.approvedPath || application.certificationPath,
+        certificationLevel: finalLevel || asString(payload.taoistRank) || "道士资格认证",
+        lineageOrTemple: buildLineageOrTemple(application),
+        certificatePhotoPath: application.certificatePhotoPath,
         issuedDate: formatDate(today),
         validFrom: formatDate(today),
         validUntil: formatDate(addYears(today, 3)),
@@ -97,6 +130,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           reviewNote: asString(payload.reviewNote) || application.reviewNote,
           internalReviewNote: internalReviewNote || application.internalReviewNote,
           applicantFeedback: applicantFeedback || application.applicantFeedback || "您的认证申请已审核通过，证书记录已生成。",
+          approvedPath: approvedPath || application.approvedPath,
+          approvedLevel: approvedLevel || application.approvedLevel,
+          materialReview: materialReview || application.materialReview,
+          committeeReviewNote: committeeReviewNote || application.committeeReviewNote,
           reviewer
         });
       } catch (error) {
@@ -121,6 +158,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         reviewNote: asString(payload.reviewNote) || application.reviewNote,
         internalReviewNote: internalReviewNote || application.internalReviewNote,
         applicantFeedback: applicantFeedback || application.applicantFeedback || "您的证书记录已生成并已完成下发。",
+        approvedPath: approvedPath || application.approvedPath,
+        approvedLevel: approvedLevel || application.approvedLevel,
+        materialReview: materialReview || application.materialReview,
+        committeeReviewNote: committeeReviewNote || application.committeeReviewNote,
         reviewer,
         deliveryStatus: "delivered",
         deliveredAt
@@ -135,6 +176,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         reviewNote: asString(payload.reviewNote) || application.reviewNote,
         internalReviewNote: internalReviewNote || application.internalReviewNote,
         applicantFeedback: applicantFeedback || application.applicantFeedback,
+        approvedPath: approvedPath || application.approvedPath,
+        approvedLevel: approvedLevel || application.approvedLevel,
+        materialReview: materialReview || application.materialReview,
+        committeeReviewNote: committeeReviewNote || application.committeeReviewNote,
         reviewer
       });
 
@@ -150,6 +195,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       reviewNote: asString(payload.reviewNote),
       internalReviewNote,
       applicantFeedback,
+      approvedPath,
+      approvedLevel,
+      materialReview,
+      committeeReviewNote,
       reviewer
     });
 

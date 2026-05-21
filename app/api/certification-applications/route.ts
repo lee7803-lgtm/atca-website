@@ -1,9 +1,11 @@
 import { NextResponse } from "next/server";
 import { generateCertificationApplicationNo } from "@/lib/application-number";
-import { insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
-import type { CertificationApplicationPayload, CertificationApplicationRecord, CertificationSubmitResponse, CertificationAttachment } from "@/types/certification";
+import { defaultMaterialReview, insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
+import type { CertificationApplicationPayload, CertificationApplicationRecord, CertificationSubmitResponse, CertificationAttachment, CertificationLevel, CertificationPath } from "@/types/certification";
 
 const validCertificationTypes = ["taoist_priest"];
+const validCertificationPaths: CertificationPath[] = ["zhengyi", "quanzhen", "other_international"];
+const validCertificationLevels: CertificationLevel[] = ["refuge_entry", "transmission_or_crowning", "register_or_precept", "senior_taoist", "special_lineage"];
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
 const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
@@ -88,6 +90,8 @@ function validatePayload(payload: unknown) {
 
   const values: CertificationApplicationPayload = {
     certificationType: asString(payload.certificationType) as CertificationApplicationPayload["certificationType"],
+    certificationPath: (asString(payload.certificationPath) || asString(payload.certification_path)) as CertificationPath | "",
+    requestedLevel: (asString(payload.requestedLevel) || asString(payload.requested_level)) as CertificationLevel | "",
     applicantName: asString(payload.applicantName),
     applicantNameEn: asString(payload.applicantNameEn),
     taoistName: asString(payload.taoistName),
@@ -116,10 +120,13 @@ function validatePayload(payload: unknown) {
     certificatePublicAccepted: payload.certificatePublicAccepted === true,
     termsAccepted: payload.termsAccepted === true,
     privacyAccepted: payload.privacyAccepted === true,
-    confirmedAt: asString(payload.confirmedAt)
+    confirmedAt: asString(payload.confirmedAt),
+    certificatePhotoPath: ""
   };
 
   if (!validCertificationTypes.includes(values.certificationType)) fieldErrors.certificationType = "请选择申请认证类型。";
+  if (values.certificationPath && !validCertificationPaths.includes(values.certificationPath)) fieldErrors.certificationPath = "请选择有效的认证路径。";
+  if (values.requestedLevel && !validCertificationLevels.includes(values.requestedLevel)) fieldErrors.requestedLevel = "请选择有效的申请等级。";
   if (!values.applicantName) fieldErrors.applicantName = "请填写中文姓名。";
   if (values.applicantName && !isValidLength(values.applicantName, 2, 50)) fieldErrors.applicantName = "姓名长度需为 2–50 个字符。";
   if (!values.taoistName) fieldErrors.taoistName = "请填写道名 / 法名。";
@@ -191,16 +198,23 @@ export async function POST(request: Request) {
       }
     }
 
+    const certificatePhotoPath = supportingDocuments.find((item) => item.fieldName === "photo" && item.storagePath)?.storagePath || "";
+
     const application: CertificationApplicationRecord = {
       ...values,
       confirmedAt: now,
       existingCertificates,
       supportingDocuments,
+      certificatePhotoPath,
       applicationNo,
       status: "submitted",
       reviewNote: "",
       internalReviewNote: "",
       applicantFeedback: "",
+      approvedPath: "",
+      approvedLevel: "",
+      materialReview: defaultMaterialReview,
+      committeeReviewNote: "",
       reviewer: "",
       reviewedAt: null,
       deliveryStatus: "not_delivered",

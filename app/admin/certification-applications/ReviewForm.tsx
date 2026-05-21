@@ -3,7 +3,17 @@
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
 import { CopyButton } from "@/components/CopyButton";
-import type { CertificationStatus } from "@/types/certification";
+import {
+  certificationLevelLabels,
+  certificationPathLabels,
+  materialReviewItemLabels,
+  materialReviewStatusLabels,
+  type CertificationLevel,
+  type CertificationPath,
+  type CertificationStatus,
+  type MaterialReview,
+  type MaterialReviewStatus
+} from "@/types/certification";
 
 const statusOptions: Array<{ value: CertificationStatus; label: string }> = [
   { value: "under_review", label: "设为审核中" },
@@ -24,6 +34,16 @@ const statusText: Record<string, string> = {
   archived: "已归档",
   revoked: "已撤销"
 };
+
+const certificationPathOptions: Array<{ value: "" | CertificationPath; label: string }> = [
+  { value: "", label: "暂不核定" },
+  ...Object.entries(certificationPathLabels).map(([value, label]) => ({ value: value as CertificationPath, label }))
+];
+
+const certificationLevelOptions: Array<{ value: "" | CertificationLevel; label: string }> = [
+  { value: "", label: "暂不核定" },
+  ...Object.entries(certificationLevelLabels).map(([value, label]) => ({ value: value as CertificationLevel, label }))
+];
 
 function buildReviewNote(reviewNote: string, taoistRank: string) {
   const cleaned = reviewNote.replace(/\n?证书等级 \/ 项目：.*$/m, "").trim();
@@ -74,8 +94,12 @@ type CertificationReviewFormProps = {
   certificateNo?: string;
   deliveryStatus: "not_delivered" | "delivered";
   deliveredAt: string | null;
+  initialApprovedLevel: CertificationLevel | "";
+  initialApprovedPath: CertificationPath | "";
   initialApplicantFeedback: string;
+  initialCommitteeReviewNote: string;
   initialInternalReviewNote: string;
+  initialMaterialReview: MaterialReview;
   initialReviewNote: string;
   initialStatus: CertificationStatus;
 };
@@ -87,8 +111,12 @@ export function CertificationReviewForm({
   certificateNo,
   deliveryStatus,
   deliveredAt,
+  initialApprovedLevel,
+  initialApprovedPath,
   initialApplicantFeedback,
+  initialCommitteeReviewNote,
   initialInternalReviewNote,
+  initialMaterialReview,
   initialReviewNote,
   initialStatus
 }: CertificationReviewFormProps) {
@@ -97,6 +125,10 @@ export function CertificationReviewForm({
   const [reviewNote, setReviewNote] = useState(initialReviewNote);
   const [internalReviewNote, setInternalReviewNote] = useState(initialInternalReviewNote);
   const [applicantFeedback, setApplicantFeedback] = useState(initialApplicantFeedback);
+  const [approvedPath, setApprovedPath] = useState<CertificationPath | "">(initialApprovedPath);
+  const [approvedLevel, setApprovedLevel] = useState<CertificationLevel | "">(initialApprovedLevel);
+  const [materialReview, setMaterialReview] = useState<MaterialReview>(initialMaterialReview);
+  const [committeeReviewNote, setCommitteeReviewNote] = useState(initialCommitteeReviewNote);
   const [taoistRank, setTaoistRank] = useState("道士资格认证");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -114,6 +146,10 @@ export function CertificationReviewForm({
           reviewNote: buildReviewNote(reviewNote, taoistRank),
           internalReviewNote,
           applicantFeedback,
+          approvedPath,
+          approvedLevel,
+          materialReview,
+          committeeReviewNote,
           taoistRank,
           ...body
         })
@@ -157,6 +193,20 @@ export function CertificationReviewForm({
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Review</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">审核处理</h2>
       <div className="mt-6 grid gap-5">
+        <div className="grid gap-5 md:grid-cols-2">
+          <label className="grid gap-3">
+            <span className="text-sm font-medium text-porcelain">后台核定路径</span>
+            <select className="form-input" value={approvedPath} onChange={(event) => setApprovedPath(event.target.value as CertificationPath | "")}>
+              {certificationPathOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
+            </select>
+          </label>
+          <label className="grid gap-3">
+            <span className="text-sm font-medium text-porcelain">后台核定等级</span>
+            <select className="form-input" value={approvedLevel} onChange={(event) => setApprovedLevel(event.target.value as CertificationLevel | "")}>
+              {certificationLevelOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
+            </select>
+          </label>
+        </div>
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">状态操作</span>
           <select className="form-input" value={status} onChange={(event) => setStatus(event.target.value as CertificationStatus)}>
@@ -170,6 +220,32 @@ export function CertificationReviewForm({
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">对申请人反馈</span>
           <textarea className="form-input min-h-32 resize-y" value={applicantFeedback} onChange={(event) => setApplicantFeedback(event.target.value)} />
+        </label>
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+          <h3 className="font-serif text-2xl text-porcelain">材料审核清单</h3>
+          <div className="mt-5 grid gap-4 md:grid-cols-2">
+            {Object.entries(materialReviewItemLabels).map(([key, label]) => (
+              <label className="grid gap-2" key={key}>
+                <span className="text-sm font-medium text-porcelain">{label}</span>
+                <select
+                  className="form-input"
+                  value={materialReview[key as keyof MaterialReview]}
+                  onChange={(event) =>
+                    setMaterialReview((current) => ({
+                      ...current,
+                      [key]: event.target.value as MaterialReviewStatus
+                    }))
+                  }
+                >
+                  {Object.entries(materialReviewStatusLabels).map(([value, statusLabel]) => <option key={value} value={value}>{statusLabel}</option>)}
+                </select>
+              </label>
+            ))}
+          </div>
+        </div>
+        <label className="grid gap-3">
+          <span className="text-sm font-medium text-porcelain">认证委员会审核意见</span>
+          <textarea className="form-input min-h-32 resize-y" value={committeeReviewNote} onChange={(event) => setCommitteeReviewNote(event.target.value)} />
         </label>
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">证书等级 / 项目</span>

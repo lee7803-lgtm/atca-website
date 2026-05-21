@@ -59,6 +59,8 @@ create table if not exists public.certification_applications (
   id uuid primary key default gen_random_uuid(),
   application_no text unique not null,
   certification_type text not null default 'taoist_priest' check (certification_type in ('taoist_priest')),
+  certification_path text check (certification_path in ('zhengyi', 'quanzhen', 'other_international')),
+  requested_level text check (requested_level in ('refuge_entry', 'transmission_or_crowning', 'register_or_precept', 'senior_taoist', 'special_lineage')),
   applicant_name text not null,
   applicant_name_en text,
   taoist_name text,
@@ -92,6 +94,11 @@ create table if not exists public.certification_applications (
   review_note text,
   internal_review_note text,
   applicant_feedback text,
+  approved_path text check (approved_path in ('zhengyi', 'quanzhen', 'other_international')),
+  approved_level text check (approved_level in ('refuge_entry', 'transmission_or_crowning', 'register_or_precept', 'senior_taoist', 'special_lineage')),
+  material_review jsonb default '{}'::jsonb,
+  committee_review_note text,
+  certificate_photo_path text,
   reviewer text,
   reviewed_at timestamptz,
   delivery_status text default 'not_delivered' check (delivery_status in ('not_delivered', 'delivered')),
@@ -102,6 +109,8 @@ create table if not exists public.certification_applications (
 
 alter table public.certification_applications
   add column if not exists certification_type text not null default 'taoist_priest',
+  add column if not exists certification_path text,
+  add column if not exists requested_level text,
   add column if not exists application_reason text,
   add column if not exists additional_note text,
   add column if not exists ethics_confirmed boolean default false,
@@ -113,6 +122,11 @@ alter table public.certification_applications
   add column if not exists confirmed_at timestamptz,
   add column if not exists internal_review_note text,
   add column if not exists applicant_feedback text,
+  add column if not exists approved_path text,
+  add column if not exists approved_level text,
+  add column if not exists material_review jsonb default '{}'::jsonb,
+  add column if not exists committee_review_note text,
+  add column if not exists certificate_photo_path text,
   add column if not exists delivery_status text default 'not_delivered',
   add column if not exists delivered_at timestamptz;
 
@@ -131,6 +145,34 @@ begin
   alter table public.certification_applications
     add constraint certification_applications_delivery_status_check
     check (delivery_status in ('not_delivered', 'delivered'));
+
+  alter table public.certification_applications
+    drop constraint if exists certification_applications_certification_path_check;
+
+  alter table public.certification_applications
+    add constraint certification_applications_certification_path_check
+    check (certification_path is null or certification_path in ('zhengyi', 'quanzhen', 'other_international'));
+
+  alter table public.certification_applications
+    drop constraint if exists certification_applications_requested_level_check;
+
+  alter table public.certification_applications
+    add constraint certification_applications_requested_level_check
+    check (requested_level is null or requested_level in ('refuge_entry', 'transmission_or_crowning', 'register_or_precept', 'senior_taoist', 'special_lineage'));
+
+  alter table public.certification_applications
+    drop constraint if exists certification_applications_approved_path_check;
+
+  alter table public.certification_applications
+    add constraint certification_applications_approved_path_check
+    check (approved_path is null or approved_path in ('zhengyi', 'quanzhen', 'other_international'));
+
+  alter table public.certification_applications
+    drop constraint if exists certification_applications_approved_level_check;
+
+  alter table public.certification_applications
+    add constraint certification_applications_approved_level_check
+    check (approved_level is null or approved_level in ('refuge_entry', 'transmission_or_crowning', 'register_or_precept', 'senior_taoist', 'special_lineage'));
 end $$;
 
 alter table public.certification_applications
@@ -163,10 +205,14 @@ create table if not exists public.certificates (
   taoist_name text,
   taoist_rank text,
   sect text,
+  certification_path text check (certification_path in ('zhengyi', 'quanzhen', 'other_international')),
+  certification_level text,
+  lineage_or_temple text,
+  certificate_photo_path text,
   issued_date date not null,
   valid_from date not null,
   valid_until date not null,
-  status text not null default 'valid' check (status in ('valid', 'expired', 'revoked', 'suspended')),
+  status text not null default 'valid' check (status in ('pending', 'valid', 'revoked', 'expired')),
   public_query_enabled boolean default true,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
@@ -174,6 +220,29 @@ create table if not exists public.certificates (
 
 create index if not exists certificates_lookup_idx
   on public.certificates (certificate_no, holder_name);
+
+alter table public.certificates
+  add column if not exists certification_path text,
+  add column if not exists certification_level text,
+  add column if not exists lineage_or_temple text,
+  add column if not exists certificate_photo_path text;
+
+do $$
+begin
+  alter table public.certificates
+    drop constraint if exists certificates_status_check;
+
+  alter table public.certificates
+    add constraint certificates_status_check
+    check (status in ('pending', 'valid', 'revoked', 'expired'));
+
+  alter table public.certificates
+    drop constraint if exists certificates_certification_path_check;
+
+  alter table public.certificates
+    add constraint certificates_certification_path_check
+    check (certification_path is null or certification_path in ('zhengyi', 'quanzhen', 'other_international'));
+end $$;
 
 drop trigger if exists certification_applications_set_updated_at on public.certification_applications;
 
