@@ -21,11 +21,13 @@ type PageHeroProps = {
   visualTitle?: string;
   visualDescription?: string;
   visualSeal?: string;
+  atmosphere?: "standard" | "gate" | "credential";
 };
 
 export function PageHero({
   eyebrow,
   title,
+  subtitle,
   intro,
   actions = [],
   imageSrc = "/images/itca/02-home-association.png",
@@ -34,17 +36,20 @@ export function PageHero({
   visualMark = "Culture",
   visualTitle,
   visualDescription,
-  visualSeal = "ITCA"
+  visualSeal = "ITCA",
+  atmosphere = "standard"
 }: PageHeroProps) {
   return (
-    <section className="page-hero relative overflow-hidden border-b border-[#d8d0bf]">
+    <section className={`page-hero page-hero--${atmosphere} relative overflow-hidden border-b border-[#d8d0bf]`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(169,122,61,0.16),transparent_20rem),linear-gradient(135deg,#7F1D1D_0%,#33251F_44%,#2A1F1A_100%)]" />
       <CulturePattern variant="hero" className="opacity-60" />
       <InkLandscape className="opacity-80" />
+      <div className="page-hero__gate" aria-hidden="true" />
       <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
         <div className="page-hero__copy max-w-3xl">
           <p className="page-hero__eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
+          {subtitle && atmosphere !== "standard" ? <p className="page-hero__subtitle">{subtitle}</p> : null}
           <p className="page-hero__intro">{intro}</p>
           {actions.length > 0 ? (
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">

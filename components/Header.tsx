@@ -77,13 +77,13 @@ export function Header() {
       </div>
 
       <div className="max-w-full px-4 pb-3 sm:px-8 lg:hidden">
-        <nav className="scrollbar-thin flex max-w-full gap-1.5 overflow-x-auto overscroll-x-contain border border-[#e4ded0] bg-white/82 p-1.5 shadow-[0_8px_20px_rgba(80,54,36,0.055)] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+        <nav className="grid max-w-full grid-cols-3 gap-1.5 border border-[#e4ded0] bg-white/82 p-1.5 shadow-[0_8px_20px_rgba(80,54,36,0.055)]">
           {navItems.map((item) => {
             const active = isActive(item.href);
 
             return (
               <Link
-                className={`shrink-0 whitespace-nowrap rounded-lg px-3 py-2 text-sm transition sm:rounded-xl sm:px-3.5 ${
+                className={`min-w-0 rounded-lg px-2 py-2 text-center text-sm leading-5 transition sm:rounded-xl sm:px-3.5 ${
                   active ? "bg-[#f3eadb] text-cinnabar" : "text-[#6b5a4e] hover:bg-[#fbf8ef] hover:text-inkBrown"
                 }`}
                 href={item.href}

@@ -87,6 +87,7 @@ export default function AssociationPage() {
         visualMark="Culture"
         visualSeal="协会"
         visualTitle="道教文化传承"
+        atmosphere="gate"
       />
 
       <AssociationSection

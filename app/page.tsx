@@ -105,14 +105,20 @@ export default function Home() {
     <>
       <section className="relative overflow-hidden bg-[#2A1F1A]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(169,122,61,0.16),transparent_20rem),linear-gradient(135deg,#7F1D1D_0%,#33251F_44%,#2A1F1A_100%)]" />
+        <div className="absolute inset-y-0 right-0 hidden w-[58%] bg-[linear-gradient(90deg,#2A1F1A_0%,rgba(42,31,26,0.78)_34%,rgba(42,31,26,0.42)_100%),url('/images/atca/hero-architecture.jpg')] bg-cover bg-[center_46%] opacity-55 lg:block" aria-hidden="true" />
+        <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,250,240,0.08),transparent)]" aria-hidden="true" />
+        <div className="absolute left-[7%] top-16 hidden h-56 w-44 border-x border-t border-[#d8bd7a]/18 lg:block" aria-hidden="true">
+          <span className="absolute left-1/2 top-[-2.25rem] h-16 w-16 -translate-x-1/2 rotate-45 border-l border-t border-[#d8bd7a]/18" />
+        </div>
+        <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d8bd7a]/28 to-transparent" aria-hidden="true" />
         <CulturePattern variant="hero" className="opacity-60" />
         <InkLandscape className="opacity-80" />
-        <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
+        <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-16 sm:px-8 sm:py-18 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
           <div className="max-w-3xl">
-            <p className="inline-flex rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs tracking-[0.26em] text-[#e4cf97]">
+            <p className="inline-block max-w-full rounded-full border border-white/20 bg-white/10 px-4 py-2 text-xs leading-5 tracking-[0.14em] text-[#e4cf97] sm:tracking-[0.26em]">
               ITCA · International Taoisme And Cultural Association
             </p>
-            <h1 className="mt-8 font-serif text-5xl leading-tight text-white sm:text-6xl lg:text-7xl">
+            <h1 className="mt-8 max-w-4xl font-serif text-4xl leading-tight text-white sm:text-6xl lg:text-7xl">
               国际道教与文化协会
             </h1>
             <p className="mt-7 text-lg leading-9 text-white/80">

@@ -80,6 +80,7 @@ export default function CertificationPage() {
         visualMark="Credential"
         visualSeal="认证"
         visualTitle="认证资料与备案"
+        atmosphere="credential"
       />
 
       <CertificationSection eyebrow="Overview" title="认证说明" afterHero>
