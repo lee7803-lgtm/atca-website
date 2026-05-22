@@ -46,7 +46,7 @@ const memberNotices = [
   ["会员申请说明", "个人会员申请用于提交基础资料、联系方式、学习经历与参与意向，服务协会会员审核、建档与后续联系。"],
   ["会员类型说明", "当前开放个人会员申请。后续会员服务安排以官网说明或协会秘书处通知为准。"],
   ["资料用途说明", "所提交资料用于会员申请审核、资料建档、活动联系、服务沟通及必要的申请记录留存。"],
-  ["审核与联系说明", "申请提交后将进入人工审核与联系流程，如需补充资料，协会可通过申请人预留联系方式沟通。"],
+  ["审核与联系说明", "申请提交后将进入人工审核与联系流程，如需补充资料，协会可通过申请人登记联系方式沟通。"],
   ["服务条款与隐私政策确认说明", "提交前请确认已阅读并同意服务条款、隐私政策及资料使用说明。"]
 ];
 
@@ -154,6 +154,8 @@ export default function MemberApplyPage() {
         title="个人会员申请"
         subtitle="Individual Member Application"
         intro="个人会员申请用于提交基础资料、联系方式、学习经历与参与意向，服务协会会员审核、建档与后续联系。"
+        backgroundImageSrc="/images/atca/member-gathering.jpg"
+        backgroundImagePosition="center 48%"
         imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 46%"
         visualDescription="个人会员申请资料将用于协会会员服务、活动联系与后续审核沟通。"

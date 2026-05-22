@@ -98,7 +98,7 @@ export async function GET(request: Request) {
     if (error instanceof SupabaseConfigError) {
       const response: ApplicationQueryResponse = {
         success: false,
-        message: `申请查询服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`
+        message: "申请查询服务尚未完成系统配置，请联系协会秘书处协助核验。"
       };
 
       return NextResponse.json(response, { status: 500 });
@@ -107,7 +107,7 @@ export async function GET(request: Request) {
     if (isSupabaseSchemaError(error)) {
       const response: ApplicationQueryResponse = {
         success: false,
-        message: "申请查询数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL：supabase/applications.sql。"
+        message: "申请查询服务尚未完成系统配置，请联系协会秘书处协助核验。"
       };
 
       return NextResponse.json(response, { status: 500 });

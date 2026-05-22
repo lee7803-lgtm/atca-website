@@ -60,6 +60,11 @@ function asMaterialReview(value: unknown): MaterialReview | undefined {
   return normalizeMaterialReview(value);
 }
 
+function isMaterialReviewReady(review: MaterialReview | undefined) {
+  if (!review) return true;
+  return Object.values(review).every((status) => status === "passed" || status === "not_applicable");
+}
+
 function buildLineageOrTemple(application: Awaited<ReturnType<typeof getCertificationApplicationById>>) {
   if (!application) return "";
   return [application.sect, application.lineage, application.templeOrOrganization].filter(Boolean).join(" / ");
@@ -93,15 +98,26 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     if (payload.generateCertificate === true || action === "generate_certificate") {
       const existing = await findCertificateByApplicationId(params.id);
-      if (existing) return NextResponse.json({ success: true, certificate: existing, message: "证书记录已存在。" });
+      if (existing) return NextResponse.json({ success: false, message: "证书记录已存在，不能重复生成证书。" }, { status: 400 });
 
       if (application.status !== "approved") {
-        return NextResponse.json({ success: false, message: "只有审核通过的申请可以生成证书。" }, { status: 400 });
+        return NextResponse.json({ success: false, message: "当前申请尚未审核通过，不能生成证书。" }, { status: 400 });
+      }
+
+      const finalPath = approvedPath || application.approvedPath;
+      const finalLevel = approvedLevel || application.approvedLevel;
+      const finalMaterialReview = materialReview || application.materialReview;
+
+      if (!finalPath || !finalLevel) {
+        return NextResponse.json({ success: false, message: "请先完成核定传承体系与核定认证等级后再生成证书。" }, { status: 400 });
+      }
+
+      if (!isMaterialReviewReady(finalMaterialReview)) {
+        return NextResponse.json({ success: false, message: "请先完成材料审核清单，所有材料项目应为通过或不适用后再生成证书。" }, { status: 400 });
       }
 
       const today = new Date();
       const now = today.toISOString();
-      const finalLevel = approvedLevel || application.approvedLevel || application.requestedLevel;
       const finalLevelLabel = finalLevel ? certificationLevelLabels[finalLevel] : asString(payload.taoistRank) || "道士资格认证";
       const certificate: CertificateRecord = {
         certificateNo: generateCertificateNo(today),
@@ -110,7 +126,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         taoistName: application.taoistName,
         taoistRank: finalLevelLabel,
         sect: application.sect || application.lineage,
-        certificationPath: approvedPath || application.approvedPath || application.certificationPath,
+        certificationPath: finalPath,
         certificationLevel: finalLevel || asString(payload.taoistRank) || "道士资格认证",
         lineageOrTemple: buildLineageOrTemple(application),
         certificatePhotoPath: application.certificatePhotoPath,
@@ -130,9 +146,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           reviewNote: asString(payload.reviewNote) || application.reviewNote,
           internalReviewNote: internalReviewNote || application.internalReviewNote,
           applicantFeedback: applicantFeedback || application.applicantFeedback || "您的认证申请已审核通过，证书记录已生成。",
-          approvedPath: approvedPath || application.approvedPath,
-          approvedLevel: approvedLevel || application.approvedLevel,
-          materialReview: materialReview || application.materialReview,
+          approvedPath: finalPath,
+          approvedLevel: finalLevel,
+          materialReview: finalMaterialReview,
           committeeReviewNote: committeeReviewNote || application.committeeReviewNote,
           reviewer
         });
@@ -189,6 +205,12 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const status = asString(payload.status) as CertificationStatus;
     if (!status || !validStatuses.includes(status)) return NextResponse.json({ success: false, message: "审核状态不正确。" }, { status: 400 });
     if (certificateIssuedStatuses.includes(status)) return NextResponse.json({ success: false, message: "请使用对应操作按钮生成证书或标记下发。" }, { status: 400 });
+    if ((status === "need_more_info" || status === "rejected") && !applicantFeedback && !application.applicantFeedback) {
+      return NextResponse.json({ success: false, message: "请填写对申请人反馈后再保存该审核状态。" }, { status: 400 });
+    }
+    if (status === "approved" && (!(approvedPath || application.approvedPath) || !(approvedLevel || application.approvedLevel))) {
+      return NextResponse.json({ success: false, message: "请先完成核定传承体系与核定认证等级后再保存审核通过状态。" }, { status: 400 });
+    }
 
     const updatedApplication = await updateCertificationReview(params.id, {
       status,
@@ -204,10 +226,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, application: updatedApplication });
   } catch (error) {
-    if (error instanceof SupabaseConfigError) return NextResponse.json({ success: false, message: `数据库配置不完整：${error.missing.join(", ")}。` }, { status: 500 });
+    if (error instanceof SupabaseConfigError) return NextResponse.json({ success: false, message: "认证申请审核服务尚未完成系统配置，请联系网站管理员处理。" }, { status: 500 });
     if (isSupabaseSchemaError(error)) {
       return NextResponse.json(
-        { success: false, message: "认证申请或证书数据表尚未配置，请先在 Supabase 执行 supabase/applications.sql。" },
+        { success: false, message: "认证申请审核服务尚未完成系统配置，请联系网站管理员处理。" },
         { status: 500 }
       );
     }

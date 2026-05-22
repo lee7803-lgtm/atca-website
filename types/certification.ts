@@ -38,9 +38,9 @@ export type MaterialReview = {
 };
 
 export const certificationPathLabels: Record<CertificationPath, string> = {
-  zhengyi: "正一路径",
-  quanzhen: "全真路径",
-  other_international: "其他 / 国际传承"
+  zhengyi: "正一",
+  quanzhen: "全真",
+  other_international: "其他传承"
 };
 
 export const certificationLevelLabels: Record<CertificationLevel, string> = {
@@ -66,7 +66,7 @@ export const materialReviewItemLabels: Record<keyof MaterialReview, string> = {
   practice: "实践经历审核",
   recommendation: "推荐证明审核",
   ethics: "伦理承诺审核",
-  photo: "二寸道装照审核",
+  photo: "道装证件照审核",
   completeness: "材料完整性审核",
   international: "国际申请补充材料审核"
 };

@@ -123,46 +123,6 @@ a {
   pointer-events: none;
 }
 
-.page-hero__gate {
-  position: absolute;
-  right: clamp(1rem, 7vw, 6rem);
-  bottom: -1px;
-  width: min(38vw, 30rem);
-  height: min(42vw, 24rem);
-  border: 1px solid rgba(216, 189, 122, 0.16);
-  border-bottom: 0;
-  opacity: 0;
-  pointer-events: none;
-}
-
-.page-hero__gate::before,
-.page-hero__gate::after {
-  position: absolute;
-  content: "";
-  pointer-events: none;
-}
-
-.page-hero__gate::before {
-  left: 50%;
-  top: -3.25rem;
-  width: 8.5rem;
-  height: 8.5rem;
-  border-left: 1px solid rgba(216, 189, 122, 0.16);
-  border-top: 1px solid rgba(216, 189, 122, 0.16);
-  transform: translateX(-50%) rotate(45deg);
-}
-
-.page-hero__gate::after {
-  inset: 1rem 1.35rem 0;
-  border: 1px solid rgba(216, 189, 122, 0.11);
-  border-bottom: 0;
-}
-
-.page-hero--gate .page-hero__gate,
-.page-hero--credential .page-hero__gate {
-  opacity: 1;
-}
-
 .page-hero--gate {
   background:
     radial-gradient(circle at 74% 12%, rgba(216, 189, 122, 0.18), transparent 17rem),
@@ -386,13 +346,6 @@ a {
   .page-hero::after {
     background-size: 70px 70px;
     opacity: 0.36;
-  }
-
-  .page-hero__gate {
-    right: -4.5rem;
-    width: 15rem;
-    height: 12rem;
-    opacity: 0.45;
   }
 
   .page-hero__eyebrow {

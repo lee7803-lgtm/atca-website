@@ -25,9 +25,9 @@ export default async function CertificateDetailPage({ params }: { params: { cert
     certificate = certificateNo ? await findPublicCertificateByNo(certificateNo) : null;
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      message = `证书公开核验详情服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`;
+      message = "证书公开核验详情服务尚未完成系统配置，请联系协会秘书处核验。";
     } else if (isSupabaseSchemaError(error)) {
-      message = "证书数据表尚未配置。请先确认 Supabase 数据库结构。";
+      message = "证书公开核验资料尚未完成系统配置，请联系协会秘书处核验。";
     } else if (error instanceof SupabaseRequestError) {
       message = "证书公开核验详情服务暂时无法访问数据库，请稍后重试。";
     } else {
@@ -66,7 +66,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
         </Link>
       </div>
       <div className="no-print mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
-        本页面仅展示证书公开核验信息，用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。公开核验信息不等同于证书原件，也不展示申请人的联系方式、上传材料、审核意见或内部备注。
+        本页面仅展示证书公开核验信息，用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。公开核验信息不等同于证书原件，也不展示申请人的联系方式、上传材料、审核意见或后台审核备注。
       </div>
 
       <section className="rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-8 text-center shadow-aureate sm:p-12">
@@ -83,7 +83,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
           <CertificateRow label="证书编号" value={certificate.certificateNo} />
           <CertificateRow label="持证人姓名" value={certificate.holderName} />
           <CertificateRow label="认证类别" value={certificate.certificationType} />
-          <CertificateRow label="认证路径" value={certificate.certificationPath ? certificationPathLabels[certificate.certificationPath] : "未公开"} />
+          <CertificateRow label="传承体系" value={certificate.certificationPath ? certificationPathLabels[certificate.certificationPath] : "未公开"} />
           <CertificateRow label="认证等级" value={certificate.certificationLevel} />
           <CertificateRow label="签发机构" value={certificate.issuer} />
           <CertificateRow label="签发日期" value={certificate.issuedDate} />

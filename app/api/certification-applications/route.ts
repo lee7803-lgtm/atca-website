@@ -125,8 +125,8 @@ function validatePayload(payload: unknown) {
   };
 
   if (!validCertificationTypes.includes(values.certificationType)) fieldErrors.certificationType = "请选择申请认证类型。";
-  if (values.certificationPath && !validCertificationPaths.includes(values.certificationPath)) fieldErrors.certificationPath = "请选择有效的认证路径。";
-  if (values.requestedLevel && !validCertificationLevels.includes(values.requestedLevel)) fieldErrors.requestedLevel = "请选择有效的申请等级。";
+  if (values.certificationPath && !validCertificationPaths.includes(values.certificationPath)) fieldErrors.certificationPath = "请选择有效的传承体系。";
+  if (values.requestedLevel && !validCertificationLevels.includes(values.requestedLevel)) fieldErrors.requestedLevel = "请选择有效的申报认证等级。";
   if (!values.applicantName) fieldErrors.applicantName = "请填写中文姓名。";
   if (values.applicantName && !isValidLength(values.applicantName, 2, 50)) fieldErrors.applicantName = "姓名长度需为 2–50 个字符。";
   if (!values.taoistName) fieldErrors.taoistName = "请填写道名 / 法名。";
@@ -229,21 +229,20 @@ export async function POST(request: Request) {
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      const response: CertificationSubmitResponse = { success: false, message: `认证申请提交服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。` };
+      const response: CertificationSubmitResponse = { success: false, message: "认证申请提交服务尚未完成系统配置，请联系协会秘书处协助处理。" };
       return NextResponse.json(response, { status: 500 });
     }
 
     if (error instanceof SupabaseRequestError) {
       const lowerMessage = error.message.toLowerCase();
       if (lowerMessage.includes("bucket") || lowerMessage.includes("storage") || lowerMessage.includes("object")) {
-        const response: CertificationSubmitResponse = { success: false, message: "附件暂时无法上传，请确认 Supabase Storage 已创建 certification-documents bucket。" };
+        const response: CertificationSubmitResponse = { success: false, message: "附件暂时无法上传，请稍后重试或联系协会秘书处协助处理。" };
         return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });
       }
 
       const response: CertificationSubmitResponse = {
         success: false,
-        message:
-          "认证申请暂时无法写入数据库。请确认 Supabase 已执行 supabase/applications.sql，并已创建 certification_applications 表及所需字段。"
+        message: "认证申请暂时无法保存，请稍后重试或联系协会秘书处协助处理。"
       };
       return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });
     }

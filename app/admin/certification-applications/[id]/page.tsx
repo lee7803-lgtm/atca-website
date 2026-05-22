@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { CertificationReviewForm } from "../ReviewForm";
@@ -51,9 +52,9 @@ export default async function AdminCertificationApplicationDetailPage({ params }
     application = await getCertificationApplicationById(params.id);
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      databaseMessage = `数据库环境变量尚未配置完整：${error.missing.join(", ")}。`;
+      databaseMessage = "认证申请资料服务尚未完成系统配置，请联系网站管理员处理。";
     } else if (isSupabaseSchemaError(error)) {
-      databaseMessage = "认证申请数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL：supabase/applications.sql";
+      databaseMessage = "认证申请资料服务尚未完成系统配置，请联系网站管理员处理。";
     } else if (error instanceof SupabaseRequestError) {
       databaseMessage = "认证申请数据暂时无法读取，请稍后重试或检查 Supabase 服务状态。";
     } else {
@@ -72,7 +73,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           </div>
         </div>
         <div className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate">
-          <h1 className="font-serif text-3xl text-porcelain">认证申请数据表尚未配置</h1>
+          <h1 className="font-serif text-3xl text-porcelain">认证申请资料暂不可用</h1>
           <p className="mt-3">{databaseMessage}</p>
         </div>
       </section>
@@ -86,9 +87,9 @@ export default async function AdminCertificationApplicationDetailPage({ params }
     certificate = await findCertificateByApplicationId(params.id);
   } catch (error) {
     if (isSupabaseSchemaError(error)) {
-      certificateMessage = "证书数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL：supabase/applications.sql";
+      certificateMessage = "证书记录服务尚未完成系统配置，仍可查看认证申请详情。";
     } else if (error instanceof SupabaseConfigError) {
-      certificateMessage = `数据库环境变量尚未配置完整：${error.missing.join(", ")}。`;
+      certificateMessage = "证书记录服务尚未完成系统配置，仍可查看认证申请详情。";
     } else {
       certificateMessage = "证书记录暂时无法读取，仍可查看认证申请详情。";
     }
@@ -97,6 +98,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   const existingCertificates = await attachSignedUrls(application.existingCertificates);
   const supportingDocuments = await attachSignedUrls(application.supportingDocuments);
   const certificatePhoto = await getCertificatePhoto(application, supportingDocuments);
+  const supportingDocumentsWithoutPhoto = supportingDocuments.filter((attachment) => attachment.fieldName !== "photo");
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
@@ -107,51 +109,84 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
         </div>
       </div>
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Detail</p>
-          <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
-            <DetailItem label="当前状态" value={statusText[application.status]} />
-            <DetailItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
-            <DetailItem label="证书状态" value={certificate ? certificateStatusText[certificate.status] : "尚未生成"} />
-            <DetailItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
-            <DetailItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />
-            <DetailItem label="申请路径" value={formatCertificationPath(application.certificationPath)} />
-            <DetailItem label="申请等级" value={formatCertificationLevel(application.requestedLevel)} />
-            <DetailItem label="后台核定路径" value={formatCertificationPath(application.approvedPath)} />
-            <DetailItem label="后台核定等级" value={formatCertificationLevel(application.approvedLevel)} />
+      <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Detail</p>
+            <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">认证申请详情</h1>
+            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+              <p className="break-all rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-base font-semibold text-[#7F1D1D]">申请编号：{application.applicationNo}</p>
+              <CopyButton label="复制申请编号" text={application.applicationNo} />
+              <span className="rounded-full bg-[#7F1D1D] px-4 py-2 text-sm font-semibold text-white">{statusText[application.status]}</span>
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52] lg:min-w-72">
+            <p>提交时间：{formatDateTime(application.createdAt)}</p>
+            <p>申请人：{application.applicantName}</p>
+            <p>邮箱 / 手机号：{application.email} / {application.phone}</p>
+          </div>
+        </div>
+        <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SummaryItem label="传承体系" value={formatCertificationPath(application.certificationPath)} />
+          <SummaryItem label="申报认证等级" value={formatCertificationLevel(application.requestedLevel)} />
+          <SummaryItem label="核定传承体系" value={formatCertificationPath(application.approvedPath)} />
+          <SummaryItem label="核定认证等级" value={formatCertificationLevel(application.approvedLevel)} />
+          <SummaryItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
+          <SummaryItem label="证书状态" value={certificate ? certificateStatusText[certificate.status] : "尚未生成"} />
+          <SummaryItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
+          <SummaryItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />
+        </div>
+      </section>
+
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(380px,0.88fr)] lg:items-start">
+        <div className="grid gap-6">
+          <DetailSection title="基本身份资料">
             <DetailItem label="申请人中文姓名" value={application.applicantName} />
             <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
-            <DetailItem label="道名 / 法名" value={application.taoistName} />
+            <DetailItem label="道名 / 法名" value={application.taoistName || "未填写"} />
             <DetailItem label="性别" value={application.gender || "未填写"} />
             <DetailItem label="出生日期" value={application.birthDate || "未填写"} />
             <DetailItem label="国籍" value={application.nationality || "未填写"} />
             <DetailItem label="现居地" value={application.residence || "未填写"} />
+            <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
+          </DetailSection>
+
+          <DetailSection title="联系方式">
             <DetailItem label="手机 / WhatsApp" value={application.phone} />
             <DetailItem label="邮箱" value={application.email} />
-            <DetailItem label="地址" value={application.address || "未填写"} />
+            <DetailItem className="md:col-span-2" label="地址" value={application.address || "未填写"} />
+          </DetailSection>
+
+          <DetailSection title="师承 / 传承信息">
             <DetailItem label="师父姓名" value={application.masterName || "未填写"} />
             <DetailItem label="师父道名" value={application.masterTaoistName || "未填写"} />
             <DetailItem label="传承信息" value={application.lineage || "未填写"} />
             <DetailItem label="所属道派" value={application.sect || "未填写"} />
             <DetailItem label="宫观 / 机构" value={application.templeOrOrganization || "未填写"} />
             <DetailItem label="实践年限" value={application.practiceYears || "未填写"} />
+          </DetailSection>
+
+          <DetailSection title="经历与申请理由">
             <DetailItem className="md:col-span-2" label="道教履历说明" value={application.experienceSummary || "未填写"} />
             <DetailItem className="md:col-span-2" label="申请理由" value={application.applicationReason || "未填写"} />
             <DetailItem className="md:col-span-2" label="补充备注" value={application.additionalNote || "未填写"} />
+          </DetailSection>
+
+          <DetailSection title="声明与确认">
             <DetailItem label="资料真实性确认" value={application.declarationAccepted ? "已确认" : "未确认"} />
             <DetailItem label="资料使用确认" value={application.dataUseAccepted ? "已确认" : "未确认"} />
             <DetailItem label="证书核验信息公开确认" value={application.certificatePublicAccepted ? "已确认" : "未确认"} />
             <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
             <DetailItem label="隐私政策确认" value={application.privacyAccepted ? "已确认" : "未确认"} />
-            <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
-            <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
-            <DetailItem className="md:col-span-2" label="内部审核备注" value={application.internalReviewNote || "暂无内部备注"} />
+          </DetailSection>
+
+          <DetailSection title="审核记录">
+            <DetailItem className="md:col-span-2" label="后台审核备注" value={application.internalReviewNote || "暂无后台审核备注"} />
             <DetailItem className="md:col-span-2" label="对申请人反馈" value={application.applicantFeedback || "暂无反馈"} />
             <DetailItem className="md:col-span-2" label="认证委员会审核意见" value={application.committeeReviewNote || "暂无意见"} />
             <DetailItem className="md:col-span-2" label="证书项目备注" value={application.reviewNote || "暂无备注"} />
-          </div>
+          </DetailSection>
+
           {certificate ? (
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
               <p className="text-sm font-medium text-porcelain">证书记录已生成</p>
@@ -171,20 +206,20 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             </div>
           ) : null}
           {certificateMessage ? <div className="mt-6 border-l-4 border-[#8a6b3e] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">{certificateMessage}</div> : null}
-        </section>
-        <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8 lg:col-span-2">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
-          <h2 className="mt-3 font-serif text-3xl text-porcelain">附件资料</h2>
-          <div className="mt-6 grid gap-6 lg:grid-cols-[0.85fr_1.15fr]">
+        </div>
+
+        <div className="grid gap-6">
+          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
+            <h2 className="mt-3 font-serif text-3xl text-porcelain">审核资料</h2>
             <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-              <h3 className="font-medium text-porcelain">二寸道装证件照</h3>
+              <h3 className="font-medium text-porcelain">道装证件照</h3>
               {certificatePhoto?.signedUrl ? (
                 // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
-                <img alt="二寸道装证件照" className="mt-4 max-h-72 rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
+                <img alt="道装证件照" className="mt-4 max-h-72 rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
               ) : (
-                <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到二寸道装证件照。旧数据会尝试从 supporting_documents 中 fieldName 为 photo 的附件回退识别。</p>
+                <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
               )}
-              {certificatePhoto?.storagePath ? <p className="mt-3 break-all text-xs leading-5 text-[#8a6b3e]">{certificatePhoto.storagePath}</p> : null}
             </div>
             <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
               <h3 className="font-medium text-porcelain">材料审核清单</h3>
@@ -197,28 +232,28 @@ export default async function AdminCertificationApplicationDetailPage({ params }
                 ))}
               </div>
             </div>
-          </div>
-          <div className="mt-6 grid gap-6 lg:grid-cols-2">
-            <AttachmentGroup attachments={existingCertificates} title="资质说明 / 既有证书" />
-            <AttachmentGroup attachments={supportingDocuments} title="补充证明材料" />
-          </div>
-        </section>
-        <CertificationReviewForm
-          applicantName={application.applicantName}
-          applicationId={application.id}
-          applicationNo={application.applicationNo}
-          certificateNo={certificate?.certificateNo}
-          deliveredAt={application.deliveredAt}
-          deliveryStatus={application.deliveryStatus}
-          initialApprovedLevel={application.approvedLevel}
-          initialApprovedPath={application.approvedPath}
-          initialApplicantFeedback={application.applicantFeedback}
-          initialCommitteeReviewNote={application.committeeReviewNote}
-          initialInternalReviewNote={application.internalReviewNote}
-          initialMaterialReview={application.materialReview}
-          initialReviewNote={application.reviewNote}
-          initialStatus={application.status}
-        />
+            <div className="mt-6 grid gap-6">
+              <AttachmentGroup attachments={existingCertificates} title="资质说明 / 既有证书" />
+              <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
+            </div>
+          </section>
+          <CertificationReviewForm
+            applicantName={application.applicantName}
+            applicationId={application.id}
+            applicationNo={application.applicationNo}
+            certificateNo={certificate?.certificateNo}
+            deliveredAt={application.deliveredAt}
+            deliveryStatus={application.deliveryStatus}
+            initialApprovedLevel={application.approvedLevel}
+            initialApprovedPath={application.approvedPath}
+            initialApplicantFeedback={application.applicantFeedback}
+            initialCommitteeReviewNote={application.committeeReviewNote}
+            initialInternalReviewNote={application.internalReviewNote}
+            initialMaterialReview={application.materialReview}
+            initialReviewNote={application.reviewNote}
+            initialStatus={application.status}
+          />
+        </div>
       </div>
     </section>
   );
@@ -233,14 +268,14 @@ async function getCertificatePhoto(application: CertificationApplicationAdminRec
 
   try {
     return {
-      originalName: existing?.originalName || "二寸道装证件照",
+      originalName: existing?.originalName || "道装证件照",
       fieldName: "photo",
       storagePath,
       signedUrl: await createCertificationAttachmentSignedUrl(storagePath, 3600)
     } satisfies CertificationAttachment;
   } catch {
     return {
-      originalName: existing?.originalName || "二寸道装证件照",
+      originalName: existing?.originalName || "道装证件照",
       fieldName: "photo",
       storagePath
     } satisfies CertificationAttachment;
@@ -293,7 +328,7 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
   return (
     <div className="rounded-xl border border-[#e4ded0] bg-white p-4">
       <p className="break-all text-sm font-medium text-porcelain">{attachment.originalName}</p>
-      <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">{attachment.fieldName}</p>
+      <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">{formatAttachmentFieldName(attachment.fieldName)}</p>
       {isImage ? (
         // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
         <img alt={attachment.originalName} className="mt-3 max-h-48 rounded-lg border border-[#e4ded0] object-contain" src={attachment.signedUrl} />
@@ -301,7 +336,7 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
       {!attachment.storagePath ? (
         <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">此附件仅记录了文件名，未保存上传文件，无法预览。</p>
       ) : !attachment.signedUrl ? (
-        <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">附件文件未找到，请检查 Supabase Storage 是否已正确配置。</p>
+        <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">附件文件暂不可显示，请联系协会秘书处核验。</p>
       ) : null}
       {attachment.signedUrl ? (
         <div className="mt-4 flex flex-wrap gap-2">
@@ -315,6 +350,46 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
       ) : null}
     </div>
   );
+}
+
+function DetailSection({ children, title }: { children: ReactNode; title: string }) {
+  return (
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+      <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
+    </section>
+  );
+}
+
+function SummaryItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3">
+      <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-2 break-all text-sm font-medium leading-6 text-porcelain">{value}</p>
+    </div>
+  );
+}
+
+function formatAttachmentFieldName(fieldName: string) {
+  const labels: Record<string, string> = {
+    existing_certificates: "既有证书材料",
+    supporting_documents: "补充证明材料",
+    idProof: "身份证明",
+    luDocument: "授箓 / 升箓材料",
+    jieDocument: "传戒 / 授戒材料",
+    duDocument: "传度材料",
+    guanJinDocument: "冠巾材料",
+    lineageProof: "师承证明",
+    templeProof: "道场证明",
+    internalVoucher: "资质凭证",
+    criminalRecord: "无犯罪记录证明",
+    educationProof: "学历 / 培训证明",
+    practiceReport: "道教实践报告",
+    organizationLetter: "组织推荐信",
+    crossCulturePlan: "跨文化传道计划"
+  };
+
+  return labels[fieldName] || "申请证明材料";
 }
 
 function DetailItem({ className = "", label, value }: { className?: string; label: string; value: string }) {

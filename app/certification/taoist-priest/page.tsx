@@ -43,7 +43,7 @@ const steps: Step[] = [
           { id: "certificationType", label: "申请认证类型", kind: "select", required: true, options: ["道士资格认证"] },
           {
             id: "certificationPath",
-            label: "认证路径",
+            label: "传承体系",
             kind: "select",
             required: true,
             options: Object.entries(certificationPathLabels).map(([value, label]) => ({ value, label }))
@@ -245,8 +245,8 @@ const maxFileSize = 2 * 1024 * 1024;
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
 const applicationNotices = [
-  ["申请须知", "本认证将根据申请人的传承路径、资质凭证、实践经历、推荐材料、伦理承诺及资料完整性进行综合审核。"],
-  ["认证路径", "申请人可根据自身情况选择正一、全真或其他 / 国际传承路径，并提交对应师承与资质说明。"],
+  ["申请须知", "本认证将根据申请人的传承体系、资质凭证、实践经历、推荐材料、伦理承诺及资料完整性进行综合审核。"],
+  ["传承体系", "申请人可根据自身情况选择正一、全真或其他传承，并提交对应师承与资质说明。"],
   ["认证等级", "申请人提交的是申报等级，最终认证等级以 ITCA / 国际道教与文化协会后台审核核定为准。"],
   ["证书说明", "申请通过后，申请人可继续使用申请编号及联系方式查询申请结果，并查看证书生成和打印信息；申请编号不会因证书核发而失效。"],
   ["照片用途", "原有“近期白底道装证件照”用于认证审核、证书生成及申请人证书查看与打印，公众证书公开核验页默认不展示该照片。"],

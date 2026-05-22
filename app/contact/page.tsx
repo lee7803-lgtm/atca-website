@@ -57,6 +57,8 @@ export default function ContactPage() {
         title="联系 ITCA"
         subtitle="Contact And Cooperation"
         intro="联系合作用于发布协会事务、认证核验、会员申请、机构合作与信息更正方向，服务后续咨询与沟通确认。"
+        backgroundImageSrc="/images/atca/cooperation-cultural-exchange.jpg"
+        backgroundImagePosition="center 48%"
         imageSrc="/images/itca/06-home-international-cooperation.png"
         imagePosition="center 48%"
         visualDescription="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"

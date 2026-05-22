@@ -35,14 +35,14 @@ const overview: Array<{ title: string; text: string; icon: IconBadgeName }> = [
 const roleEntrances: Array<{ title: string; text: string; href: string; action: string; icon: IconBadgeName }> = [
   {
     title: "认证申请",
-    text: "用于申请人提交道士资格认证申请，填写认证路径、申报等级、身份资料、师承传承、资质凭证、实践经历与声明承诺。",
+    text: "用于申请人提交道士资格认证申请，填写传承体系、申报认证等级、身份资料、师承传承、资质凭证、实践经历与声明承诺。",
     href: "/certification/taoist-priest",
     action: "进入认证申请",
     icon: "certification"
   },
   {
     title: "申请进度 / 申请结果查询",
-    text: "用于申请人本人使用申请编号和预留邮箱或手机号查询申请状态、审核反馈、证书生成情况，以及证书查看与打印入口。申请编号在证书核发后仍可继续使用。",
+    text: "用于申请人本人使用申请编号和登记邮箱或手机号查询申请状态、审核反馈、证书生成情况，以及证书查看与打印入口。申请编号在证书核发后仍可继续使用。",
     href: "/application/query",
     action: "查询申请结果",
     icon: "query"
@@ -95,8 +95,9 @@ export default function CertificationPage() {
         ]}
         eyebrow="Certification"
         title="认证体系"
-        subtitle="Certification System"
         intro="ITCA 认证体系用于发布认证范围、申请流程、资料核验与证书公开核验说明，服务道士资格认证申请、记录建档与官网核验。"
+        backgroundImageSrc="/images/atca/certification-detail.jpg"
+        backgroundImagePosition="center 50%"
         imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
@@ -168,9 +169,9 @@ export default function CertificationPage() {
 
       <CertificationSection eyebrow="Verification" title="证书公开核验方式" tone="soft" compact>
         <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
-          <InfoCard icon={<CertificationIcon name="query" />} title="官网公开核验" text="证书生成后，公众、合作方及第三方机构可通过证书编号与持证人姓名核验证书公开信息。查询结果仅展示公开核验所需字段。" />
+          <InfoCard icon={<CertificationIcon name="query" />} title="官网公开核验" text="证书生成后，公众、合作方及第三方机构可通过证书编号与持证人姓名核验证书公开信息。查询结果仅展示公开核验所需资料。" />
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
-            核验说明：证书公开核验不能查询申请进度，也不展示申请人的联系方式、上传材料、审核意见或二寸道装照。申请人如需查看申请结果或证书打印信息，请前往申请进度 / 申请结果查询。
+            核验说明：证书公开核验不能查询申请进度，也不展示申请人的联系方式、上传材料、审核意见或道装证件照。申请人如需查看申请结果或证书打印信息，请前往申请进度 / 申请结果查询。
           </div>
         </div>
       </CertificationSection>

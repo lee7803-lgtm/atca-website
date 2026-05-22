@@ -58,7 +58,7 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
             <InfoItem label="申请类型" value={applicationType} />
             <InfoItem label="提交时间" value={submittedAt} />
             <InfoItem label="申请编号" value={applicationNumber || "未找到申请编号"} />
-            <InfoItem label="后续处理" value="工作人员将根据申请资料进行审核；如需补充资料，将通过预留联系方式沟通。" />
+            <InfoItem label="后续处理" value="工作人员将根据申请资料进行审核；如需补充资料，将通过登记联系方式沟通。" />
           </div>
           <p className="mx-auto mt-7 max-w-2xl text-sm leading-8 text-[#5f5b52]">
             {applicationNumber

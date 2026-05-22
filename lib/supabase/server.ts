@@ -525,6 +525,25 @@ async function toApplicantCertificateFields(row: SupabaseCertificateRow) {
   } satisfies Partial<ApplicationQueryResult>;
 }
 
+async function createApplicantPhotoFallback(
+  row: Pick<SupabaseCertificationApplicationRow, "certificate_photo_path" | "supporting_documents">
+) {
+  const storagePath = row.certificate_photo_path || findCertificatePhotoPath(normalizeAttachments(row.supporting_documents, "supporting_documents"));
+  if (!storagePath) return { certificatePhotoUrl: "", certificatePhotoRecorded: false };
+
+  try {
+    return {
+      certificatePhotoUrl: await createCertificationAttachmentSignedUrl(storagePath, 3600),
+      certificatePhotoRecorded: true
+    };
+  } catch {
+    return {
+      certificatePhotoUrl: "",
+      certificatePhotoRecorded: true
+    };
+  }
+}
+
 async function readSupabaseError(response: Response) {
   try {
     const error = (await response.json()) as { message?: string; details?: string };
@@ -609,7 +628,7 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,delivery_status,delivered_at,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
@@ -621,9 +640,12 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "certificate_photo_path" | "supporting_documents" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
   const row = rows[0];
   const certificate = row ? await findApplicantCertificateByApplicationIdSafe(row.id) : null;
+  if (row && certificate && !certificate.certificatePhotoUrl) {
+    Object.assign(certificate, await createApplicantPhotoFallback(row));
+  }
 
   return row ? toCertificationQueryResult(row, certificate || undefined) : null;
 }
@@ -634,7 +656,7 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
     applicant_name: `eq.${filters.applicantName}`,
     taoist_name: `eq.${filters.taoistName}`,
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,delivery_status,delivered_at,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "10"
   });
@@ -647,11 +669,14 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "certificate_photo_path" | "supporting_documents" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
 
   const results: ApplicationQueryResult[] = [];
   for (const row of rows) {
     const certificate = await findApplicantCertificateByApplicationIdSafe(row.id);
+    if (certificate && !certificate.certificatePhotoUrl) {
+      Object.assign(certificate, await createApplicantPhotoFallback(row));
+    }
     results.push(toCertificationQueryResult(row, certificate || undefined));
   }
 

@@ -14,6 +14,8 @@ type PageHeroProps = {
   subtitle?: string;
   intro: string;
   actions?: PageHeroAction[];
+  backgroundImageSrc?: string;
+  backgroundImagePosition?: string;
   imageSrc?: string;
   imagePosition?: string;
   visualEyebrow?: string;
@@ -30,6 +32,8 @@ export function PageHero({
   subtitle,
   intro,
   actions = [],
+  backgroundImageSrc = "/images/atca/hero-architecture.jpg",
+  backgroundImagePosition = "center 46%",
   imageSrc = "/images/itca/02-home-association.png",
   imagePosition = "center",
   visualEyebrow,
@@ -42,9 +46,14 @@ export function PageHero({
   return (
     <section className={`page-hero page-hero--${atmosphere} relative overflow-hidden border-b border-[#d8d0bf]`}>
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(169,122,61,0.16),transparent_20rem),linear-gradient(135deg,#7F1D1D_0%,#33251F_44%,#2A1F1A_100%)]" />
+      <div
+        className="absolute inset-0 bg-cover opacity-[0.34]"
+        style={{ backgroundImage: `url("${backgroundImageSrc}")`, backgroundPosition: backgroundImagePosition }}
+        aria-hidden="true"
+      />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(42,31,26,0.96)_0%,rgba(42,31,26,0.88)_32%,rgba(51,37,31,0.70)_52%,rgba(51,37,31,0.46)_74%,rgba(42,31,26,0.36)_100%),radial-gradient(circle_at_72%_22%,rgba(169,122,61,0.18),transparent_22rem)]" aria-hidden="true" />
       <CulturePattern variant="hero" className="opacity-60" />
       <InkLandscape className="opacity-80" />
-      <div className="page-hero__gate" aria-hidden="true" />
       <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
         <div className="page-hero__copy max-w-3xl">
           <p className="page-hero__eyebrow">{eyebrow}</p>

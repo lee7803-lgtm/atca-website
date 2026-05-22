@@ -78,8 +78,9 @@ export default function AssociationPage() {
         ]}
         eyebrow="About ITCA"
         title="关于协会"
-        subtitle="International Taoisme And Cultural Association"
         intro="ITCA 官网用于协会介绍、认证申请、会员申请、证书核验与合作联系等信息服务，服务道教文化传承与国际交流。"
+        backgroundImageSrc="/images/atca/about-cultural-space.jpg"
+        backgroundImagePosition="center 48%"
         imageSrc="/images/itca/02-home-association.png"
         imagePosition="center 52%"
         visualDescription="通过资料整理、文化展示、学术交流和机构合作，推动道教文化在国际语境中的规范表达与持续发展。"

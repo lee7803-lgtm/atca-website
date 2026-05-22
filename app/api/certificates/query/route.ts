@@ -23,12 +23,12 @@ export async function GET(request: Request) {
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      const response: CertificateQueryResponse = { success: false, message: `证书查询服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。` };
+      const response: CertificateQueryResponse = { success: false, message: "证书查询服务尚未完成系统配置，请联系协会秘书处核验。" };
       return NextResponse.json(response, { status: 500 });
     }
 
     if (isSupabaseSchemaError(error)) {
-      const response: CertificateQueryResponse = { success: false, message: "证书数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL。" };
+      const response: CertificateQueryResponse = { success: false, message: "证书查询服务尚未完成系统配置，请联系协会秘书处核验。" };
       return NextResponse.json(response, { status: 500 });
     }
 

@@ -45,6 +45,8 @@ const certificationLevelOptions: Array<{ value: "" | CertificationLevel; label: 
   ...Object.entries(certificationLevelLabels).map(([value, label]) => ({ value: value as CertificationLevel, label }))
 ];
 
+const terminalStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered", "archived", "revoked"];
+
 function buildReviewNote(reviewNote: string, taoistRank: string) {
   const cleaned = reviewNote.replace(/\n?证书等级 \/ 项目：.*$/m, "").trim();
   const rankLine = `证书等级 / 项目：${taoistRank || "道士资格认证"}`;
@@ -133,6 +135,33 @@ export function CertificationReviewForm({
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
+  const hasCertificate = Boolean(certificateNo);
+  const materialReviewReady = Object.values(materialReview).every((item) => item === "passed" || item === "not_applicable");
+  const materialReviewHasPending = Object.values(materialReview).some((item) => item === "pending");
+  const isReadonlyStatus = terminalStatuses.includes(initialStatus);
+  const canSaveReview = !isReadonlyStatus;
+  const canGenerateCertificate = initialStatus === "approved" && !hasCertificate && Boolean(approvedPath) && Boolean(approvedLevel) && materialReviewReady;
+  const canMarkDelivered = hasCertificate && deliveryStatus !== "delivered" && (initialStatus === "certificate_issued" || initialStatus === "cert_issued");
+  const canArchive = initialStatus === "delivered";
+
+  const statusGuide = useMemo(() => {
+    if (initialStatus === "submitted" || initialStatus === "under_review") return "当前申请处于受理或审核阶段，可保存审核中、要求补充材料、审核通过或审核驳回；审核通过前不能生成证书。";
+    if (initialStatus === "need_more_info") return "当前申请等待申请人补充或秘书处线下处理。请保留清晰的对申请人反馈，本状态不能生成证书。";
+    if (initialStatus === "rejected") return "当前申请已驳回。请保留对申请人的反馈，本状态不显示发证操作。";
+    if (initialStatus === "approved") return "当前申请已审核通过。请确认核定传承体系、核定认证等级和材料审核清单后生成证书。";
+    if (initialStatus === "certificate_issued" || initialStatus === "cert_issued") return "证书记录已生成，不能重复生成证书；可在证书完成交付后标记已下发。";
+    if (initialStatus === "delivered") return "证书已下发，不能重复生成证书；如后续处理完成，可归档申请。";
+    if (initialStatus === "archived") return "申请已归档，原则上仅作记录查看，不再进行发证操作。";
+    return "请根据申请资料和审核记录选择下一步操作。";
+  }, [initialStatus]);
+
+  const generateBlockedReason = useMemo(() => {
+    if (hasCertificate) return "证书记录已存在，不能重复生成证书。";
+    if (initialStatus !== "approved") return "当前申请尚未审核通过，不能生成证书。";
+    if (!approvedPath || !approvedLevel) return "请先完成核定传承体系与核定认证等级后再生成证书。";
+    if (!materialReviewReady) return "请先完成材料审核清单，所有材料项目应为通过或不适用后再生成证书。";
+    return "";
+  }, [approvedLevel, approvedPath, hasCertificate, initialStatus, materialReviewReady]);
 
   const request = async (body: Record<string, unknown>, successMessage: string) => {
     setIsSaving(true);
@@ -173,8 +202,27 @@ export function CertificationReviewForm({
     }
   };
 
-  const saveStatus = () => request({ status }, "审核状态、内部备注和申请人反馈已保存。");
-  const generateCertificate = () => request({ action: "generate_certificate", generateCertificate: true }, "证书记录已生成。");
+  const saveStatus = () => {
+    if ((status === "need_more_info" || status === "rejected") && !applicantFeedback.trim()) {
+      setMessageTone("error");
+      setMessage("请填写对申请人反馈后再保存该审核状态。");
+      return;
+    }
+    if (status === "approved" && (!approvedPath || !approvedLevel)) {
+      setMessageTone("error");
+      setMessage("请先完成核定传承体系与核定认证等级后再保存审核通过状态。");
+      return;
+    }
+    request({ status }, "审核状态、内部备注和申请人反馈已保存。");
+  };
+  const generateCertificate = () => {
+    if (!canGenerateCertificate) {
+      setMessageTone("error");
+      setMessage(generateBlockedReason || "当前申请暂不能生成证书。");
+      return;
+    }
+    request({ action: "generate_certificate", generateCertificate: true }, "证书记录已生成。");
+  };
   const markDelivered = () => request({ action: "mark_delivered" }, "证书已标记为已下发。");
   const archive = () => request({ action: "archive" }, "申请已归档。");
 
@@ -192,35 +240,35 @@ export function CertificationReviewForm({
     <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Review</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">审核处理</h2>
+      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+        <p className="font-medium text-porcelain">下一步提示</p>
+        <p className="mt-1">{statusGuide}</p>
+        {materialReviewHasPending && initialStatus === "approved" ? <p className="mt-2 text-[#7F1D1D]">建议完成材料审核清单后再生成证书。</p> : null}
+      </div>
       <div className="mt-6 grid gap-5">
-        <div className="grid gap-5 md:grid-cols-2">
-          <label className="grid gap-3">
-            <span className="text-sm font-medium text-porcelain">后台核定路径</span>
-            <select className="form-input" value={approvedPath} onChange={(event) => setApprovedPath(event.target.value as CertificationPath | "")}>
-              {certificationPathOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
-            </select>
-          </label>
-          <label className="grid gap-3">
-            <span className="text-sm font-medium text-porcelain">后台核定等级</span>
-            <select className="form-input" value={approvedLevel} onChange={(event) => setApprovedLevel(event.target.value as CertificationLevel | "")}>
-              {certificationLevelOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
-            </select>
-          </label>
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+          <h3 className="font-serif text-2xl text-porcelain">核定信息</h3>
+          <div className="mt-5 grid gap-5 md:grid-cols-2">
+            <label className="grid gap-3">
+              <span className="text-sm font-medium text-porcelain">核定传承体系</span>
+              <select className="form-input" disabled={isReadonlyStatus} value={approvedPath} onChange={(event) => setApprovedPath(event.target.value as CertificationPath | "")}>
+                {certificationPathOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-3">
+              <span className="text-sm font-medium text-porcelain">核定认证等级</span>
+              <select className="form-input" disabled={isReadonlyStatus} value={approvedLevel} onChange={(event) => setApprovedLevel(event.target.value as CertificationLevel | "")}>
+                {certificationLevelOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
+              </select>
+            </label>
+            <label className="grid gap-3 md:col-span-2">
+              <span className="text-sm font-medium text-porcelain">当前状态</span>
+              <select className="form-input" disabled={isReadonlyStatus} value={status} onChange={(event) => setStatus(event.target.value as CertificationStatus)}>
+                {statusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+              </select>
+            </label>
+          </div>
         </div>
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-porcelain">状态操作</span>
-          <select className="form-input" value={status} onChange={(event) => setStatus(event.target.value as CertificationStatus)}>
-            {statusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-          </select>
-        </label>
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-porcelain">内部审核备注</span>
-          <textarea className="form-input min-h-32 resize-y" value={internalReviewNote} onChange={(event) => setInternalReviewNote(event.target.value)} />
-        </label>
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-porcelain">对申请人反馈</span>
-          <textarea className="form-input min-h-32 resize-y" value={applicantFeedback} onChange={(event) => setApplicantFeedback(event.target.value)} />
-        </label>
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
           <h3 className="font-serif text-2xl text-porcelain">材料审核清单</h3>
           <div className="mt-5 grid gap-4 md:grid-cols-2">
@@ -229,6 +277,7 @@ export function CertificationReviewForm({
                 <span className="text-sm font-medium text-porcelain">{label}</span>
                 <select
                   className="form-input"
+                  disabled={isReadonlyStatus}
                   value={materialReview[key as keyof MaterialReview]}
                   onChange={(event) =>
                     setMaterialReview((current) => ({
@@ -243,18 +292,36 @@ export function CertificationReviewForm({
             ))}
           </div>
         </div>
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-porcelain">认证委员会审核意见</span>
-          <textarea className="form-input min-h-32 resize-y" value={committeeReviewNote} onChange={(event) => setCommitteeReviewNote(event.target.value)} />
-        </label>
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-porcelain">证书等级 / 项目</span>
-          <input className="form-input" value={taoistRank} onChange={(event) => setTaoistRank(event.target.value)} />
-        </label>
-        <label className="grid gap-3">
-          <span className="text-sm font-medium text-porcelain">证书项目备注</span>
-          <textarea className="form-input min-h-24 resize-y" value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} />
-        </label>
+        <div className="rounded-2xl border border-[#e4ded0] bg-white p-5">
+          <h3 className="font-serif text-2xl text-porcelain">审核意见</h3>
+          <div className="mt-5 grid gap-5">
+            <label className="grid gap-3">
+              <span className="text-sm font-medium text-porcelain">认证委员会审核意见</span>
+              <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={committeeReviewNote} onChange={(event) => setCommitteeReviewNote(event.target.value)} />
+            </label>
+            <label className="grid gap-3 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+              <span className="text-sm font-medium text-porcelain">对申请人反馈</span>
+              <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={applicantFeedback} onChange={(event) => setApplicantFeedback(event.target.value)} />
+            </label>
+            <label className="grid gap-3 rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-4">
+              <span className="text-sm font-medium text-porcelain">后台审核备注</span>
+              <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={internalReviewNote} onChange={(event) => setInternalReviewNote(event.target.value)} />
+            </label>
+          </div>
+        </div>
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+          <h3 className="font-serif text-2xl text-porcelain">证书记录</h3>
+          <div className="mt-5 grid gap-5">
+            <label className="grid gap-3">
+              <span className="text-sm font-medium text-porcelain">证书等级 / 项目</span>
+              <input className="form-input" disabled={isReadonlyStatus} value={taoistRank} onChange={(event) => setTaoistRank(event.target.value)} />
+            </label>
+            <label className="grid gap-3">
+              <span className="text-sm font-medium text-porcelain">证书项目备注</span>
+              <textarea className="form-input min-h-24 resize-y" disabled={isReadonlyStatus} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} />
+            </label>
+          </div>
+        </div>
       </div>
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
         <p>下发状态：{deliveryStatus === "delivered" ? "已下发" : "未下发"}</p>
@@ -262,18 +329,19 @@ export function CertificationReviewForm({
       </div>
       {message ? <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>{message}</div> : null}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={saveStatus} type="button">
+        {canSaveReview ? <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={saveStatus} type="button">
           {isSaving ? "正在保存..." : "保存状态与反馈"}
-        </button>
-        <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={generateCertificate} type="button">
+        </button> : null}
+        {initialStatus === "approved" && !hasCertificate ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving || !canGenerateCertificate} onClick={generateCertificate} type="button" title={generateBlockedReason || "生成证书"}>
           生成证书
-        </button>
-        <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={markDelivered} type="button">
+        </button> : null}
+        {generateBlockedReason && initialStatus !== "rejected" && initialStatus !== "archived" ? <p className="basis-full text-sm leading-7 text-[#7F1D1D]">{generateBlockedReason}</p> : null}
+        {canMarkDelivered ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={markDelivered} type="button">
           标记已下发
-        </button>
-        <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={archive} type="button">
+        </button> : null}
+        {canArchive ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={archive} type="button">
           归档
-        </button>
+        </button> : null}
       </div>
 
       <div className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">

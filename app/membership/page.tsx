@@ -91,6 +91,8 @@ export default function MembershipPage() {
         title="会员申请"
         subtitle="Membership Application"
         intro="ITCA 会员申请用于发布个人会员、机构会员申请说明与资料要求，服务会员登记、审核沟通与后续联系。"
+        backgroundImageSrc="/images/atca/member-gathering.jpg"
+        backgroundImagePosition="center 48%"
         imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 46%"
         visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"

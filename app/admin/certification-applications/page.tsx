@@ -41,9 +41,9 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
     applications = await listCertificationApplications({ status, q });
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      databaseMessage = `数据库环境变量尚未配置完整：${error.missing.join(", ")}。`;
+      databaseMessage = "认证申请资料服务尚未完成系统配置，请联系网站管理员处理。";
     } else if (isSupabaseSchemaError(error)) {
-      databaseMessage = "认证申请数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL：supabase/applications.sql";
+      databaseMessage = "认证申请资料服务尚未完成系统配置，请联系网站管理员处理。";
     } else if (error instanceof SupabaseRequestError) {
       databaseMessage = "认证申请数据暂时无法读取，请稍后重试或检查 Supabase 服务状态。";
     } else {
@@ -56,9 +56,9 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
       await checkCertificatesTableConfigured();
     } catch (error) {
       if (isSupabaseSchemaError(error)) {
-        certificateDatabaseMessage = "证书数据表尚未配置。请先在 Supabase 执行数据库初始化 SQL：supabase/applications.sql";
+        certificateDatabaseMessage = "证书记录服务尚未完成系统配置，生成证书功能可能受影响。";
       } else if (error instanceof SupabaseConfigError) {
-        certificateDatabaseMessage = `数据库环境变量尚未配置完整：${error.missing.join(", ")}。`;
+        certificateDatabaseMessage = "证书记录服务尚未完成系统配置，生成证书功能可能受影响。";
       } else {
         certificateDatabaseMessage = "证书数据表暂时无法读取，生成证书功能可能受影响。";
       }

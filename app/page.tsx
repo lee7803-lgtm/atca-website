@@ -105,11 +105,9 @@ export default function Home() {
     <>
       <section className="relative overflow-hidden bg-[#2A1F1A]">
         <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(169,122,61,0.16),transparent_20rem),linear-gradient(135deg,#7F1D1D_0%,#33251F_44%,#2A1F1A_100%)]" />
-        <div className="absolute inset-y-0 right-0 hidden w-[58%] bg-[linear-gradient(90deg,#2A1F1A_0%,rgba(42,31,26,0.78)_34%,rgba(42,31,26,0.42)_100%),url('/images/atca/hero-architecture.jpg')] bg-cover bg-[center_46%] opacity-55 lg:block" aria-hidden="true" />
+        <div className="absolute inset-0 hidden bg-[linear-gradient(90deg,rgba(42,31,26,0.96)_0%,rgba(42,31,26,0.86)_28%,rgba(51,37,31,0.66)_48%,rgba(51,37,31,0.38)_72%,rgba(42,31,26,0.22)_100%),radial-gradient(circle_at_72%_24%,rgba(169,122,61,0.20),transparent_22rem),url('/images/atca/hero-architecture.jpg')] bg-cover bg-[center_46%] opacity-60 lg:block" aria-hidden="true" />
+        <div className="absolute inset-0 hidden bg-[radial-gradient(ellipse_at_38%_50%,rgba(127,29,29,0.24),transparent_34rem),linear-gradient(110deg,rgba(127,29,29,0.30)_0%,rgba(42,31,26,0.10)_52%,transparent_82%)] lg:block" aria-hidden="true" />
         <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,250,240,0.08),transparent)]" aria-hidden="true" />
-        <div className="absolute left-[7%] top-16 hidden h-56 w-44 border-x border-t border-[#d8bd7a]/18 lg:block" aria-hidden="true">
-          <span className="absolute left-1/2 top-[-2.25rem] h-16 w-16 -translate-x-1/2 rotate-45 border-l border-t border-[#d8bd7a]/18" />
-        </div>
         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d8bd7a]/28 to-transparent" aria-hidden="true" />
         <CulturePattern variant="hero" className="opacity-60" />
         <InkLandscape className="opacity-80" />
