@@ -60,15 +60,15 @@ export const materialReviewStatusLabels: Record<MaterialReviewStatus, string> = 
 };
 
 export const materialReviewItemLabels: Record<keyof MaterialReview, string> = {
-  identity: "身份真实性审核",
-  lineage: "师承 / 传承审核",
-  credential: "资质凭证审核",
-  practice: "实践经历审核",
-  recommendation: "推荐证明审核",
-  ethics: "伦理承诺审核",
-  photo: "道装证件照审核",
-  completeness: "材料完整性审核",
-  international: "国际申请补充材料审核"
+  identity: "身份真实性",
+  lineage: "师承 / 传承",
+  credential: "资质凭证",
+  practice: "实践经历",
+  recommendation: "推荐证明",
+  ethics: "伦理承诺",
+  photo: "道装证件照",
+  completeness: "材料完整性",
+  international: "国际申请材料"
 };
 
 export type CertificationAttachment = {

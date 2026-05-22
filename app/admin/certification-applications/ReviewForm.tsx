@@ -82,7 +82,7 @@ function buildNotice(params: {
   base.push("", "申请进度查询入口：/application/query");
   if (params.certificateNo) {
     base.push(`证书核验详情入口：/certificates/${encodeURIComponent(params.certificateNo)}`);
-    base.push(`公开证书查询入口：/certificate-query?certificateNo=${encodeURIComponent(params.certificateNo)}&holderName=${encodeURIComponent(params.applicantName)}`);
+    base.push(`公开证书核验入口：/certificate-query?certificateNo=${encodeURIComponent(params.certificateNo)}&holderName=${encodeURIComponent(params.applicantName)}`);
   }
   base.push("", "如联系方式或资料需更新，请联系 ITCA 秘书处协助处理。");
 
@@ -245,6 +245,16 @@ export function CertificationReviewForm({
         <p className="mt-1">{statusGuide}</p>
         {materialReviewHasPending && initialStatus === "approved" ? <p className="mt-2 text-[#7F1D1D]">建议完成材料审核清单后再生成证书。</p> : null}
       </div>
+      <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
+        <p className="font-medium text-porcelain">申请人验真提示</p>
+        <ul className="mt-2 grid list-disc gap-1 pl-5">
+          <li>核对申请人姓名、联系方式、身份材料。</li>
+          <li>核对道装证件照是否与申请人材料一致。</li>
+          <li>核对师承 / 传承材料与证明文件。</li>
+          <li>必要时联系推荐人、师父、道场或证明出具方。</li>
+          <li>对疑似冒用、伪造、虚假陈述或无法核验的申请，应要求补充材料、暂停审核或驳回。</li>
+        </ul>
+      </div>
       <div className="mt-6 grid gap-5">
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
           <h3 className="font-serif text-2xl text-porcelain">核定信息</h3>
@@ -336,6 +346,11 @@ export function CertificationReviewForm({
           生成证书
         </button> : null}
         {generateBlockedReason && initialStatus !== "rejected" && initialStatus !== "archived" ? <p className="basis-full text-sm leading-7 text-[#7F1D1D]">{generateBlockedReason}</p> : null}
+        {initialStatus === "approved" && !hasCertificate ? (
+          <p className="basis-full rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+            生成证书前，请确认申请人身份、联系方式、师承材料、资质凭证、道装证件照及材料审核清单已完成核验。资料无法核验、疑似冒用或存在重大疑点的申请不得生成证书。
+          </p>
+        ) : null}
         {canMarkDelivered ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={markDelivered} type="button">
           标记已下发
         </button> : null}

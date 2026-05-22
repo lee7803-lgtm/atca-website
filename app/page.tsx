@@ -14,31 +14,31 @@ export const metadata: Metadata = {
 const quickEntries = [
   ["认证体系", "/certification"],
   ["会员申请", "/membership"],
-  ["证书查询", "/certificate-query"],
+  ["证书核验", "/certificate-query"],
   ["联系合作", "/contact"]
 ];
 
 const services: Array<{ title: string; text: string; href: string; icon: IconBadgeName; visual: "certification" | "membership" | "verification"; visualTitle: string; imageSrc: string; imagePosition: string }> = [
   { title: "认证服务", text: "用于登记申请人的道教身份、师承传承、修道经历及相关证明材料，并按协会流程进行审核与备案。", href: "/certification/taoist-priest", icon: "certification", visual: "certification", visualTitle: "认证资料与备案", imageSrc: "/images/itca/03-service-certification.png", imagePosition: "center 52%" },
   { title: "会员申请", text: "面向个人与机构开放会员申请，用于建立会员档案、参与文化交流及后续合作沟通。", href: "/membership", icon: "membership", visual: "membership", visualTitle: "会员组织服务", imageSrc: "/images/itca/04-service-membership.png", imagePosition: "center 46%" },
-  { title: "证书核验", text: "用于通过证书编号与持证人姓名核验证书状态，并保留人工复核说明。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书查询核验", imageSrc: "/images/itca/05-service-verification.png", imagePosition: "center 58%" }
+  { title: "证书核验", text: "用于通过证书编号与持证人姓名核验证书状态，并保留人工复核说明。", href: "/certificate-query", icon: "query", visual: "verification", visualTitle: "证书公开核验", imageSrc: "/images/itca/05-service-verification.png", imagePosition: "center 58%" }
 ];
 
 const certificationFeatures = [
   ["可查询", "通过证书编号与姓名核验证书状态，保留人工复核通道。"],
   ["可建档", "围绕身份资料、师承关系、学习经历与实践资料形成协会认证档案。"],
   ["可追溯", "申请、审核、建档、签发与核验流程保持记录链路。"],
-  ["说明清晰", "协会认证用于资料审核、登记记录与文化交流场景中的身份信息展示。"]
+  ["说明清晰", "协会认证用于资料审核、登记记录与文化交流场景中的参考信息。"]
 ];
 
 const trustFeatures = [
-  ["官网可核验", "证书可通过官网证书编号与持证人姓名核验公开登记信息。"],
-  ["审核有记录", "申请提交、材料补充、审核决定与证书生成均围绕登记记录留存。"],
-  ["档案可留存", "认证与会员资料用于协会审核、建档、后续联系和服务管理。"],
-  ["适用于国际文化交流场景", "申请与证书信息可作为文化交流、学习传播和合作沟通中的身份信息展示。"]
+  ["官网公开核验", "证书可通过官网证书编号与持证人姓名核验公开登记信息。"],
+  ["审核过程留痕", "申请提交、材料核验、审核决定与证书生成均形成认证记录。"],
+  ["资料建档管理", "认证资料用于协会审核、资料建档、后续联系和服务管理。"],
+  ["文化交流参考", "认证与证书信息可作为协会文化交流、学习活动和合作沟通中的参考信息。"]
 ];
 
-const certificationFlow = ["选择认证", "填写资料", "提交申请", "初步审核", "补充材料", "审核决定", "生成证书", "官网核验", "证书下发"];
+const certificationFlow = ["在线了解认证要求", "提交申请资料", "初步资料审核", "认证委员会审核", "补充资料或面谈", "认证结果确认", "生成 / 颁发认证证书", "官网证书公开核验"];
 
 const organizationUnits = [
   ["01", "理事会", "组织治理", "统筹协会发展方向、重大事项审议与协会公共事务。", "/images/itca/organization/01-org-governance-council.png"],
@@ -120,12 +120,12 @@ export default function Home() {
               国际道教与文化协会
             </h1>
             <p className="mt-7 text-lg leading-9 text-white/80">
-              ITCA 官方网站用于发布协会信息、认证体系、会员申请、证书查询与联系合作说明，服务道教文化传承与国际交流。
+              ITCA 官方网站用于发布协会信息、认证体系、会员申请、证书核验与联系合作说明，服务道教文化传承与国际交流。
             </p>
             <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
               <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/membership">会员申请</Link>
               <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certification">认证体系</Link>
-              <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">证书查询</Link>
+              <Link className="rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">证书核验</Link>
             </div>
           </div>
           <div className="lg:pt-4">
@@ -194,7 +194,7 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-18 sm:px-8 lg:py-28">
-        <PortalTitle eyebrow="Certification System" title="认证体系" intro="当前认证系统仅开放道士资格认证，用于登记申请人的道教身份、师承传承、学习经历与相关证明材料，并纳入协会认证与资料建档流程。" />
+        <PortalTitle eyebrow="Certification" title="认证体系" intro="当前认证系统仅开放道士资格认证，用于登记申请人的道教身份、师承传承、学习经历与相关证明材料，并纳入协会认证与资料建档流程。" />
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {certificationFeatures.map(([title, text], index) => (
             <article className="rounded-[1.35rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
@@ -205,7 +205,7 @@ export default function Home() {
           ))}
         </div>
         <div className="mt-9 border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_14px_34px_rgba(176,138,69,0.07)]">
-          ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。
+          ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的参考信息。
         </div>
       </section>
 
@@ -225,8 +225,8 @@ export default function Home() {
       </section>
 
       <section className="mx-auto max-w-7xl px-5 py-18 sm:px-8 lg:py-28">
-        <PortalTitle eyebrow="Certification Flow" title="认证流程图" intro="道士资格认证采用资料提交、人工审核、必要时补充材料、审核决定、证书生成与官网核验的流程。" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        <PortalTitle eyebrow="Certification Flow" title="认证流程图" intro="道士资格认证采用在线了解、资料提交、初步审核、委员会审核、必要时补充资料或面谈、结果确认、证书生成与官网公开核验的流程。" />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {certificationFlow.map((title, index) => (
             <article className="relative rounded-[1.35rem] border border-[#e4ded0] bg-white/92 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
               <p className="text-xs tracking-[0.22em] text-gold">第 {index + 1} 步</p>
@@ -334,7 +334,7 @@ export default function Home() {
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:justify-end">
             <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/certification/taoist-priest">申请认证</Link>
-            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">查询证书</Link>
+            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">证书核验</Link>
             <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/contact">联系合作</Link>
           </div>
         </div>

@@ -94,7 +94,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
         <div className="mx-auto mt-10 grid max-w-2xl gap-5 text-left">
           <div className="rounded-xl border border-[#e4ded0] bg-white/72 p-5 text-sm leading-8 text-[#5f5b52]">
             <p>核验说明：本页面用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。证书状态以官网公开核验结果为准。</p>
-            <p className="mt-3">认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不等同于任何国家或地区政府机关颁发的法定职业资格、行政许可、宗教任命或执业许可。</p>
+            <p className="mt-3">认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不具备政府机关行政许可、职业准入或宗教职务任命效力。</p>
           </div>
         </div>
       </section>

@@ -9,7 +9,7 @@ const orbitNodes: Array<{
   { label: "协会展示", icon: "association", className: "left-3 top-[24%] sm:left-8" },
   { label: "道士认证", icon: "certification", className: "right-3 top-[24%] sm:right-8" },
   { label: "会员申请", icon: "membership", className: "left-5 bottom-[25%] sm:left-12" },
-  { label: "证书查询", icon: "query", className: "right-5 bottom-[25%] sm:right-12" },
+  { label: "证书核验", icon: "query", className: "right-5 bottom-[25%] sm:right-12" },
   { label: "联系合作", icon: "contact", className: "left-1/2 top-4 -translate-x-1/2" }
 ];
 

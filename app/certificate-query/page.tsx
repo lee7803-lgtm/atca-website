@@ -61,7 +61,7 @@ export default function CertificateQueryPage() {
           { label: "证书公开核验", href: "/certificate-query" },
           { label: "申请进度 / 申请结果查询", href: "/application/query" }
         ]}
-        eyebrow="Certificate Query"
+        eyebrow="Certificate Verification"
         backgroundImageSrc="/images/atca/certificate-verification.jpg"
         backgroundImagePosition="center 50%"
         imageSrc="/images/itca/05-service-verification.png"
@@ -79,7 +79,7 @@ export default function CertificateQueryPage() {
         <div className="grid gap-5 lg:grid-cols-[0.9fr_1.1fr]">
           <form className="rounded-2xl border border-[#d8d0bf] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <div className="mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
-              <p className="mb-3">请输入证书编号与持证人姓名，用于核验公开证书信息。查询结果不展示道装证件照、申请编号、联系方式、上传材料、审核反馈或后台审核备注。</p>
+              <p className="mb-3">请输入证书编号与持证人姓名，用于核验公开证书信息。核验结果不展示道装证件照、申请编号、联系方式、上传材料、审核反馈或后台审核备注。</p>
               <p>本页面不能查询申请进度，也不提供证书打印。申请人如需查询申请进度、申请结果或查看 / 打印证书，请前往申请进度 / 申请结果查询。</p>
               <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href="/application/query">
                 前往申请进度 / 申请结果查询
@@ -97,13 +97,13 @@ export default function CertificateQueryPage() {
             </div>
             {message ? <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]">{message}</div> : null}
             <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
-              {isQuerying ? "正在查询..." : "查询公开核验记录"}
+              {isQuerying ? "正在核验..." : "核验公开记录"}
             </button>
           </form>
 
           <div className="rounded-2xl border border-[#e4ded0] bg-[#f8f7f3] p-6 shadow-aureate sm:p-8">
             <IconBadge name="certificate" />
-            <h2 className="mt-4 font-serif text-2xl text-porcelain">查询结果</h2>
+            <h2 className="mt-4 font-serif text-2xl text-porcelain">核验结果</h2>
             {certificate ? (
               <div className="mt-6 grid gap-3">
                 <ResultRow label="证书编号" value={certificate.certificateNo} />
@@ -131,7 +131,7 @@ export default function CertificateQueryPage() {
 
       <Section title="核验说明" tone="soft">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          本页面仅展示证书公开核验信息，不展示道装证件照，不提供证书打印或下载。认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不等同于任何国家或地区政府机关颁发的法定职业资格、行政许可、宗教任命或执业许可。
+          本页面仅展示证书公开核验信息，不展示道装证件照，不提供证书打印或下载。认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不具备政府机关行政许可、职业准入或宗教职务任命效力。
         </div>
       </Section>
     </>

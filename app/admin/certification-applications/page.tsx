@@ -3,8 +3,9 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
+import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { checkCertificatesTableConfigured, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { checkCertificatesTableConfigured, findCertificateByApplicationId, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { CertificationApplicationAdminRecord, CertificationStatus } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
@@ -28,12 +29,33 @@ const statusOptions: Array<{ value: "" | CertificationStatus; label: string }> =
 
 const statusText = Object.fromEntries(statusOptions.filter((item) => item.value).map((item) => [item.value, item.label])) as Record<CertificationStatus, string>;
 
+type CertificationApplicationExportRecord = CertificationApplicationAdminRecord & {
+  certificateNoForExport: string;
+};
+
+const csvColumns = [
+  { key: "applicationNo", label: "申请编号", value: (item: CertificationApplicationExportRecord) => item.applicationNo },
+  { key: "applicantName", label: "申请人姓名", value: (item: CertificationApplicationExportRecord) => item.applicantName },
+  { key: "email", label: "邮箱", value: (item: CertificationApplicationExportRecord) => item.email },
+  { key: "phone", label: "手机号 / WhatsApp", value: (item: CertificationApplicationExportRecord) => item.phone },
+  { key: "certificationPath", label: "传承体系", value: (item: CertificationApplicationExportRecord) => item.certificationPath },
+  { key: "requestedLevel", label: "申报认证等级", value: (item: CertificationApplicationExportRecord) => item.requestedLevel },
+  { key: "approvedPath", label: "核定传承体系", value: (item: CertificationApplicationExportRecord) => item.approvedPath },
+  { key: "approvedLevel", label: "核定认证等级", value: (item: CertificationApplicationExportRecord) => item.approvedLevel },
+  { key: "status", label: "当前状态", value: (item: CertificationApplicationExportRecord) => statusText[item.status] || item.status },
+  { key: "certificateNo", label: "证书编号", value: (item: CertificationApplicationExportRecord) => item.certificateNoForExport },
+  { key: "deliveryStatus", label: "下发状态", value: (item: CertificationApplicationExportRecord) => item.deliveryStatus === "delivered" ? "已下发" : "未下发" },
+  { key: "createdAt", label: "提交时间", value: (item: CertificationApplicationExportRecord) => item.createdAt },
+  { key: "updatedAt", label: "更新时间", value: (item: CertificationApplicationExportRecord) => item.updatedAt }
+];
+
 export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: CertificationStatus; q?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
   const q = searchParams?.q?.trim() || undefined;
   let applications: CertificationApplicationAdminRecord[] = [];
+  let exportRows: CertificationApplicationExportRecord[] = [];
   let databaseMessage = "";
   let certificateDatabaseMessage = "";
 
@@ -54,6 +76,21 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
   if (!databaseMessage) {
     try {
       await checkCertificatesTableConfigured();
+      const certificateEntries = await Promise.all(
+        applications.map(async (item) => {
+          try {
+            const certificate = await findCertificateByApplicationId(item.id);
+            return [item.id, certificate?.certificateNo || ""] as const;
+          } catch {
+            return [item.id, ""] as const;
+          }
+        })
+      );
+      const certificateNoByApplicationId = new Map(certificateEntries);
+      exportRows = applications.map((item) => ({
+        ...item,
+        certificateNoForExport: certificateNoByApplicationId.get(item.id) || ""
+      }));
     } catch (error) {
       if (isSupabaseSchemaError(error)) {
         certificateDatabaseMessage = "证书记录服务尚未完成系统配置，生成证书功能可能受影响。";
@@ -63,6 +100,9 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         certificateDatabaseMessage = "证书数据表暂时无法读取，生成证书功能可能受影响。";
       }
     }
+  }
+  if (exportRows.length === 0) {
+    exportRows = applications.map((item) => ({ ...item, certificateNoForExport: "" }));
   }
 
   return (
@@ -76,6 +116,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
+          <AdminCsvExport columns={csvColumns} filename="itca-certification-applications.csv" rows={exportRows} />
           <AdminLogoutButton />
         </div>
       </div>

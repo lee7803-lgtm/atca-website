@@ -6,7 +6,7 @@ export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-warmGold/35 bg-inkBrown text-white">
       <CulturePattern variant="water" className="opacity-65" />
-      <div className="relative mx-auto grid max-w-7xl gap-x-8 gap-y-7 px-5 py-8 sm:px-8 sm:py-10 md:grid-cols-2 lg:grid-cols-[1.45fr_1fr_1fr_1fr] lg:py-11">
+      <div className="relative mx-auto grid max-w-7xl gap-x-8 gap-y-7 px-5 py-8 sm:px-8 sm:py-10 md:grid-cols-2 lg:grid-cols-[1.35fr_0.9fr_1.35fr_0.9fr] lg:py-11">
         <div className="md:col-span-2 lg:col-span-1">
           <div className="flex max-w-full flex-wrap items-center gap-x-4 gap-y-3 sm:flex-nowrap">
             <BrandMark size="sm" className="h-12 w-12" />
@@ -28,18 +28,18 @@ export function Footer() {
             <Link href="/association">关于协会</Link>
             <Link href="/certification">认证体系</Link>
             <Link href="/membership">会员申请</Link>
-            <Link href="/certificate-query">证书查询</Link>
+            <Link href="/certificate-query">证书核验</Link>
             <Link href="/contact">联系合作</Link>
           </div>
         </div>
         <div>
           <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">服务说明</p>
-          <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-1">
+          <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-2 lg:grid-cols-2">
             {["网站说明", "申请须知", "资料使用说明", "核验说明", "重要提示"].map((item) => (
               <span key={item}>{item}</span>
             ))}
           </div>
-          <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-white/70">
+          <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-white/70 sm:grid-cols-2 lg:grid-cols-2">
             <Link href="/certificate-query">证书核验入口</Link>
             <Link href="/application/query">申请进度查询</Link>
             <Link href="/membership">隐私政策与服务条款</Link>

@@ -162,7 +162,7 @@ const steps: Step[] = [
       {
         title: "声明承诺",
         fields: [
-          { id: "truthConfirm", label: "我确认所填写的申请资料真实、完整、合法。", kind: "checkbox", required: true },
+          { id: "truthConfirm", label: "我确认所提交的姓名、联系方式、身份资料、师承资料、证书材料及上传文件真实、完整、合法，且为本人或经合法授权提交。协会有权对申请资料进行人工核验；对于资料不完整、无法核验、疑似冒用、伪造、虚假陈述或恶意提交的申请，协会有权要求补充材料、暂停审核、驳回申请，或在证书生成后撤销相关记录。", kind: "checkbox", required: true },
           { id: "dataUseConfirm", label: "我同意 ITCA 将本人提交的资料用于认证申请审核、资料核对、证书记录建立及后续联系。", kind: "checkbox", required: true },
           { id: "reviewConfirm", label: "我理解申请提交后将进入人工审核，审核结果以 ITCA 审核记录为准。", kind: "checkbox", required: true },
           { id: "supplementConfirm", label: "我理解如资料不完整，ITCA 可要求补充材料；如资料不实，ITCA 可驳回申请或撤销相关记录。", kind: "checkbox", required: true },
@@ -247,10 +247,25 @@ const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 const applicationNotices = [
   ["申请须知", "本认证将根据申请人的传承体系、资质凭证、实践经历、推荐材料、伦理承诺及资料完整性进行综合审核。"],
   ["传承体系", "申请人可根据自身情况选择正一、全真或其他传承，并提交对应师承与资质说明。"],
-  ["认证等级", "申请人提交的是申报等级，最终认证等级以 ITCA / 国际道教与文化协会后台审核核定为准。"],
+  ["申报认证等级", "申报认证等级仅作为审核参考，最终核定等级将根据资料完整性、师承证明、资质凭证、实践经历、推荐材料及认证委员会审核意见确定。"],
   ["证书说明", "申请通过后，申请人可继续使用申请编号及联系方式查询申请结果，并查看证书生成和打印信息；申请编号不会因证书核发而失效。"],
-  ["照片用途", "原有“近期白底道装证件照”用于认证审核、证书生成及申请人证书查看与打印，公众证书公开核验页默认不展示该照片。"],
+  ["照片用途", "申请时上传的“近期白底道装证件照”将用于认证审核、证书生成及申请人证书查看与打印；公众证书公开核验页默认不展示该照片。"],
   ["重要提示", "附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。上传材料仅用于申请审核与认证建档。"]
+];
+
+const lineageMaterialGuides = [
+  {
+    title: "正一",
+    items: ["师门传承谱系证明", "传度、授箓、度牒、箓牒或相关职牒材料", "道场修行 / 职务证明", "身份证明、道装证件照、实践经历、推荐材料等"]
+  },
+  {
+    title: "全真",
+    items: ["师门传承谱系证明", "冠巾、传戒、戒牒、冠巾状牒等相关材料", "道场修行 / 职务证明", "身份证明、道装证件照、实践经历、推荐材料等"]
+  },
+  {
+    title: "其他传承",
+    items: ["传承来源说明", "师承证明", "推荐材料", "可核验的补充资料，由协会人工审核"]
+  }
 ];
 
 const materialChecklist = [
@@ -485,7 +500,8 @@ export default function TaoistPriestCertificationPage() {
         dataUseAccepted: values.dataUseConfirm === "true" ? "true" : "false",
         certificatePublicAccepted: values.certificatePublicConfirm === "true" ? "true" : "false",
         termsAccepted: values.termsPrivacyConfirm === "true" ? "true" : "false",
-        privacyAccepted: values.termsPrivacyConfirm === "true" ? "true" : "false"
+        privacyAccepted: values.termsPrivacyConfirm === "true" ? "true" : "false",
+        companyWebsite: String(new FormData(event.currentTarget).get("companyWebsite") || "")
       };
 
       Object.entries(fields).forEach(([key, value]) => formData.set(key, value || ""));
@@ -554,6 +570,16 @@ export default function TaoistPriestCertificationPage() {
         <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Material Guide</p>
           <h2 className="mt-3 font-serif text-2xl text-porcelain">材料清单说明</h2>
+          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+            {lineageMaterialGuides.map((guide) => (
+              <article className="rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-5" key={guide.title}>
+                <h3 className="text-base font-medium text-porcelain">{guide.title}</h3>
+                <ul className="mt-3 grid list-disc gap-2 pl-5 text-sm leading-7 text-[#5f5b52]">
+                  {guide.items.map((item) => <li key={item}>{item}</li>)}
+                </ul>
+              </article>
+            ))}
+          </div>
           <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {materialChecklist.map((item) => (
               <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-sm text-[#5f5b52]" key={item}>
@@ -572,6 +598,10 @@ export default function TaoistPriestCertificationPage() {
         <StepNav current={current} onSelect={setCurrent} steps={steps.map((item) => item.title)} />
 
         <form ref={stepTopRef} className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+          <label className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+            公司网站
+            <input name="companyWebsite" tabIndex={-1} autoComplete="off" />
+          </label>
           <div className="mb-7 flex items-start gap-4">
             <ApplicationIcon name={step.icon} />
             <div>
@@ -613,7 +643,8 @@ export default function TaoistPriestCertificationPage() {
               <div className="rounded-2xl border border-gold/35 bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
                 <h3 className="font-serif text-xl text-porcelain">认证说明与适用范围</h3>
                 <p className="mt-3">提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。</p>
-                <p className="mt-3">ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。</p>
+                <p className="mt-3">申报认证等级仅作为审核参考，最终核定等级将根据资料完整性、师承证明、资质凭证、实践经历、推荐材料及认证委员会审核意见确定。</p>
+                <p className="mt-3">本认证属于 ITCA / 国际道教与文化协会认证与备案体系内的资料审核、身份记录与证书核验服务，不具备政府机关行政许可、职业准入或宗教职务任命效力。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。</p>
               </div>
             </div>
           ) : null}

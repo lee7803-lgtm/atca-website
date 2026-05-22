@@ -299,7 +299,7 @@ function ApplicantCertificatePrint({ application }: { application: ApplicationQu
           <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-center">
             <p className="mb-3 text-xs tracking-[0.18em] text-[#8a6b3e]">道装证件照</p>
             {application.certificatePhotoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element -- Applicant-only signed URL preview returned after application/contact verification.
+              // eslint-disable-next-line @next/next/no-img-element -- Applicant-only photo preview returned after application/contact verification.
               <img alt="道装证件照" className="mx-auto max-h-56 rounded-lg border border-[#e4ded0] bg-white object-contain" src={application.certificatePhotoUrl} />
             ) : (
               <p className="grid min-h-40 place-items-center text-xs leading-6 text-[#8a6b3e]">
@@ -324,7 +324,7 @@ function ApplicantCertificatePrint({ application }: { application: ApplicationQu
         </div>
         <div className="mt-6 rounded-xl border border-dashed border-[#b08a45] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
           <p className="break-all">证书公开核验入口：{verificationUrl}</p>
-          <p className="mt-2">认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不等同于任何国家或地区政府机关颁发的法定职业资格、行政许可、宗教任命或执业许可。</p>
+          <p className="mt-2">认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不具备政府机关行政许可、职业准入或宗教职务任命效力。</p>
         </div>
       </div>
     </section>

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateCertificationApplicationNo } from "@/lib/application-number";
-import { defaultMaterialReview, insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
+import { defaultMaterialReview, findOpenCertificationApplicationByContact, insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
 import type { CertificationApplicationPayload, CertificationApplicationRecord, CertificationSubmitResponse, CertificationAttachment, CertificationLevel, CertificationPath } from "@/types/certification";
 
 const validCertificationTypes = ["taoist_priest"];
@@ -124,6 +124,8 @@ function validatePayload(payload: unknown) {
     certificatePhotoPath: ""
   };
 
+  const honeypot = asString(payload.companyWebsite) || asString(payload.websiteUrl);
+  if (honeypot) fieldErrors.request = "认证申请资料未通过基础校验，请稍后重试。";
   if (!validCertificationTypes.includes(values.certificationType)) fieldErrors.certificationType = "请选择申请认证类型。";
   if (values.certificationPath && !validCertificationPaths.includes(values.certificationPath)) fieldErrors.certificationPath = "请选择有效的传承体系。";
   if (values.requestedLevel && !validCertificationLevels.includes(values.requestedLevel)) fieldErrors.requestedLevel = "请选择有效的申报认证等级。";
@@ -174,6 +176,18 @@ export async function POST(request: Request) {
   }
 
   try {
+    const existingOpenApplication = await findOpenCertificationApplicationByContact({
+      email: values.email,
+      phone: values.phone
+    });
+    if (existingOpenApplication) {
+      const response: CertificationSubmitResponse = {
+        success: false,
+        message: "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。"
+      };
+      return NextResponse.json(response, { status: 409 });
+    }
+
     const now = new Date().toISOString();
     const applicationNo = generateCertificationApplicationNo();
     const existingCertificates: CertificationAttachment[] = [];

@@ -623,6 +623,32 @@ export async function findApplicationsByIdentity(filters: {
   return rows.map(toApplicationQueryResult);
 }
 
+export async function findOpenApplicationByContact(filters: { applicationType: ApplicationType; email: string; phone: string }) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_type: `eq.${filters.applicationType}`,
+    status: "in.(submitted,pending_review,need_more_info,approved)",
+    or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
+    select: "application_no,application_type,name,status,admin_note,created_at,updated_at",
+    order: "created_at.desc",
+    limit: "1"
+  });
+
+  const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as Array<Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at">>;
+  const row = rows[0];
+
+  return row ? toApplicationQueryResult(row) : null;
+}
+
 export async function findCertificationByNoAndContact(applicationNo: string, contact: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
@@ -681,6 +707,31 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
   }
 
   return results;
+}
+
+export async function findOpenCertificationApplicationByContact(filters: { email: string; phone: string }) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    status: "in.(submitted,under_review,need_more_info,approved,certificate_issued,cert_issued)",
+    or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,created_at,updated_at",
+    order: "created_at.desc",
+    limit: "1"
+  });
+
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "certificate_photo_path" | "supporting_documents" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
+  const row = rows[0];
+
+  return row ? toCertificationQueryResult(row) : null;
 }
 
 export async function listApplications(filters: { applicationType?: ApplicationType; status?: ApplicationStatus } = {}) {

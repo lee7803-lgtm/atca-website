@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateApplicationNo } from "@/lib/application-number";
-import { insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { findOpenApplicationByContact, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
 const validApplicationTypes: ApplicationType[] = ["personal_member", "organization_member"];
@@ -34,6 +34,7 @@ function validatePayload(payload: unknown) {
   }
 
   const applicationType = asString(payload.applicationType) as ApplicationType;
+  const honeypot = asString(payload.companyWebsite) || asString(payload.websiteUrl);
   const values: ApplicationSubmitPayload = {
     applicationType,
     name: asString(payload.name),
@@ -50,6 +51,7 @@ function validatePayload(payload: unknown) {
     privacyAccepted: payload.privacyAccepted === true
   };
 
+  if (honeypot) fieldErrors.request = "申请资料未通过基础校验，请稍后重试。";
   if (!validApplicationTypes.includes(values.applicationType)) fieldErrors.applicationType = "申请类型不正确。";
   if (!values.name) fieldErrors.name = values.applicationType === "organization_member" ? "请填写机构名称。" : "请填写姓名。";
   if (values.name && !isValidLength(values.name, 2, 80)) fieldErrors.name = values.applicationType === "organization_member" ? "机构名称长度需为 2–80 个字符。" : "姓名长度需为 2–50 个字符。";
@@ -113,6 +115,19 @@ export async function POST(request: Request) {
   }
 
   try {
+    const existingOpenApplication = await findOpenApplicationByContact({
+      applicationType: values.applicationType,
+      email: values.email,
+      phone: values.phone
+    });
+    if (existingOpenApplication) {
+      const response: ApplicationSubmitResponse = {
+        success: false,
+        message: "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。"
+      };
+      return NextResponse.json(response, { status: 409 });
+    }
+
     const now = new Date().toISOString();
     const applicationNo = generateApplicationNo(values.applicationType);
     const application: ApplicationRecord = {

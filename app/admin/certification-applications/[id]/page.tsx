@@ -9,8 +9,6 @@ import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId,
 import {
   certificationLevelLabels,
   certificationPathLabels,
-  materialReviewItemLabels,
-  materialReviewStatusLabels,
   type CertificateQueryResult,
   type CertificationApplicationAdminRecord,
   type CertificationAttachment,
@@ -138,8 +136,8 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         </div>
       </section>
 
-      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(0,1.12fr)_minmax(380px,0.88fr)] lg:items-start">
-        <div className="grid gap-6">
+      <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(380px,0.92fr)_minmax(0,1.08fr)] lg:items-start">
+        <div className="grid gap-6 lg:order-2">
           <DetailSection title="基本身份资料">
             <DetailItem label="申请人中文姓名" value={application.applicantName} />
             <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
@@ -208,35 +206,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           {certificateMessage ? <div className="mt-6 border-l-4 border-[#8a6b3e] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">{certificateMessage}</div> : null}
         </div>
 
-        <div className="grid gap-6">
-          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
-            <h2 className="mt-3 font-serif text-3xl text-porcelain">审核资料</h2>
-            <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-              <h3 className="font-medium text-porcelain">道装证件照</h3>
-              {certificatePhoto?.signedUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
-                <img alt="道装证件照" className="mt-4 max-h-72 rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
-              ) : (
-                <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
-              )}
-            </div>
-            <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-              <h3 className="font-medium text-porcelain">材料审核清单</h3>
-              <div className="mt-4 grid gap-3 sm:grid-cols-2">
-                {Object.entries(materialReviewItemLabels).map(([key, label]) => (
-                  <div className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3" key={key}>
-                    <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
-                    <p className="mt-2 text-sm text-porcelain">{materialReviewStatusLabels[application.materialReview[key as keyof typeof application.materialReview]]}</p>
-                  </div>
-                ))}
-              </div>
-            </div>
-            <div className="mt-6 grid gap-6">
-              <AttachmentGroup attachments={existingCertificates} title="资质说明 / 既有证书" />
-              <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
-            </div>
-          </section>
+        <div className="grid gap-6 lg:order-1">
           <CertificationReviewForm
             applicantName={application.applicantName}
             applicationId={application.id}
@@ -253,6 +223,23 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             initialReviewNote={application.reviewNote}
             initialStatus={application.status}
           />
+          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
+            <h2 className="mt-3 font-serif text-3xl text-porcelain">上传材料</h2>
+            <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+              <h3 className="font-medium text-porcelain">道装证件照</h3>
+              {certificatePhoto?.signedUrl ? (
+                // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
+                <img alt="道装证件照" className="mt-4 max-h-72 rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
+              ) : (
+                <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
+              )}
+            </div>
+            <div className="mt-6 grid gap-6">
+              <AttachmentGroup attachments={existingCertificates} title="资质说明 / 既有证书" />
+              <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
+            </div>
+          </section>
         </div>
       </div>
     </section>
@@ -334,7 +321,7 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
         <img alt={attachment.originalName} className="mt-3 max-h-48 rounded-lg border border-[#e4ded0] object-contain" src={attachment.signedUrl} />
       ) : null}
       {!attachment.storagePath ? (
-        <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">此附件仅记录了文件名，未保存上传文件，无法预览。</p>
+        <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">此附件仅记录文件名，附件文件暂不可显示，请联系协会秘书处核验。</p>
       ) : !attachment.signedUrl ? (
         <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">附件文件暂不可显示，请联系协会秘书处核验。</p>
       ) : null}

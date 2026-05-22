@@ -3,9 +3,10 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
+import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { listApplications } from "@/lib/supabase/server";
-import type { ApplicationStatus, ApplicationType } from "@/types/application";
+import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -42,6 +43,17 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
+const csvColumns = [
+  { key: "applicationNo", label: "申请编号", value: (item: ApplicationAdminRecord) => item.applicationNo },
+  { key: "applicationType", label: "申请类型", value: (item: ApplicationAdminRecord) => typeText[item.applicationType] },
+  { key: "name", label: "姓名 / 机构名称", value: (item: ApplicationAdminRecord) => item.name },
+  { key: "email", label: "邮箱", value: (item: ApplicationAdminRecord) => item.email },
+  { key: "phone", label: "手机号 / WhatsApp", value: (item: ApplicationAdminRecord) => item.phone },
+  { key: "status", label: "当前状态", value: (item: ApplicationAdminRecord) => statusText[item.status] },
+  { key: "createdAt", label: "提交时间", value: (item: ApplicationAdminRecord) => item.createdAt },
+  { key: "updatedAt", label: "更新时间", value: (item: ApplicationAdminRecord) => item.updatedAt }
+];
+
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
@@ -64,6 +76,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">
             返回前台首页
           </Link>
+          <AdminCsvExport columns={csvColumns} filename="itca-member-applications.csv" rows={applications} />
           <AdminLogoutButton />
         </div>
       </div>

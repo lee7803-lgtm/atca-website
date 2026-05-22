@@ -157,8 +157,9 @@ a {
   padding: 0.5rem 1rem;
   color: #e4cf97;
   font-size: 0.75rem;
+  font-weight: 500;
   letter-spacing: 0.26em;
-  line-height: 1.45;
+  line-height: 1.25rem;
   overflow-wrap: anywhere;
   text-transform: uppercase;
 }

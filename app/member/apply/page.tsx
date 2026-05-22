@@ -44,6 +44,7 @@ const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
 const memberNotices = [
   ["会员申请说明", "个人会员申请用于提交基础资料、联系方式、学习经历与参与意向，服务协会会员审核、建档与后续联系。"],
+  ["真实性与责任说明", "申请人须确认所提交的姓名、联系方式、身份资料及相关说明真实、完整、合法，且为本人或经合法授权提交。协会有权对申请资料进行人工核验；对于资料不完整、无法核验、疑似冒用、伪造、虚假陈述或恶意提交的申请，协会有权要求补充材料、暂停审核、驳回申请，或在建档后撤销相关记录。"],
   ["会员类型说明", "当前开放个人会员申请。后续会员服务安排以官网说明或协会秘书处通知为准。"],
   ["资料用途说明", "所提交资料用于会员申请审核、资料建档、活动联系、服务沟通及必要的申请记录留存。"],
   ["审核与联系说明", "申请提交后将进入人工审核与联系流程，如需补充资料，协会可通过申请人登记联系方式沟通。"],
@@ -97,6 +98,8 @@ export default function MemberApplyPage() {
 
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
+    const submittedFormData = new FormData(event.currentTarget);
+    const companyWebsite = String(submittedFormData.get("companyWebsite") || "");
 
     if (isSubmitting) return;
 
@@ -125,7 +128,8 @@ export default function MemberApplyPage() {
           receiveNotice: values.notice,
           truthConfirmed: values.truthConfirmed,
           termsAccepted: values.termsAccepted,
-          privacyAccepted: values.privacyAccepted
+          privacyAccepted: values.privacyAccepted,
+          companyWebsite
         })
       });
       const result = (await response.json()) as ApplicationSubmitResponse;
@@ -183,6 +187,10 @@ export default function MemberApplyPage() {
           </aside>
 
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+            <label className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
+              公司网站
+              <input name="companyWebsite" tabIndex={-1} autoComplete="off" />
+            </label>
             <div className="mb-7">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Form</p>
               <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">个人会员资料</h2>
@@ -218,7 +226,7 @@ export default function MemberApplyPage() {
                 <input className="mt-1 h-4 w-4 accent-[#7F1D1D]" checked={values.notice} type="checkbox" onChange={(event) => updateValue("notice", event.target.checked)} />
                 <span>愿意接收协会通知、活动联络及申请审核相关消息</span>
               </label>
-              <ConfirmCheckbox checked={values.truthConfirmed} error={fieldErrors.truthConfirmed} label="我确认所填写的申请资料真实、完整、合法。" onChange={(checked) => updateValue("truthConfirmed", checked)} />
+              <ConfirmCheckbox checked={values.truthConfirmed} error={fieldErrors.truthConfirmed} label="我确认所提交的姓名、联系方式、身份资料及相关说明真实、完整、合法，且为本人或经合法授权提交；我理解协会可人工核验资料，并可对资料不完整、无法核验、疑似冒用、伪造、虚假陈述或恶意提交的申请要求补充材料、暂停审核、驳回申请，或在建档后撤销相关记录。" onChange={(checked) => updateValue("truthConfirmed", checked)} />
               <ConfirmCheckbox checked={values.termsAccepted} error={fieldErrors.termsAccepted} label="我已阅读并同意《服务条款》。" onChange={(checked) => updateValue("termsAccepted", checked)} />
               <ConfirmCheckbox checked={values.privacyAccepted} error={fieldErrors.privacyAccepted} label="我已阅读并同意《隐私政策》及资料使用说明。" onChange={(checked) => updateValue("privacyAccepted", checked)} />
             </div>

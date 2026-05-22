@@ -9,7 +9,7 @@ const navItems = [
   { href: "/association", label: "关于协会" },
   { href: "/certification", label: "认证体系" },
   { href: "/membership", label: "会员申请" },
-  { href: "/certificate-query", label: "证书查询" },
+  { href: "/certificate-query", label: "证书核验" },
   { href: "/contact", label: "联系合作" }
 ];
 

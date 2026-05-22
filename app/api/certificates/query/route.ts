@@ -23,21 +23,21 @@ export async function GET(request: Request) {
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      const response: CertificateQueryResponse = { success: false, message: "证书查询服务尚未完成系统配置，请联系协会秘书处核验。" };
+      const response: CertificateQueryResponse = { success: false, message: "证书核验服务尚未完成系统配置，请联系协会秘书处核验。" };
       return NextResponse.json(response, { status: 500 });
     }
 
     if (isSupabaseSchemaError(error)) {
-      const response: CertificateQueryResponse = { success: false, message: "证书查询服务尚未完成系统配置，请联系协会秘书处核验。" };
+      const response: CertificateQueryResponse = { success: false, message: "证书核验服务尚未完成系统配置，请联系协会秘书处核验。" };
       return NextResponse.json(response, { status: 500 });
     }
 
     if (error instanceof SupabaseRequestError) {
-      const response: CertificateQueryResponse = { success: false, message: "证书查询服务暂时无法访问数据库，请稍后重试。" };
+      const response: CertificateQueryResponse = { success: false, message: "证书核验服务暂时无法访问数据库，请稍后重试。" };
       return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });
     }
 
-    const response: CertificateQueryResponse = { success: false, message: "证书查询服务暂时不可用，请稍后重试。" };
+    const response: CertificateQueryResponse = { success: false, message: "证书核验服务暂时不可用，请稍后重试。" };
     return NextResponse.json(response, { status: 500 });
   }
 }
