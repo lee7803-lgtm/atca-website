@@ -32,6 +32,30 @@ const overview: Array<{ title: string; text: string; icon: IconBadgeName }> = [
   { title: "审核方式", text: "申请提交后进入人工审核，ITCA 可根据资料完整性和核验需要要求补充材料。", icon: "association" }
 ];
 
+const roleEntrances: Array<{ title: string; text: string; href: string; action: string; icon: IconBadgeName }> = [
+  {
+    title: "认证申请",
+    text: "用于申请人提交道士资格认证申请，填写认证路径、申报等级、身份资料、师承传承、资质凭证、实践经历与声明承诺。",
+    href: "/certification/taoist-priest",
+    action: "进入认证申请",
+    icon: "certification"
+  },
+  {
+    title: "申请进度 / 申请结果查询",
+    text: "用于申请人本人使用申请编号和预留邮箱或手机号查询申请状态、审核反馈、证书生成情况，以及证书查看与打印入口。申请编号在证书核发后仍可继续使用。",
+    href: "/application/query",
+    action: "查询申请结果",
+    icon: "query"
+  },
+  {
+    title: "证书公开核验",
+    text: "用于公众、合作方及第三方机构使用证书编号和持证人姓名核验证书公开信息。该入口不查询申请进度，不提供证书打印。",
+    href: "/certificate-query",
+    action: "公开核验证书",
+    icon: "certificate"
+  }
+];
+
 const futureDirections = ["个人认证", "传承认证", "专业能力认证", "机构认证"];
 
 function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
@@ -67,12 +91,12 @@ export default function CertificationPage() {
       <PageHero
         actions={[
           { label: "道士资格认证", href: "/certification/taoist-priest" },
-          { label: "证书查询", href: "/certificate-query" }
+          { label: "证书公开核验", href: "/certificate-query" }
         ]}
         eyebrow="Certification"
         title="认证体系"
         subtitle="Certification System"
-        intro="ITCA 认证体系用于发布认证范围、申请流程、资料核验与证书查询说明，服务道士资格认证申请、记录建档与官网核验。"
+        intro="ITCA 认证体系用于发布认证范围、申请流程、资料核验与证书公开核验说明，服务道士资格认证申请、记录建档与官网核验。"
         imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
         visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
@@ -87,6 +111,22 @@ export default function CertificationPage() {
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {overview.map((item, index) => (
             <InfoCard icon={<CertificationIcon name={item.icon} />} index={`0${index + 1}`} key={item.title} text={item.text} title={item.title} />
+          ))}
+        </div>
+      </CertificationSection>
+
+      <CertificationSection eyebrow="Entrances" title="三类入口说明" intro="认证申请、申请进度 / 申请结果查询、证书公开核验分别服务不同角色和用途，申请人请保存申请编号，公众核验请使用证书编号。">
+        <div className="grid gap-5 lg:grid-cols-3">
+          {roleEntrances.map((item, index) => (
+            <article className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={item.title}>
+              <CertificationIcon name={item.icon} />
+              <p className="mt-4 text-xs tracking-[0.22em] text-gold">入口 {index + 1}</p>
+              <h3 className="mt-3 text-lg font-medium text-porcelain">{item.title}</h3>
+              <p className="mt-3 text-sm leading-8 text-[#5f5b52]">{item.text}</p>
+              <Link className="mt-5 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={item.href}>
+                {item.action}
+              </Link>
+            </article>
           ))}
         </div>
       </CertificationSection>
@@ -126,11 +166,11 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Verification" title="证书核验方式" tone="soft" compact>
+      <CertificationSection eyebrow="Verification" title="证书公开核验方式" tone="soft" compact>
         <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
-          <InfoCard icon={<CertificationIcon name="query" />} title="官网核验" text="证书生成后，可通过证书编号与持证人姓名在官网核验证书公开信息。查询结果仅展示公开核验所需字段。" />
+          <InfoCard icon={<CertificationIcon name="query" />} title="官网公开核验" text="证书生成后，公众、合作方及第三方机构可通过证书编号与持证人姓名核验证书公开信息。查询结果仅展示公开核验所需字段。" />
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
-            证书状态以 ITCA 官网核验结果为准。如查询不到记录，请确认输入信息是否与证书登记信息一致，或联系协会秘书处协助核对。
+            核验说明：证书公开核验不能查询申请进度，也不展示申请人的联系方式、上传材料、审核意见或二寸道装照。申请人如需查看申请结果或证书打印信息，请前往申请进度 / 申请结果查询。
           </div>
         </div>
       </CertificationSection>
@@ -157,7 +197,7 @@ export default function CertificationPage() {
             查看道士资格认证详情
           </Link>
           <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/certificate-query">
-            证书查询
+            证书公开核验
           </Link>
         </div>
       </CertificationSection>

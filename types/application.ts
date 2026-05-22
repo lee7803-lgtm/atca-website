@@ -1,3 +1,5 @@
+import type { CertificationPath } from "./certification";
+
 export type ApplicationType = "personal_member" | "organization_member";
 
 export type ApplicationStatus = "submitted" | "pending_review" | "need_more_info" | "approved" | "rejected" | "archived";
@@ -74,6 +76,18 @@ export type ApplicationQueryResult = {
   adminNote: string;
   certificateNo?: string;
   certificateDetailUrl?: string;
+  certificateStatus?: "pending" | "valid" | "revoked" | "expired";
+  certificateHolderName?: string;
+  certificateTaoistName?: string;
+  certificationPath?: CertificationPath | "";
+  certificationLevel?: string;
+  certificateLineageOrTemple?: string;
+  certificateIssuer?: string;
+  certificateIssuedDate?: string;
+  certificateValidFrom?: string;
+  certificateValidUntil?: string;
+  certificatePhotoUrl?: string;
+  certificatePhotoRecorded?: boolean;
   deliveryStatus?: "not_delivered" | "delivered";
   deliveredAt?: string | null;
   createdAt: string;

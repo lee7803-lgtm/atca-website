@@ -1,4 +1,5 @@
 import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType } from "@/types/application";
+import { certificationLevelLabels } from "@/types/certification";
 import type {
   CertificateQueryResult,
   CertificateRecord,
@@ -128,6 +129,11 @@ const materialReviewKeys: Array<keyof MaterialReview> = [
 
 const materialReviewStatuses: MaterialReviewStatus[] = ["pending", "passed", "need_more_info", "questionable", "not_applicable"];
 
+function formatCertificationLevel(value: string | null, fallback: string) {
+  if (value && value in certificationLevelLabels) return certificationLevelLabels[value as CertificationLevel];
+  return value || fallback;
+}
+
 export const defaultMaterialReview: MaterialReview = {
   identity: "pending",
   lineage: "pending",
@@ -249,7 +255,7 @@ function toApplicationQueryResult(row: Pick<SupabaseApplicationRow, "application
 
 function toCertificationQueryResult(
   row: Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">,
-  certificateNo?: string
+  certificate?: Partial<ApplicationQueryResult> & { certificateNo?: string }
 ): ApplicationQueryResult {
   return {
     applicationNo: row.application_no,
@@ -257,8 +263,20 @@ function toCertificationQueryResult(
     name: row.applicant_name,
     status: row.status as ApplicationQueryResult["status"],
     adminNote: row.applicant_feedback ?? row.review_note ?? "",
-    certificateNo,
-    certificateDetailUrl: certificateNo ? `/certificates/${encodeURIComponent(certificateNo)}` : undefined,
+    certificateNo: certificate?.certificateNo,
+    certificateDetailUrl: certificate?.certificateNo ? `/certificates/${encodeURIComponent(certificate.certificateNo)}` : undefined,
+    certificateStatus: certificate?.certificateStatus,
+    certificateHolderName: certificate?.certificateHolderName,
+    certificateTaoistName: certificate?.certificateTaoistName,
+    certificationPath: certificate?.certificationPath,
+    certificationLevel: certificate?.certificationLevel,
+    certificateLineageOrTemple: certificate?.certificateLineageOrTemple,
+    certificateIssuer: certificate?.certificateIssuer,
+    certificateIssuedDate: certificate?.certificateIssuedDate,
+    certificateValidFrom: certificate?.certificateValidFrom,
+    certificateValidUntil: certificate?.certificateValidUntil,
+    certificatePhotoUrl: certificate?.certificatePhotoUrl,
+    certificatePhotoRecorded: certificate?.certificatePhotoRecorded,
     deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
     deliveredAt: row.delivered_at,
     createdAt: row.created_at,
@@ -471,14 +489,40 @@ function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQuery
     holderName: row.holder_name,
     certificationType: row.taoist_rank || "道士资格认证",
     certificationPath: (row.certification_path || "") as CertificationPath | "",
-    certificationLevel: row.certification_level || row.taoist_rank || "道士资格认证",
-    issuer: "International Taoisme And Cultural Association",
+    certificationLevel: formatCertificationLevel(row.certification_level, row.taoist_rank || "道士资格认证"),
+    issuer: "ITCA / 国际道教与文化协会",
     issuedDate: row.issued_date,
     validFrom: row.valid_from,
     validUntil: row.valid_until,
     status: row.status as CertificateQueryResult["status"],
     detailUrl: `/certificates/${encodeURIComponent(row.certificate_no)}`
   };
+}
+
+async function toApplicantCertificateFields(row: SupabaseCertificateRow) {
+  let certificatePhotoUrl = "";
+  if (row.certificate_photo_path) {
+    try {
+      certificatePhotoUrl = await createCertificationAttachmentSignedUrl(row.certificate_photo_path, 3600);
+    } catch {
+      certificatePhotoUrl = "";
+    }
+  }
+
+  return {
+    certificateStatus: row.status as ApplicationQueryResult["certificateStatus"],
+    certificateHolderName: row.holder_name,
+    certificateTaoistName: row.taoist_name ?? "",
+    certificationPath: (row.certification_path || "") as ApplicationQueryResult["certificationPath"],
+    certificationLevel: formatCertificationLevel(row.certification_level, row.taoist_rank || "道士资格认证"),
+    certificateLineageOrTemple: row.lineage_or_temple || row.sect || "",
+    certificateIssuer: "ITCA / 国际道教与文化协会",
+    certificateIssuedDate: row.issued_date,
+    certificateValidFrom: row.valid_from,
+    certificateValidUntil: row.valid_until,
+    certificatePhotoUrl,
+    certificatePhotoRecorded: Boolean(row.certificate_photo_path)
+  } satisfies Partial<ApplicationQueryResult>;
 }
 
 async function readSupabaseError(response: Response) {
@@ -579,9 +623,9 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
 
   const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
   const row = rows[0];
-  const certificate = row ? await findCertificateByApplicationIdSafe(row.id) : null;
+  const certificate = row ? await findApplicantCertificateByApplicationIdSafe(row.id) : null;
 
-  return row ? toCertificationQueryResult(row, certificate?.certificateNo) : null;
+  return row ? toCertificationQueryResult(row, certificate || undefined) : null;
 }
 
 export async function findCertificationsByIdentity(filters: { applicantName: string; taoistName: string; contact: string }) {
@@ -607,8 +651,8 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
 
   const results: ApplicationQueryResult[] = [];
   for (const row of rows) {
-    const certificate = await findCertificateByApplicationIdSafe(row.id);
-    results.push(toCertificationQueryResult(row, certificate?.certificateNo));
+    const certificate = await findApplicantCertificateByApplicationIdSafe(row.id);
+    results.push(toCertificationQueryResult(row, certificate || undefined));
   }
 
   return results;
@@ -850,6 +894,34 @@ export async function findCertificateByApplicationId(applicationId: string) {
   return row ? toCertificateQueryResult(row) : null;
 }
 
+async function findApplicantCertificateByApplicationId(applicationId: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_id: `eq.${applicationId}`,
+    select: "*",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const row = rows[0];
+
+  return row
+    ? {
+        certificateNo: row.certificate_no,
+        ...(await toApplicantCertificateFields(row))
+      }
+    : null;
+}
+
 export async function findPublicCertificateByNo(certificateNo: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
@@ -877,6 +949,15 @@ export async function findPublicCertificateByNo(certificateNo: string) {
 async function findCertificateByApplicationIdSafe(applicationId: string) {
   try {
     return await findCertificateByApplicationId(applicationId);
+  } catch (error) {
+    if (isSupabaseSchemaError(error)) return null;
+    throw error;
+  }
+}
+
+async function findApplicantCertificateByApplicationIdSafe(applicationId: string) {
+  try {
+    return await findApplicantCertificateByApplicationId(applicationId);
   } catch (error) {
     if (isSupabaseSchemaError(error)) return null;
     throw error;

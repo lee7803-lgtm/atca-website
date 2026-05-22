@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import { FormEvent, Suspense, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { maskApplicationNo, maskName } from "@/lib/masking";
+import { certificationPathLabels } from "@/types/certification";
 import type { ApplicationQueryResponse, ApplicationQueryResult } from "@/types/application";
 
 const statusText: Record<string, string> = {
@@ -23,6 +24,13 @@ const statusText: Record<string, string> = {
 const deliveryStatusText: Record<string, string> = {
   not_delivered: "待下发",
   delivered: "已下发"
+};
+
+const certificateStatusText: Record<string, string> = {
+  pending: "待确认",
+  valid: "有效",
+  revoked: "已撤销",
+  expired: "已过期"
 };
 
 const typeText: Record<string, string> = {
@@ -83,19 +91,19 @@ function ApplicationQueryContent() {
       <PageHero
         actions={[
           { label: "申请进度查询", href: "/application/query" },
-          { label: "公众证书查询", href: "/certificate-query" }
+          { label: "证书公开核验", href: "/certificate-query" }
         ]}
         eyebrow="Application Query"
-        title="申请进度查询"
-        subtitle="Application Status Query"
-        intro="申请进度查询用于申请人查看本人申请的资料受理、审核状态、反馈说明与后续办理结果。"
+        title="申请进度 / 申请结果查询"
+        subtitle="Application Status And Result Query"
+        intro="本页面供申请人本人查询认证申请进度、审核反馈、证书生成情况、证书查看与打印入口。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
         visualDescription="查询结果仅脱敏显示申请状态和必要备注，不公开完整申请资料。"
         visualEyebrow="Query"
         visualMark="Status"
         visualSeal="查询"
-        visualTitle="申请进度查询"
+        visualTitle="申请结果查询"
       />
 
       <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
@@ -103,10 +111,10 @@ function ApplicationQueryContent() {
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询申请记录</h2>
-            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度、审核反馈、证书生成状态与下发状态。证书生成后，申请编号仍可继续查询。</p>
+            <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度、申请结果、审核反馈、证书生成状态与证书查看 / 打印信息。</p>
 
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              申请进度查询仅面向申请人本人。请使用“申请编号 + 邮箱”或“申请编号 + 手机号 / WhatsApp”查询；公众证书核验请使用证书查询页。
+              申请编号在证书核发后不失效，仍可用于申请人本人查询申请结果和证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名。
             </div>
 
             <div className="mt-7 grid gap-5">
@@ -122,10 +130,10 @@ function ApplicationQueryContent() {
 
             {errorMessage ? <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">{errorMessage}</div> : null}
             <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
-              {isQuerying ? "正在查询..." : "查询申请进度"}
+              {isQuerying ? "正在查询..." : "查询申请进度 / 结果"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果用于申请人查看本人申请进度，会脱敏显示，不展示完整个人资料、邮箱、手机号码或上传材料。
+              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果仅用于申请人本人查看，不展示后台内部备注、后台操作记录或其他申请人的资料。
             </div>
           </form>
 
@@ -165,11 +173,12 @@ function ApplicationQueryContent() {
                     <p className="mt-2 break-all text-sm leading-7 text-porcelain">{selectedApplication.certificateNo}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
                       <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href={selectedApplication.certificateDetailUrl || `/certificates/${encodeURIComponent(selectedApplication.certificateNo)}`}>
-                        查看证书核验详情
+                        查看证书公开核验
                       </a>
                     </div>
                   </div>
                 ) : null}
+                {selectedApplication.certificateNo ? <ApplicantCertificatePrint application={selectedApplication} /> : null}
               </div>
             ) : (
               <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
@@ -192,8 +201,8 @@ function ApplicationQueryContent() {
           </div>
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Notice</p>
-            <h2 className="mt-3 font-serif text-2xl text-porcelain">认证说明与适用范围</h2>
-            <p className="mt-5">ITCA 道士资格认证属于协会认证申请服务，用于资料审核、记录建档、证书核验及文化交流场景中的身份信息展示。</p>
+            <h2 className="mt-3 font-serif text-2xl text-porcelain">证书说明</h2>
+            <p className="mt-5">申请人可通过本页查看申请状态、申请结果和证书生成情况。证书编号用于公众公开核验；申请编号用于申请人本人查询。</p>
           </div>
         </section>
       </main>
@@ -202,17 +211,17 @@ function ApplicationQueryContent() {
 }
 
 function nextStepText(status: string) {
-  if (status === "submitted") return "您的申请已提交，请等待工作人员审核。";
-  if (status === "pending_review") return "您的申请已进入待审核队列，请等待工作人员处理。";
-  if (status === "under_review") return "您的申请正在审核中，请耐心等待。";
-  if (status === "need_more_info") return "您的申请需要补充材料，请根据反馈内容准备资料，并联系 ITCA 工作人员。";
-  if (status === "approved") return "您的申请已审核通过，后续将生成证书记录。";
-  if (status === "certificate_issued" || status === "cert_issued") return "您的证书已生成，可查看证书核验详情或等待工作人员下发。";
-  if (status === "delivered") return "您的证书已标记为下发，如未收到请联系 ITCA 工作人员。";
+  if (status === "submitted") return "申请已提交，请等待秘书处审核。";
+  if (status === "pending_review") return "您的申请已进入待审核队列，请等待秘书处处理。";
+  if (status === "under_review") return "申请正在审核中，请等待秘书处审核。";
+  if (status === "need_more_info") return "请根据反馈内容准备补充材料，并联系协会秘书处处理。本阶段不提供在线补充材料上传。";
+  if (status === "approved") return "申请已通过，等待生成证书或完成发证流程。";
+  if (status === "certificate_issued" || status === "cert_issued") return "证书已生成，可查看证书编号、证书状态、证书查看与打印区和公开核验入口。";
+  if (status === "delivered") return "证书已下发，仍可查看证书信息和公开核验入口。";
   if (status === "rejected") return "您的申请未通过审核，请查看反馈说明。";
-  if (status === "archived") return "该申请已归档，如需查询请联系 ITCA 工作人员。";
-  if (status === "revoked") return "该记录已撤销，如需核对请联系 ITCA 工作人员。";
-  return "请等待工作人员审核；如联系方式变更，请主动联系更新。";
+  if (status === "archived") return "申请已归档，如需进一步核验请联系协会秘书处。";
+  if (status === "revoked") return "该记录已撤销，如需核对请联系协会秘书处。";
+  return "请等待秘书处审核；如联系方式变更，请主动联系更新。";
 }
 
 function currentStatusText(application: ApplicationQueryResult) {
@@ -228,14 +237,110 @@ function formatDateTime(value: string) {
   return date.toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
+function formatDate(value?: string) {
+  if (!value) return "未记录";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function printCertificateArea() {
+  const element = document.getElementById("applicant-certificate-print");
+  if (!element) return;
+  const printWindow = window.open("", "_blank", "width=920,height=1100");
+  if (!printWindow) {
+    window.print();
+    return;
+  }
+  printWindow.document.write(`
+    <html>
+      <head>
+        <title>证书查看与打印</title>
+        <style>
+          body { margin: 0; padding: 28px; color: #273331; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #fff; }
+          .no-print { display: none !important; }
+          img { max-width: 140px; max-height: 190px; object-fit: contain; }
+          @page { margin: 18mm; }
+        </style>
+      </head>
+      <body>${element.innerHTML}</body>
+    </html>
+  `);
+  printWindow.document.close();
+  printWindow.focus();
+  printWindow.print();
+  printWindow.close();
+}
+
+function ApplicantCertificatePrint({ application }: { application: ApplicationQueryResult }) {
+  const verificationUrl = application.certificateNo ? `/certificates/${encodeURIComponent(application.certificateNo)}` : "";
+
+  return (
+    <section className="mt-4 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate">
+      <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Print</p>
+          <h3 className="mt-2 font-serif text-2xl text-porcelain">证书查看与打印</h3>
+        </div>
+        <button className="no-print rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)]" onClick={printCertificateArea} type="button">
+          浏览器打印
+        </button>
+      </div>
+      <div id="applicant-certificate-print" className="rounded-xl border border-[#e4ded0] bg-white p-5">
+        <div className="grid gap-5 md:grid-cols-[9rem_1fr]">
+          <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-3 text-center">
+            {application.certificatePhotoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- Applicant-only signed URL preview returned after application/contact verification.
+              <img alt="二寸道装证件照" className="mx-auto max-h-48 rounded-lg object-contain" src={application.certificatePhotoUrl} />
+            ) : (
+              <p className="grid min-h-40 place-items-center text-xs leading-6 text-[#8a6b3e]">
+                {application.certificatePhotoRecorded ? "证书照片已记录，当前环境无法预览" : "暂未记录证书照片"}
+              </p>
+            )}
+          </div>
+          <div>
+            <p className="text-xs tracking-[0.28em] text-gold">ITCA / 国际道教与文化协会</p>
+            <h4 className="mt-3 font-serif text-3xl text-porcelain">道士资格认证证书信息</h4>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2">
+              <CertificateField label="证书编号" value={application.certificateNo || "未生成"} />
+              <CertificateField label="持证人姓名" value={application.certificateHolderName || application.name} />
+              <CertificateField label="道名" value={application.certificateTaoistName || "未记录"} />
+              <CertificateField label="认证路径" value={application.certificationPath ? certificationPathLabels[application.certificationPath] : "未记录"} />
+              <CertificateField label="认证等级" value={application.certificationLevel || "未记录"} />
+              <CertificateField label="所属道派 / 法脉 / 宫观" value={application.certificateLineageOrTemple || "未记录"} />
+              <CertificateField label="签发机构" value={application.certificateIssuer || "ITCA / 国际道教与文化协会"} />
+              <CertificateField label="签发日期" value={formatDate(application.certificateIssuedDate)} />
+              <CertificateField label="有效期" value={`${formatDate(application.certificateValidFrom)} 至 ${formatDate(application.certificateValidUntil)}`} />
+              <CertificateField label="证书状态" value={certificateStatusText[application.certificateStatus || "pending"] || "待确认"} />
+            </div>
+          </div>
+        </div>
+        <div className="mt-5 rounded-xl border border-dashed border-[#b08a45] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+          <p>公开核验链接：{verificationUrl}</p>
+          <p className="mt-1">二维码预留：后续可将公开核验链接生成二维码并印制于证书。</p>
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function CertificateField({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="border-b border-[#eee7da] pb-3">
+      <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-1 break-all text-sm leading-6 text-porcelain">{value}</p>
+    </div>
+  );
+}
+
 function QueryPageFallback() {
   return (
     <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
       <section className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
         <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>
-          <h1 className="mt-3 font-serif text-3xl text-porcelain">申请进度查询</h1>
-          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人通过申请编号和预留联系方式查询个人会员申请、机构会员申请、道士资格认证申请及发证处理进度。</p>
+          <h1 className="mt-3 font-serif text-3xl text-porcelain">申请进度 / 申请结果查询</h1>
+          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人通过申请编号和预留联系方式查询个人会员申请、机构会员申请、道士资格认证申请、证书生成情况及证书查看与打印信息。</p>
           <div className="mt-7 grid gap-5">
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">申请编号</span>
@@ -247,7 +352,7 @@ function QueryPageFallback() {
             </label>
           </div>
           <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white" type="button">
-            查询申请进度
+            查询申请进度 / 结果
           </button>
         </div>
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-8">

@@ -6,7 +6,7 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
-import type { CertificationSubmitResponse } from "@/types/certification";
+import { certificationLevelLabels, certificationPathLabels, type CertificationLevel, type CertificationPath, type CertificationSubmitResponse } from "@/types/certification";
 
 type Field = {
   id: string;
@@ -14,7 +14,7 @@ type Field = {
   kind?: "text" | "email" | "date" | "select" | "textarea" | "file" | "checkbox";
   required?: boolean;
   badge?: "选填" | "按情况提交" | "建议提交" | "按协会要求提交" | "适用于国际申请情形";
-  options?: string[];
+  options?: Array<string | { label: string; value: string }>;
 };
 
 type Step = {
@@ -41,6 +41,20 @@ const steps: Step[] = [
         title: "身份与联络资料",
         fields: [
           { id: "certificationType", label: "申请认证类型", kind: "select", required: true, options: ["道士资格认证"] },
+          {
+            id: "certificationPath",
+            label: "认证路径",
+            kind: "select",
+            required: true,
+            options: Object.entries(certificationPathLabels).map(([value, label]) => ({ value, label }))
+          },
+          {
+            id: "requestedLevel",
+            label: "申请认证等级",
+            kind: "select",
+            required: true,
+            options: Object.entries(certificationLevelLabels).map(([value, label]) => ({ value, label }))
+          },
           { id: "nameCn", label: "姓名（中文）", required: true },
           { id: "nameEn", label: "英文名 / 拼音", required: true },
           { id: "taoistName", label: "法名 / 道名", required: true },
@@ -163,6 +177,8 @@ const steps: Step[] = [
 
 const apiFieldToFormId: Record<string, string> = {
   certificationType: "certificationType",
+  certificationPath: "certificationPath",
+  requestedLevel: "requestedLevel",
   applicantName: "nameCn",
   applicantNameEn: "nameEn",
   taoistName: "taoistName",
@@ -229,12 +245,25 @@ const maxFileSize = 2 * 1024 * 1024;
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
 const applicationNotices = [
-  ["申请须知", "申请人应如实填写身份资料、师承信息、修学经历、实践说明及申请理由。提交后将进入人工审核，审核结果以 ITCA 审核记录为准。"],
-  ["材料要求", "请上传清晰、可识别的证明材料。附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。"],
-  ["审核流程说明", "协会将进行资料初步审核；如资料不完整或需进一步核对，可要求申请人补充材料。"],
-  ["资料使用说明", "申请资料用于认证申请审核、资料核对、记录建档、证书记录建立及后续联系。"],
-  ["证书核验信息说明", "审核通过并生成证书后，证书编号、姓名、认证类型、签发日期及证书状态等必要信息可用于官网核验。"],
-  ["重要提示", "道士资格认证用于协会资料审核、记录建档及文化交流场景中的身份信息展示。"]
+  ["申请须知", "本认证将根据申请人的传承路径、资质凭证、实践经历、推荐材料、伦理承诺及资料完整性进行综合审核。"],
+  ["认证路径", "申请人可根据自身情况选择正一、全真或其他 / 国际传承路径，并提交对应师承与资质说明。"],
+  ["认证等级", "申请人提交的是申报等级，最终认证等级以 ITCA / 国际道教与文化协会后台审核核定为准。"],
+  ["证书说明", "申请通过后，申请人可继续使用申请编号及联系方式查询申请结果，并查看证书生成和打印信息；申请编号不会因证书核发而失效。"],
+  ["照片用途", "原有“近期白底道装证件照”用于认证审核、证书生成及申请人证书查看与打印，公众证书公开核验页默认不展示该照片。"],
+  ["重要提示", "附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。上传材料仅用于申请审核与认证建档。"]
+];
+
+const materialChecklist = [
+  "身份证明",
+  "师承 / 传承材料",
+  "正一 / 全真相关资质凭证",
+  "近期白底道装证件照",
+  "无刑事犯罪及邪教历史证明，如适用",
+  "学历 / 培训证明，如适用",
+  "道教实践报告",
+  "推荐信 / 引荐人资料",
+  "国际申请补充材料",
+  "声明与承诺"
 ];
 
 function ApplicationIcon({ name }: { name: IconBadgeName }) {
@@ -429,6 +458,8 @@ export default function TaoistPriestCertificationPage() {
       const formData = new FormData();
       const fields = {
         certificationType: "taoist_priest",
+        certificationPath: values.certificationPath as CertificationPath,
+        requestedLevel: values.requestedLevel as CertificationLevel,
         applicantName: values.nameCn,
         applicantNameEn: values.nameEn,
         taoistName: values.taoistName,
@@ -493,7 +524,7 @@ export default function TaoistPriestCertificationPage() {
       <PageHero
         actions={[
           { label: "认证申请", href: "/certification/taoist-priest" },
-          { label: "证书查询", href: "/certificate-query" }
+          { label: "证书公开核验", href: "/certificate-query" }
         ]}
         eyebrow="Taoist Priest Certification"
         title="道士资格认证"
@@ -519,6 +550,17 @@ export default function TaoistPriestCertificationPage() {
               <p className="mt-3">{text}</p>
             </article>
           ))}
+        </section>
+        <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Material Guide</p>
+          <h2 className="mt-3 font-serif text-2xl text-porcelain">材料清单说明</h2>
+          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {materialChecklist.map((item) => (
+              <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-sm text-[#5f5b52]" key={item}>
+                {item}
+              </div>
+            ))}
+          </div>
         </section>
         <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between">
           <span>已提交认证申请？查询认证申请进度</span>
@@ -653,7 +695,10 @@ function FormField({
       {field.kind === "select" ? (
         <select className={commonClass} value={value} onChange={(event) => setValue(field.id, event.target.value)}>
           <option value="">请选择</option>
-          {field.options?.map((item) => <option key={item} value={item}>{item}</option>)}
+          {field.options?.map((item) => {
+            const option = typeof item === "string" ? { label: item, value: item } : item;
+            return <option key={option.value} value={option.value}>{option.label}</option>;
+          })}
         </select>
       ) : field.kind === "textarea" ? (
         <>
