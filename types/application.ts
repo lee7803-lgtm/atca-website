@@ -94,6 +94,8 @@ export type ApplicationQueryResult = {
   certificatePhotoRecorded?: boolean;
   deliveryStatus?: "not_delivered" | "delivered";
   deliveredAt?: string | null;
+  supplementSubmittedAt?: string | null;
+  hasSupplementalSubmission?: boolean;
   editableData?: Record<string, string>;
   supportingDocuments?: CertificationAttachment[];
   createdAt: string;

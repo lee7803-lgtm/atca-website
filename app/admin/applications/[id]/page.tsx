@@ -4,6 +4,7 @@ import { cookies } from "next/headers";
 import { ReviewForm } from "./ReviewForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getApplicationById } from "@/lib/supabase/server";
+import { formatApplicationStatus } from "@/lib/status-labels";
 import type { ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -44,7 +45,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
             <DetailItem label="申请类型" value={typeText[application.applicationType]} />
-            <DetailItem label="当前状态" value={statusText[application.status]} />
+            <DetailItem label="当前状态" value={formatApplicationStatus(application)} />
             <DetailItem label="姓名 / 机构名称" value={application.name} />
             <DetailItem label="联系人" value={application.contactName || application.name} />
             <DetailItem label="手机 / WhatsApp" value={application.phone} />

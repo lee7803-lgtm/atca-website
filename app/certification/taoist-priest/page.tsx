@@ -146,7 +146,7 @@ const steps: Step[] = [
         title: "补充材料",
         fields: [
           { id: "idProof", label: "身份证明：护照或身份证影本", kind: "file", required: true },
-          { id: "photo", label: "近期白底道装证件照", kind: "file", required: true },
+          { id: "photo", label: "道装证件照", kind: "file", required: true },
           { id: "criminalRecord", label: "无刑事犯罪及邪教历史证明", kind: "file", badge: "按协会要求提交" },
           { id: "educationProof", label: "学历证明及培训证明", kind: "file", badge: "按情况提交" },
           { id: "practiceReport", label: "道教实践报告", kind: "file", badge: "建议提交" },
@@ -255,7 +255,7 @@ const applicationNotices = [
   ["传承体系", "申请人可根据自身情况选择正一、全真或其他传承，并提交对应师承与资质说明。"],
   ["申报认证等级", "申报认证等级仅作为审核参考，最终核定等级将根据资料完整性、师承证明、资质凭证、实践经历、推荐材料及认证委员会审核意见确定。"],
   ["证书说明", "申请通过后，申请人可继续使用申请编号及联系方式查询申请结果，并查看证书生成和打印信息；申请编号不会因证书核发而失效。"],
-  ["照片用途", "申请时上传的“近期白底道装证件照”将用于认证审核、证书生成及申请人证书查看与打印；公众证书公开核验页默认不展示该照片。"],
+  ["照片用途", "申请时上传的“道装证件照”将用于认证审核、证书生成及申请人证书查看与打印；公众证书公开核验页默认不展示该照片。"],
   ["重要提示", "附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。上传材料仅用于申请审核与认证建档。"]
 ];
 
@@ -278,7 +278,7 @@ const materialChecklist = [
   "身份证明",
   "师承 / 传承材料",
   "正一 / 全真相关资质凭证",
-  "近期白底道装证件照",
+  "道装证件照",
   "无刑事犯罪及邪教历史证明，如适用",
   "学历 / 培训证明，如适用",
   "道教实践报告",
@@ -583,9 +583,9 @@ export default function TaoistPriestCertificationPage() {
             {lineageMaterialGuides.map((guide) => (
               <article className="rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-5" key={guide.title}>
                 <h3 className="text-base font-medium text-porcelain">{guide.title}</h3>
-                <ul className="mt-3 grid list-disc gap-2 pl-5 text-sm leading-7 text-[#5f5b52]">
-                  {guide.items.map((item) => <li key={item}>{item}</li>)}
-                </ul>
+                <div className="mt-3 grid gap-2 text-sm leading-7 text-[#5f5b52]">
+                  {guide.items.map((item) => <p className="rounded-xl border border-[#e4ded0] bg-white/70 px-3 py-2" key={item}>{item}</p>)}
+                </div>
               </article>
             ))}
           </div>

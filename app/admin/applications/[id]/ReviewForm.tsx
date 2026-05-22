@@ -23,6 +23,11 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const save = async () => {
+    if (status === "need_more_info" && !adminNote.trim()) {
+      setMessageTone("error");
+      setMessage("请填写需要申请人补充或修正的资料说明。");
+      return;
+    }
     setIsSaving(true);
     setMessage("");
 

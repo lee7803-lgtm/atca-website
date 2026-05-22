@@ -253,14 +253,17 @@ function toSupabaseRow(application: ApplicationRecord) {
 
 function toApplicationQueryResult(
   row: Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at"> &
-    Partial<Pick<SupabaseApplicationRow, "contact_name" | "phone" | "email" | "country" | "profile" | "purpose" | "organization_type">>
+    Partial<Pick<SupabaseApplicationRow, "contact_name" | "phone" | "email" | "country" | "profile" | "purpose" | "organization_type" | "supplement_submitted_at" | "supplemental_submissions">>
 ): ApplicationQueryResult {
+  const supplementalSubmissions = normalizeSupplementalSubmissions(row.supplemental_submissions);
   return {
     applicationNo: row.application_no,
     applicationType: row.application_type as ApplicationQueryResult["applicationType"],
     name: row.name,
     status: row.status as ApplicationQueryResult["status"],
     adminNote: row.admin_note ?? "",
+    supplementSubmittedAt: row.supplement_submitted_at ?? null,
+    hasSupplementalSubmission: supplementalSubmissions.length > 0,
     editableData:
       row.status === "need_more_info"
         ? {
@@ -284,6 +287,7 @@ function toCertificationQueryResult(
     Partial<SupabaseCertificationApplicationRow>,
   certificate?: Partial<ApplicationQueryResult> & { certificateNo?: string }
 ): ApplicationQueryResult {
+  const supplementalSubmissions = normalizeSupplementalSubmissions(row.supplemental_submissions);
   return {
     applicationNo: row.application_no,
     applicationType: "taoist_certification",
@@ -306,6 +310,8 @@ function toCertificationQueryResult(
     certificatePhotoRecorded: certificate?.certificatePhotoRecorded,
     deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
     deliveredAt: row.delivered_at,
+    supplementSubmittedAt: row.supplement_submitted_at ?? null,
+    hasSupplementalSubmission: supplementalSubmissions.length > 0,
     editableData:
       row.status === "need_more_info"
         ? {
@@ -688,7 +694,7 @@ export async function findApplicationByNoAndContact(applicationNo: string, conta
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "application_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,created_at,updated_at",
+    select: "application_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -717,7 +723,7 @@ export async function findApplicationsByIdentity(filters: {
     application_type: `eq.${filters.applicationType}`,
     name: `eq.${filters.name}`,
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "application_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,created_at,updated_at",
+    select: "application_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "10"
   });
@@ -829,7 +835,7 @@ export async function findOpenCertificationApplicationByContact(filters: { email
   const params = new URLSearchParams({
     status: "in.(submitted,under_review,need_more_info,approved,certificate_issued,cert_issued)",
     or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
-    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "1"
   });
@@ -843,7 +849,7 @@ export async function findOpenCertificationApplicationByContact(filters: { email
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseCertificationApplicationRow, "id" | "application_no" | "applicant_name" | "status" | "review_note" | "applicant_feedback" | "certificate_photo_path" | "supporting_documents" | "delivery_status" | "delivered_at" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
   const row = rows[0];
 
   return row ? toCertificationQueryResult(row) : null;

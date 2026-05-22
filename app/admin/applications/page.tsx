@@ -6,6 +6,7 @@ import { AdminLogoutButton } from "../AdminLogoutButton";
 import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { isSupabaseSchemaError, listApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { formatApplicationStatus } from "@/lib/status-labels";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -73,7 +74,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     item.name || "",
     item.email || "",
     item.phone || "",
-    statusText[item.status] || item.status || "",
+    formatApplicationStatus(item),
     item.createdAt || "",
     item.updatedAt || ""
   ]);
@@ -142,7 +143,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
                   <td className="px-4 py-4 text-[#5f5b52]">{item.email}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.phone}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.country}</td>
-                  <td className="px-4 py-4 text-[#8a6b3e]">{statusText[item.status]}</td>
+                  <td className="px-4 py-4 text-[#8a6b3e]">{formatApplicationStatus(item)}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
                   <td className="px-4 py-4">
                     <Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/applications/${item.id}`}>查看详情</Link>

@@ -7,13 +7,10 @@ import { CopyButton } from "@/components/CopyButton";
 import {
   certificationLevelLabels,
   certificationPathLabels,
-  materialReviewItemLabels,
-  materialReviewStatusLabels,
   type CertificationLevel,
   type CertificationPath,
   type CertificationStatus,
-  type MaterialReview,
-  type MaterialReviewStatus
+  type MaterialReview
 } from "@/types/certification";
 
 const statusOptions: Array<{ value: CertificationStatus; label: string }> = [
@@ -132,15 +129,14 @@ export function CertificationReviewForm({
   const [applicantFeedback, setApplicantFeedback] = useState(initialApplicantFeedback);
   const [approvedPath, setApprovedPath] = useState<CertificationPath | "">(initialApprovedPath);
   const [approvedLevel, setApprovedLevel] = useState<CertificationLevel | "">(initialApprovedLevel);
-  const [materialReview, setMaterialReview] = useState<MaterialReview>(initialMaterialReview);
   const [committeeReviewNote, setCommitteeReviewNote] = useState(initialCommitteeReviewNote);
   const [taoistRank, setTaoistRank] = useState("道士资格认证");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
   const hasCertificate = Boolean(certificateNo);
-  const materialReviewReady = Object.values(materialReview).every((item) => item === "passed" || item === "not_applicable");
-  const materialReviewHasPending = Object.values(materialReview).some((item) => item === "pending");
+  const materialReviewReady = Object.values(initialMaterialReview).every((item) => item === "passed");
+  const materialReviewHasIncomplete = Object.values(initialMaterialReview).some((item) => item !== "passed");
   const isReadonlyStatus = terminalStatuses.includes(initialStatus);
   const canSaveReview = !isReadonlyStatus;
   const canGenerateCertificate = initialStatus === "approved" && !hasCertificate && Boolean(approvedPath) && Boolean(approvedLevel) && materialReviewReady;
@@ -163,7 +159,7 @@ export function CertificationReviewForm({
     if (hasCertificate) return "证书记录已存在，不能重复生成证书。";
     if (initialStatus !== "approved") return "当前申请尚未审核通过，不能生成证书。";
     if (!approvedPath || !approvedLevel) return "请先完成核定传承体系与核定认证等级后再生成证书。";
-    if (!materialReviewReady) return "请先完成各资料板块材料审核状态，所有材料项目应为通过或不适用后再生成证书。";
+    if (!materialReviewReady) return "仍有材料审核项未通过或未完成，暂不能生成证书。";
     return "";
   }, [approvedLevel, approvedPath, hasCertificate, initialStatus, materialReviewReady]);
 
@@ -181,7 +177,6 @@ export function CertificationReviewForm({
           applicantFeedback,
           approvedPath,
           approvedLevel,
-          materialReview,
           committeeReviewNote,
           taoistRank,
           ...body
@@ -249,7 +244,7 @@ export function CertificationReviewForm({
         <p className="font-medium text-porcelain">下一步提示</p>
         <p className="mt-1">{statusGuide}</p>
         <p className="mt-2 text-[#7F1D1D]">材料审核状态请在各资料板块中逐项完成。</p>
-        {materialReviewHasPending && initialStatus === "approved" ? <p className="mt-2 text-[#7F1D1D]">建议完成各资料板块材料审核状态后再生成证书。</p> : null}
+        {materialReviewHasIncomplete && initialStatus === "approved" ? <p className="mt-2 text-[#7F1D1D]">仍有材料审核项未通过或未完成，暂不能生成证书。</p> : null}
       </div>
       <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
         <p className="font-medium text-porcelain">申请人验真提示</p>
@@ -284,29 +279,6 @@ export function CertificationReviewForm({
               </select>
             </label>
           </div>
-        </div>
-        <div className="grid gap-4 md:grid-cols-2">
-          <MaterialReviewBlock title="基本身份资料板块">
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="identity" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-          </MaterialReviewBlock>
-          <MaterialReviewBlock title="师承 / 传承信息板块">
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="lineage" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-          </MaterialReviewBlock>
-          <MaterialReviewBlock title="经历与申请理由板块">
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="practice" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-          </MaterialReviewBlock>
-          <MaterialReviewBlock title="声明与确认板块">
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="ethics" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-          </MaterialReviewBlock>
-          <MaterialReviewBlock title="道装证件照板块">
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="photo" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-          </MaterialReviewBlock>
-          <MaterialReviewBlock title="上传材料 / 证明材料板块">
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="credential" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="recommendation" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="completeness" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-            <MaterialReviewSelect disabled={isReadonlyStatus} itemKey="international" materialReview={materialReview} setMaterialReview={setMaterialReview} />
-          </MaterialReviewBlock>
         </div>
         {supportingMaterials ? <div>{supportingMaterials}</div> : null}
         <div className="rounded-2xl border border-[#e4ded0] bg-white p-5">
@@ -355,7 +327,7 @@ export function CertificationReviewForm({
         {generateBlockedReason && initialStatus !== "rejected" && initialStatus !== "archived" ? <p className="basis-full text-sm leading-7 text-[#7F1D1D]">{generateBlockedReason}</p> : null}
         {initialStatus === "approved" && !hasCertificate ? (
         <p className="basis-full rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
-            生成证书前，请确认申请人身份、联系方式、师承材料、资质凭证、道装证件照及各资料板块材料审核状态已完成核验。资料无法核验、疑似冒用或存在重大疑点的申请不得生成证书。
+            生成证书前，请确认申请人身份、联系方式、师承材料、资质凭证、道装证件照及各资料板块材料审核状态均已通过。资料无法核验、疑似冒用或存在重大疑点的申请不得生成证书。
           </p>
         ) : null}
         {canMarkDelivered ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={markDelivered} type="button">
@@ -383,45 +355,5 @@ export function CertificationReviewForm({
         </div>
       </div>
     </section>
-  );
-}
-
-function MaterialReviewBlock({ children, title }: { children: ReactNode; title: string }) {
-  return (
-    <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-      <h3 className="font-serif text-xl text-porcelain">{title}</h3>
-      <div className="mt-4 grid gap-4">{children}</div>
-    </div>
-  );
-}
-
-function MaterialReviewSelect({
-  disabled,
-  itemKey,
-  materialReview,
-  setMaterialReview
-}: {
-  disabled: boolean;
-  itemKey: keyof MaterialReview;
-  materialReview: MaterialReview;
-  setMaterialReview: (value: (current: MaterialReview) => MaterialReview) => void;
-}) {
-  return (
-    <label className="grid gap-2">
-      <span className="text-sm font-medium text-porcelain">{materialReviewItemLabels[itemKey]}审核状态</span>
-      <select
-        className="form-input"
-        disabled={disabled}
-        value={materialReview[itemKey]}
-        onChange={(event) =>
-          setMaterialReview((current) => ({
-            ...current,
-            [itemKey]: event.target.value as MaterialReviewStatus
-          }))
-        }
-      >
-        {Object.entries(materialReviewStatusLabels).map(([value, statusLabel]) => <option key={value} value={value}>{statusLabel}</option>)}
-      </select>
-    </label>
   );
 }

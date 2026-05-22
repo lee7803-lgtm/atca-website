@@ -51,6 +51,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (!body.status || !validStatuses.includes(body.status)) {
     return NextResponse.json({ success: false, message: "请选择有效的申请状态。" }, { status: 400 });
   }
+  if (body.status === "need_more_info" && !body.adminNote?.trim()) {
+    return NextResponse.json({ success: false, message: "请填写需要申请人补充或修正的资料说明。" }, { status: 400 });
+  }
 
   try {
     const application = await updateApplicationReview(params.id, {

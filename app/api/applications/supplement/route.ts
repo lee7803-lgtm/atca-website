@@ -35,7 +35,17 @@ function collectFiles(formData: FormData) {
 function changedFields(current: Record<string, string>, next: Record<string, string>, labels: Record<string, string>) {
   return Object.entries(next)
     .filter(([field, value]) => value !== "" && value !== current[field])
-    .map(([field]) => ({ field: labels[field] || field, oldValue: "已更新", newValue: "已更新" }));
+    .map(([field, value]) => ({
+      field: labels[field] || field,
+      oldValue: summarizeChangeValue(current[field]),
+      newValue: summarizeChangeValue(value)
+    }));
+}
+
+function summarizeChangeValue(value: string) {
+  const text = value.trim();
+  if (!text) return "未填写";
+  return text.length > 80 ? `${text.slice(0, 80)}...` : text;
 }
 
 function validateCertificationRequired(values: Record<string, string>) {
@@ -148,8 +158,8 @@ export async function POST(request: Request) {
         email: "邮箱",
         masterName: "师父姓名",
         masterTaoistName: "师父道名 / 法名",
-        lineage: "道派 / 传承体系",
-        templeOrOrganization: "宫观 / 机构 / 所属组织",
+        lineage: "传承体系",
+        templeOrOrganization: "宫观 / 机构",
         sect: "师承或传承说明",
         practiceYears: "修行年限",
         experienceSummary: "经历说明",
@@ -159,13 +169,20 @@ export async function POST(request: Request) {
         recommenderContact: "推荐人联系方式",
         recommenderRelation: "推荐关系 / 推荐说明"
       };
+      const certificationChangedFields = changedFields(current, next, fieldLabels);
+      if (uploadedFiles.length > 0) {
+        certificationChangedFields.push({ field: "上传材料", oldValue: "已保留原材料", newValue: `新增 ${uploadedFiles.length} 个文件` });
+      }
+      if (latestPhotoPath !== certification.certificatePhotoPath) {
+        certificationChangedFields.push({ field: "道装证件照", oldValue: certification.certificatePhotoPath ? "已记录" : "未填写", newValue: "已更新" });
+      }
       const submission: SupplementalSubmission = {
         submittedAt: now,
         submittedBy: "applicant",
         applicationNo: certification.applicationNo,
         contact,
         note: supplementNote,
-        changedFields: changedFields(current, next, fieldLabels),
+        changedFields: certificationChangedFields,
         files: uploadedFiles,
         previousStatus: certification.status,
         nextStatus: "under_review"

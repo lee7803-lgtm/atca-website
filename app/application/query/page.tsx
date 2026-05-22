@@ -1,25 +1,13 @@
 "use client";
 
 import { useSearchParams } from "next/navigation";
-import { FormEvent, Suspense, useState } from "react";
+import type { FormEvent, ReactNode } from "react";
+import { Suspense, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { maskApplicationNo, maskName } from "@/lib/masking";
+import { formatQueryStatus } from "@/lib/status-labels";
 import { certificationPathLabels } from "@/types/certification";
 import type { ApplicationQueryResponse, ApplicationQueryResult } from "@/types/application";
-
-const statusText: Record<string, string> = {
-  submitted: "已提交",
-  pending_review: "待审核",
-  under_review: "审核中",
-  need_more_info: "需补充材料",
-  approved: "审核通过",
-  rejected: "审核未通过",
-  archived: "已归档",
-  certificate_issued: "已生成证书",
-  cert_issued: "已生成证书",
-  delivered: "已下发",
-  revoked: "已撤销"
-};
 
 const deliveryStatusText: Record<string, string> = {
   not_delivered: "待下发",
@@ -149,7 +137,7 @@ function ApplicationQueryContent() {
                 <p className="text-sm leading-7 text-[#5f5b52]">查询到多条匹配记录，请选择一条查看脱敏详情。</p>
                 {applications.map((item, index) => (
                   <button className={`rounded-2xl border px-4 py-3 text-left text-sm ${selectedIndex === index ? "border-[#7F1D1D] bg-white text-[#7F1D1D]" : "border-[#e4ded0] bg-white/70 text-[#5f5b52]"}`} key={item.applicationNo} onClick={() => setSelectedIndex(index)} type="button">
-                    {maskApplicationNo(item.applicationNo)} · {typeText[item.applicationType]} · {maskName(item.name)} · {statusText[item.status]}
+                    {maskApplicationNo(item.applicationNo)} · {typeText[item.applicationType]} · {maskName(item.name)} · {formatQueryStatus(item)}
                   </button>
                 ))}
               </div>
@@ -168,9 +156,19 @@ function ApplicationQueryContent() {
                     <StatusRow label="证书是否已生成" value={selectedApplication.certificateNo ? "是" : "否"} />
                     <StatusRow label="证书下发状态" value={deliveryStatusText[selectedApplication.deliveryStatus || "not_delivered"]} />
                     <StatusRow label="下发时间" value={selectedApplication.deliveredAt ? formatDateTime(selectedApplication.deliveredAt) : "尚未下发"} />
+                    {selectedApplication.certificateNo ? (
+                      <StatusRow
+                        label="证书下发说明"
+                        value={
+                          selectedApplication.deliveryStatus === "delivered"
+                            ? "证书已下发，请以协会实际发送的证书通知或文件为准。"
+                            : "证书记录已生成，协会将根据审核流程进行证书下发。"
+                        }
+                      />
+                    ) : null}
                   </>
                 ) : null}
-                <StatusRow label="下一步提示" value={nextStepText(selectedApplication.status)} />
+                <StatusRow label="下一步提示" value={nextStepText(selectedApplication)} />
                 {selectedApplication.certificateNo ? (
                   <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
                     <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
@@ -183,23 +181,6 @@ function ApplicationQueryContent() {
                   </div>
                 ) : null}
                 {selectedApplication.certificateNo ? <ApplicantCertificatePrint application={selectedApplication} /> : null}
-                {selectedApplication.status === "need_more_info" ? (
-                  <SupplementForm
-                    application={selectedApplication}
-                    contact={contact}
-                    onSuccess={(files) => {
-                      setSupplementSubmitted(true);
-                      setSupplementFiles(files);
-                      setApplications((current) => current.map((item, index) => (index === selectedIndex ? { ...item, status: "under_review" } : item)));
-                    }}
-                  />
-                ) : null}
-                {supplementSubmitted ? <SupplementSuccess files={supplementFiles} onReset={() => {
-                  setApplications([]);
-                  setSelectedIndex(0);
-                  setSupplementSubmitted(false);
-                  setSupplementFiles([]);
-                }} /> : null}
               </div>
             ) : (
               <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
@@ -210,12 +191,41 @@ function ApplicationQueryContent() {
           </div>
         </section>
 
+        {selectedApplication?.status === "need_more_info" ? (
+          <SupplementForm
+            application={selectedApplication}
+            contact={contact}
+            onSuccess={(files) => {
+              setSupplementSubmitted(true);
+              setSupplementFiles(files);
+              setApplications((current) =>
+                current.map((item, index) =>
+                  index === selectedIndex
+                    ? { ...item, status: "under_review", supplementSubmittedAt: new Date().toISOString(), hasSupplementalSubmission: true }
+                    : item
+                )
+              );
+            }}
+          />
+        ) : null}
+        {supplementSubmitted ? (
+          <SupplementSuccess
+            files={supplementFiles}
+            onReset={() => {
+              setApplications([]);
+              setSelectedIndex(0);
+              setSupplementSubmitted(false);
+              setSupplementFiles([]);
+            }}
+          />
+        ) : null}
+
         <section className="mt-8 grid gap-5 lg:grid-cols-2">
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">状态说明</h2>
             <div className="mt-5 flex flex-wrap gap-2">
-              {["已提交", "待审核", "审核中", "需补充材料", "审核通过", "审核未通过", "已生成证书", "已下发", "已归档", "已撤销"].map((item) => (
+              {["已提交", "审核中", "已补充，待复核", "需补充资料", "审核通过", "审核未通过", "已生成证书", "已下发", "已归档", "已撤销"].map((item) => (
                 <span className="rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>{item}</span>
               ))}
             </div>
@@ -223,7 +233,7 @@ function ApplicationQueryContent() {
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Notice</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">证书说明</h2>
-            <p className="mt-5">申请人可通过本页查看申请状态、申请结果和证书生成情况。证书编号用于公众公开核验；申请编号用于申请人本人查询。</p>
+            <p className="mt-5">如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。证书编号用于公众公开核验；申请编号用于申请人本人查询。</p>
           </div>
         </section>
       </main>
@@ -231,11 +241,13 @@ function ApplicationQueryContent() {
   );
 }
 
-function nextStepText(status: string) {
+function nextStepText(application: ApplicationQueryResult) {
+  const status = application.status;
   if (status === "submitted") return "申请已提交，请等待秘书处审核。";
   if (status === "pending_review") return "您的申请已进入待审核队列，请等待秘书处处理。";
+  if (status === "under_review" && (application.supplementSubmittedAt || application.hasSupplementalSubmission)) return "补充资料已提交，协会将基于最新资料进行复核。";
   if (status === "under_review") return "申请正在审核中，请等待秘书处审核。";
-  if (status === "need_more_info") return "请根据反馈内容在线补充或修正资料，提交后申请将转回审核中。";
+  if (status === "need_more_info") return "请根据反馈内容在线补充或修正资料，提交后申请将转为“已补充，待复核”。";
   if (status === "approved") return "申请已通过，等待生成证书或完成发证流程。";
   if (status === "certificate_issued" || status === "cert_issued") return "证书已生成，可查看证书编号、证书状态、证书查看与打印区和公开核验入口。";
   if (status === "delivered") return "证书已下发，仍可查看证书信息和公开核验入口。";
@@ -246,10 +258,11 @@ function nextStepText(status: string) {
 }
 
 function currentStatusText(application: ApplicationQueryResult) {
+  if (application.status === "under_review" && (application.supplementSubmittedAt || application.hasSupplementalSubmission)) return "已补充，待复核";
   if (application.applicationType === "taoist_certification" && application.status === "approved" && !application.certificateNo) return "已通过，待生成证书";
   if (application.applicationType === "taoist_certification" && (application.status === "certificate_issued" || application.status === "cert_issued") && application.certificateNo) return "审核已通过，证书记录已生成";
   if (application.applicationType === "taoist_certification" && application.status === "delivered" && application.certificateNo) return "证书记录已生成并已下发";
-  return statusText[application.status];
+  return formatQueryStatus(application);
 }
 
 function formatDateTime(value: string) {
@@ -302,20 +315,22 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
   };
 
   return (
-    <section className="mt-5 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate sm:p-6">
+    <section className="mt-8 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-6 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Supplement</p>
       <h3 className="mt-2 font-serif text-2xl text-porcelain">在线补充 / 修改资料</h3>
       <p className="mt-3 text-sm leading-7 text-[#5f5b52]">
         协会已要求您补充或修正相关资料。请根据审核反馈修改对应内容，并上传补充材料。提交后，系统将更新您的当前申请资料，并保留本次修改记录，后台人员将基于最新资料继续审核。
       </p>
-      <form className="mt-5 grid gap-4" onSubmit={submit}>
-        <input autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} />
+      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
         <StatusRow label="申请编号" value={application.applicationNo} />
         <StatusRow label="当前状态" value="需补充资料" />
-        <StatusRow label="对申请人的反馈" value={application.adminNote || "暂无反馈"} />
-        <div className="grid gap-4 sm:grid-cols-2">
-          {isCertification ? (
-            <>
+        <StatusRow label="审核反馈" value={application.adminNote || "暂无反馈"} />
+      </div>
+      <form className="mt-6 grid gap-6" onSubmit={submit}>
+        <input autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} />
+        {isCertification ? (
+          <>
+            <SupplementGroup title="基本资料">
               <SupplementInput defaultValue={data.applicantNameEn} label="英文名" name="applicantNameEn" />
               <SupplementInput defaultValue={data.gender} label="性别" name="gender" />
               <SupplementInput defaultValue={data.birthDate} label="出生日期" name="birthDate" type="date" />
@@ -324,21 +339,28 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
               <SupplementInput defaultValue={data.address} label="地址" name="address" />
               <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" />
               <SupplementInput defaultValue={data.email} label="邮箱" name="email" type="email" />
+            </SupplementGroup>
+            <SupplementGroup title="师承 / 传承资料">
               <SupplementInput defaultValue={data.masterName} label="师父姓名" name="masterName" required />
               <SupplementInput defaultValue={data.masterTaoistName} label="师父道名 / 法名" name="masterTaoistName" required />
               <SupplementInput defaultValue={data.lineage} label="道派 / 传承体系" name="lineage" required />
               <SupplementInput defaultValue={data.templeOrOrganization} label="宫观 / 机构 / 所属组织" name="templeOrOrganization" required />
               <SupplementTextarea defaultValue={data.sect} label="师承或传承说明" name="sect" required />
+            </SupplementGroup>
+            <SupplementGroup title="推荐人信息">
+              <SupplementInput defaultValue={data.recommenderName} label="推荐人姓名" name="recommenderName" required />
+              <SupplementInput defaultValue={data.recommenderContact} label="推荐人联系方式" name="recommenderContact" required />
+              <SupplementTextarea defaultValue={data.recommenderRelation} label="推荐人与申请人的关系 / 推荐说明" name="recommenderRelation" required />
+            </SupplementGroup>
+            <SupplementGroup title="经历与补充说明">
               <SupplementInput defaultValue={data.practiceYears} label="修行年限" name="practiceYears" />
               <SupplementTextarea defaultValue={data.experienceSummary} label="经历说明" name="experienceSummary" />
               <SupplementTextarea defaultValue={data.applicationReason} label="申请理由" name="applicationReason" />
               <SupplementTextarea defaultValue={data.additionalNote} label="补充备注" name="additionalNote" />
-              <SupplementInput defaultValue={data.recommenderName} label="推荐人姓名" name="recommenderName" required />
-              <SupplementInput defaultValue={data.recommenderContact} label="推荐人联系方式" name="recommenderContact" required />
-              <SupplementTextarea defaultValue={data.recommenderRelation} label="推荐人与申请人的关系 / 推荐说明" name="recommenderRelation" required />
-            </>
-          ) : (
-            <>
+            </SupplementGroup>
+          </>
+        ) : (
+          <SupplementGroup title="会员申请资料">
               <SupplementInput defaultValue={data.name} label="姓名 / 机构名称" name="name" />
               <SupplementInput defaultValue={data.contactName} label="联系人" name="contactName" />
               <SupplementInput defaultValue={data.email} label="邮箱" name="email" type="email" />
@@ -346,22 +368,23 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
               <SupplementInput defaultValue={data.country} label="地址 / 国家地区" name="country" />
               <SupplementTextarea defaultValue={data.profile} label="资料说明" name="profile" />
               <SupplementTextarea defaultValue={data.purpose} label="申请说明" name="purpose" />
-            </>
-          )}
-        </div>
-        <SupplementTextarea label="补充说明" name="supplementNote" required />
-        <label className="grid gap-3 rounded-2xl bg-white/55 p-3 sm:col-span-2">
-          <span className="text-sm font-medium text-porcelain">补充材料</span>
-          <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" multiple name="supplementFiles" type="file" />
-          <span className="text-xs leading-5 text-[#8a6b3e]">支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB，单次最多 5 个文件。重新上传道装证件照时，请使用下方照片控件。</span>
-        </label>
-        {isCertification ? (
-          <label className="grid gap-3 rounded-2xl bg-white/55 p-3 sm:col-span-2">
-            <span className="text-sm font-medium text-porcelain">重新上传道装证件照</span>
-            <input accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" name="photo" type="file" />
+          </SupplementGroup>
+        )}
+        <SupplementGroup title="补充材料上传">
+          <SupplementTextarea label="补充说明" name="supplementNote" required />
+          <label className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 sm:col-span-2">
+            <span className="text-sm font-medium text-porcelain">补充材料</span>
+            <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" multiple name="supplementFiles" type="file" />
+            <span className="text-xs leading-5 text-[#8a6b3e]">支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB，单次最多 5 个文件。重新上传道装证件照时，请使用下方照片控件。</span>
           </label>
-        ) : null}
-        <p className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">提交后申请状态将转回审核中，协会将基于更新后的资料继续审核。</p>
+          {isCertification ? (
+            <label className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 sm:col-span-2">
+              <span className="text-sm font-medium text-porcelain">重新上传道装证件照</span>
+              <input accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" name="photo" type="file" />
+            </label>
+          ) : null}
+        </SupplementGroup>
+        <p className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">提交后申请状态将转为“已补充，待复核”，协会将基于更新后的资料继续审核。</p>
         {message ? <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]">{message}</div> : null}
         <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
           {isSubmitting ? "正在提交..." : "提交补充 / 修改资料"}
@@ -380,6 +403,15 @@ function SupplementInput({ defaultValue = "", label, name, required = false, typ
   );
 }
 
+function SupplementGroup({ children, title }: { children: ReactNode; title: string }) {
+  return (
+    <fieldset className="rounded-2xl border border-[#e4ded0] bg-white/70 p-5">
+      <legend className="px-2 font-serif text-xl text-porcelain">{title}</legend>
+      <div className="mt-4 grid gap-4 sm:grid-cols-2">{children}</div>
+    </fieldset>
+  );
+}
+
 function SupplementTextarea({ defaultValue = "", label, name, required = false }: { defaultValue?: string; label: string; name: string; required?: boolean }) {
   return (
     <label className="grid gap-2 rounded-2xl bg-white/55 p-3 sm:col-span-2">
@@ -393,7 +425,7 @@ function SupplementSuccess({ files, onReset }: { files: string[]; onReset: () =>
   return (
     <section className="mt-5 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate sm:p-6">
       <h3 className="font-serif text-2xl text-porcelain">补充资料已提交</h3>
-      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">您的补充资料已提交成功，当前申请资料已更新，申请状态已转回审核中。协会将基于最新资料继续审核，请稍后通过申请编号和登记联系方式查询处理进度。</p>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">补充资料已提交，当前申请资料已更新，状态已转为“已补充，待复核”。协会将基于最新资料继续审核，请稍后通过申请编号和登记联系方式查询处理进度。</p>
       {files.length > 0 ? <p className="mt-3 text-sm leading-7 text-[#5f5b52]">已上传文件：{files.join("、")}</p> : null}
       <button className="mt-5 rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" onClick={onReset} type="button">
         重新查询申请状态

@@ -61,8 +61,8 @@ function asMaterialReview(value: unknown): MaterialReview | undefined {
 }
 
 function isMaterialReviewReady(review: MaterialReview | undefined) {
-  if (!review) return true;
-  return Object.values(review).every((status) => status === "passed" || status === "not_applicable");
+  if (!review) return false;
+  return Object.values(review).every((status) => status === "passed");
 }
 
 function buildLineageOrTemple(application: Awaited<ReturnType<typeof getCertificationApplicationById>>) {
@@ -96,6 +96,23 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const committeeReviewNote = asString(payload.committeeReviewNote) || asString(payload.committee_review_note);
     const reviewer = asString(payload.reviewer) || "admin";
 
+    if (action === "update_material_review") {
+      if (!materialReview) return NextResponse.json({ success: false, message: "材料审核状态不正确。" }, { status: 400 });
+      const updated = await updateCertificationReview(params.id, {
+        status: application.status,
+        reviewNote: application.reviewNote,
+        internalReviewNote: application.internalReviewNote,
+        applicantFeedback: application.applicantFeedback,
+        approvedPath: application.approvedPath,
+        approvedLevel: application.approvedLevel,
+        materialReview,
+        committeeReviewNote: application.committeeReviewNote,
+        reviewer
+      });
+
+      return NextResponse.json({ success: true, application: updated });
+    }
+
     if (payload.generateCertificate === true || action === "generate_certificate") {
       const existing = await findCertificateByApplicationId(params.id);
       if (existing) return NextResponse.json({ success: false, message: "证书记录已存在，不能重复生成证书。" }, { status: 400 });
@@ -113,7 +130,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       }
 
       if (!isMaterialReviewReady(finalMaterialReview)) {
-        return NextResponse.json({ success: false, message: "请先完成各资料板块材料审核状态，所有材料项目应为通过或不适用后再生成证书。" }, { status: 400 });
+        return NextResponse.json({ success: false, message: "仍有材料审核项未通过或未完成，暂不能生成证书。" }, { status: 400 });
       }
 
       const today = new Date();
@@ -150,7 +167,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
           approvedLevel: finalLevel,
           materialReview: finalMaterialReview,
           committeeReviewNote: committeeReviewNote || application.committeeReviewNote,
-          reviewer
+          reviewer,
+          deliveryStatus: "not_delivered",
+          deliveredAt: null
         });
       } catch (error) {
         try {

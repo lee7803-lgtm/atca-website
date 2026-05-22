@@ -6,6 +6,7 @@ import { AdminLogoutButton } from "../AdminLogoutButton";
 import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { checkCertificatesTableConfigured, findCertificateByApplicationId, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { formatCertificationApplicationStatus, hasSupplementRecord } from "@/lib/status-labels";
 import type { CertificationApplicationAdminRecord, CertificationStatus } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
@@ -13,21 +14,22 @@ export const metadata: Metadata = {
   title: "认证申请管理｜国际道教与文化协会 ITCA"
 };
 
-const statusOptions: Array<{ value: "" | CertificationStatus; label: string }> = [
+type StatusFilter = "" | CertificationStatus | "supplement_review";
+
+const statusOptions: Array<{ value: StatusFilter; label: string }> = [
   { value: "", label: "全部状态" },
   { value: "submitted", label: "已提交" },
   { value: "under_review", label: "审核中" },
+  { value: "supplement_review", label: "已补充，待复核" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
   { value: "rejected", label: "已驳回" },
   { value: "certificate_issued", label: "已生成证书" },
-  { value: "cert_issued", label: "已生成证书（旧）" },
+  { value: "cert_issued", label: "已生成证书" },
   { value: "delivered", label: "已下发" },
   { value: "archived", label: "已归档" },
   { value: "revoked", label: "已撤销" }
 ];
-
-const statusText = Object.fromEntries(statusOptions.filter((item) => item.value).map((item) => [item.value, item.label])) as Record<CertificationStatus, string>;
 
 type CertificationApplicationExportRecord = CertificationApplicationAdminRecord & {
   certificateNoForExport: string;
@@ -35,10 +37,11 @@ type CertificationApplicationExportRecord = CertificationApplicationAdminRecord 
 
 const csvHeaders = ["申请编号", "推荐人姓名", "推荐人联系方式", "推荐关系 / 推荐说明", "申请人姓名", "道名 / 法名", "邮箱", "手机号 / WhatsApp", "道派 / 传承体系", "申报认证等级", "核定传承体系", "核定认证等级", "当前状态", "证书编号", "下发状态", "是否有附件", "附件数量", "提交时间", "更新时间"];
 
-export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: CertificationStatus; q?: string } }) {
+export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: StatusFilter; q?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
-  const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
+  const selectedStatus = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
+  const status = selectedStatus === "supplement_review" ? "under_review" : selectedStatus || undefined;
   const q = searchParams?.q?.trim() || undefined;
   let applications: CertificationApplicationAdminRecord[] = [];
   let exportRows: CertificationApplicationExportRecord[] = [];
@@ -46,7 +49,12 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
   let certificateDatabaseMessage = "";
 
   try {
-    applications = await listCertificationApplications({ status, q });
+    applications = await listCertificationApplications({ status: status as CertificationStatus | undefined, q });
+    if (selectedStatus === "supplement_review") {
+      applications = applications.filter((item) => item.status === "under_review" && hasSupplementRecord(item));
+    } else if (selectedStatus === "under_review") {
+      applications = applications.filter((item) => !hasSupplementRecord(item));
+    }
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
       databaseMessage = "认证申请资料服务尚未完成系统配置，请联系网站管理员处理。";
@@ -103,7 +111,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
     item.requestedLevel || "",
     item.approvedPath || "",
     item.approvedLevel || "",
-    statusText[item.status] || item.status || "",
+    formatCertificationApplicationStatus(item),
     item.certificateNoForExport || "",
     item.deliveryStatus === "delivered" ? "已下发" : "未下发",
     item.existingCertificates.length + item.supportingDocuments.length > 0 ? "是" : "否",
@@ -131,7 +139,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
       <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_auto] md:items-end">
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">状态</span>
-          <select className="form-input" defaultValue={status || ""} name="status">
+          <select className="form-input" defaultValue={selectedStatus || ""} name="status">
             {statusOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
           </select>
         </label>
@@ -172,7 +180,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
                   <td className="px-4 py-4 text-porcelain">{item.applicantName}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.taoistName}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.sect || item.lineage}</td>
-                  <td className="px-4 py-4 text-[#8a6b3e]">{statusText[item.status]}</td>
+                  <td className="px-4 py-4 text-[#8a6b3e]">{formatCertificationApplicationStatus(item)}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
                   <td className="px-4 py-4"><Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/certification-applications/${item.id}`}>查看详情</Link></td>
                 </tr>
