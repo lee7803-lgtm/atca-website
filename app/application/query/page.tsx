@@ -106,7 +106,7 @@ function ApplicationQueryContent() {
             <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度、申请结果、审核反馈、证书生成状态与证书查看 / 打印信息。</p>
 
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              申请编号在证书核发后不失效，仍可用于申请人本人查询申请结果和证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名。
+              如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名。
             </div>
 
             <div className="mt-7 grid gap-5">
