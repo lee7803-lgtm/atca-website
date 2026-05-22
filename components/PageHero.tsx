@@ -45,13 +45,15 @@ export function PageHero({
 }: PageHeroProps) {
   return (
     <section className={`page-hero page-hero--${atmosphere} relative overflow-hidden border-b border-[#d8d0bf]`}>
-      <div className="absolute inset-0 bg-[radial-gradient(circle_at_78%_18%,rgba(169,122,61,0.16),transparent_20rem),linear-gradient(135deg,#7F1D1D_0%,#33251F_44%,#2A1F1A_100%)]" />
+      <div className="absolute inset-0 bg-[#2B1D18]" />
       <div
-        className="absolute inset-0 bg-cover opacity-[0.34]"
-        style={{ backgroundImage: `url("${backgroundImageSrc}")`, backgroundPosition: backgroundImagePosition }}
+        className="absolute inset-0 scale-[1.03] bg-cover"
+        style={{ backgroundImage: `url("${backgroundImageSrc}")`, backgroundPosition: backgroundImagePosition, backgroundSize: "cover" }}
         aria-hidden="true"
       />
-      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(42,31,26,0.96)_0%,rgba(42,31,26,0.88)_32%,rgba(51,37,31,0.70)_52%,rgba(51,37,31,0.46)_74%,rgba(42,31,26,0.36)_100%),radial-gradient(circle_at_72%_22%,rgba(169,122,61,0.18),transparent_22rem)]" aria-hidden="true" />
+      <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(81,31,28,0.88)_0%,rgba(81,31,28,0.78)_24%,rgba(72,37,33,0.68)_46%,rgba(43,29,24,0.66)_68%,rgba(37,26,22,0.76)_100%),radial-gradient(circle_at_18%_22%,rgba(143,31,45,0.28)_0%,rgba(143,31,45,0.12)_28%,transparent_56%),linear-gradient(180deg,rgba(28,18,15,0.18)_0%,rgba(28,18,15,0.08)_48%,rgba(28,18,15,0.36)_100%)]" aria-hidden="true" />
+      <div className="absolute inset-x-0 top-0 h-28 bg-[linear-gradient(180deg,rgba(255,250,240,0.08),transparent)]" aria-hidden="true" />
+      <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d8bd7a]/28 to-transparent" aria-hidden="true" />
       <CulturePattern variant="hero" className="opacity-60" />
       <InkLandscape className="opacity-80" />
       <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
@@ -65,8 +67,8 @@ export function PageHero({
               {actions.map((action, index) => {
                 const variant = action.variant ?? (index === 0 ? "primary" : "secondary");
                 const className = variant === "primary"
-                  ? "rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]"
-                  : "rounded-xl border border-white/30 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14";
+                  ? "rounded-xl bg-[#B7833D] px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#A06F32]"
+                  : "rounded-xl border border-[#F8F1E8]/[0.38] bg-white/[0.08] px-6 py-3.5 text-center text-sm font-semibold text-[#F8F1E8] transition hover:bg-white/[0.14]";
 
                 return (
                   <Link className={className} href={action.href} key={`${action.href}-${action.label}`}>

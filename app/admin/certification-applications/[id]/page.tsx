@@ -96,7 +96,28 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   const existingCertificates = await attachSignedUrls(application.existingCertificates);
   const supportingDocuments = await attachSignedUrls(application.supportingDocuments);
   const certificatePhoto = await getCertificatePhoto(application, supportingDocuments);
-  const supportingDocumentsWithoutPhoto = supportingDocuments.filter((attachment) => attachment.fieldName !== "photo");
+  const supportingDocumentsWithoutPhoto = sortLatestAttachments(supportingDocuments.filter((attachment) => attachment.fieldName !== "photo"));
+  const existingCertificatesLatest = sortLatestAttachments(existingCertificates);
+  const supplementalSubmissions = await attachSupplementalSubmissionUrls(application.supplementalSubmissions);
+  const supportingMaterialsPanel = (
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-6">
+      <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
+      <h3 className="mt-3 font-serif text-2xl text-porcelain">上传材料 / 证明材料</h3>
+      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+        <h4 className="font-medium text-porcelain">道装证件照</h4>
+        {certificatePhoto?.signedUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
+          <img alt="道装证件照" className="mt-4 max-h-48 w-full rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
+        ) : (
+          <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
+        )}
+      </div>
+      <div className="mt-5 grid gap-5">
+        <AttachmentGroup attachments={existingCertificatesLatest} title="资质说明 / 既有证书" />
+        <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
+      </div>
+    </section>
+  );
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
@@ -139,6 +160,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(380px,0.92fr)_minmax(0,1.08fr)] lg:items-start">
         <div className="grid gap-6 lg:order-2">
           <DetailSection title="基本身份资料">
+            <DetailItem className="md:col-span-2" label="身份真实性审核状态" value={formatMaterialReview(application.materialReview.identity)} />
             <DetailItem label="申请人中文姓名" value={application.applicantName} />
             <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
             <DetailItem label="道名 / 法名" value={application.taoistName || "未填写"} />
@@ -156,6 +178,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           </DetailSection>
 
           <DetailSection title="师承 / 传承信息">
+            <DetailItem className="md:col-span-2" label="师承 / 传承审核状态" value={formatMaterialReview(application.materialReview.lineage)} />
             <DetailItem label="师父姓名" value={application.masterName || "未填写"} />
             <DetailItem label="师父道名" value={application.masterTaoistName || "未填写"} />
             <DetailItem label="传承信息" value={application.lineage || "未填写"} />
@@ -164,19 +187,29 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="实践年限" value={application.practiceYears || "未填写"} />
           </DetailSection>
 
+          <DetailSection title="推荐人信息">
+            <DetailItem label="推荐人姓名" value={application.recommenderName || "未填写"} />
+            <DetailItem label="推荐人联系方式" value={application.recommenderContact || "未填写"} />
+            <DetailItem className="md:col-span-2" label="推荐关系 / 推荐说明" value={application.recommenderRelation || "未填写"} />
+          </DetailSection>
+
           <DetailSection title="经历与申请理由">
+            <DetailItem className="md:col-span-2" label="实践经历审核状态" value={formatMaterialReview(application.materialReview.practice)} />
             <DetailItem className="md:col-span-2" label="道教履历说明" value={application.experienceSummary || "未填写"} />
             <DetailItem className="md:col-span-2" label="申请理由" value={application.applicationReason || "未填写"} />
             <DetailItem className="md:col-span-2" label="补充备注" value={application.additionalNote || "未填写"} />
           </DetailSection>
 
           <DetailSection title="声明与确认">
+            <DetailItem className="md:col-span-2" label="伦理承诺审核状态" value={formatMaterialReview(application.materialReview.ethics)} />
             <DetailItem label="资料真实性确认" value={application.declarationAccepted ? "已确认" : "未确认"} />
             <DetailItem label="资料使用确认" value={application.dataUseAccepted ? "已确认" : "未确认"} />
             <DetailItem label="证书核验信息公开确认" value={application.certificatePublicAccepted ? "已确认" : "未确认"} />
             <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
             <DetailItem label="隐私政策确认" value={application.privacyAccepted ? "已确认" : "未确认"} />
           </DetailSection>
+
+          <SupplementalRecords submissions={supplementalSubmissions} />
 
           <DetailSection title="审核记录">
             <DetailItem className="md:col-span-2" label="后台审核备注" value={application.internalReviewNote || "暂无后台审核备注"} />
@@ -222,24 +255,8 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             initialMaterialReview={application.materialReview}
             initialReviewNote={application.reviewNote}
             initialStatus={application.status}
+            supportingMaterials={supportingMaterialsPanel}
           />
-          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
-            <h2 className="mt-3 font-serif text-3xl text-porcelain">上传材料</h2>
-            <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-              <h3 className="font-medium text-porcelain">道装证件照</h3>
-              {certificatePhoto?.signedUrl ? (
-                // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
-                <img alt="道装证件照" className="mt-4 max-h-72 rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
-              ) : (
-                <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
-              )}
-            </div>
-            <div className="mt-6 grid gap-6">
-              <AttachmentGroup attachments={existingCertificates} title="资质说明 / 既有证书" />
-              <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
-            </div>
-          </section>
         </div>
       </div>
     </section>
@@ -300,7 +317,7 @@ function AttachmentGroup({ attachments, title }: { attachments: CertificationAtt
     <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
       <h3 className="font-medium text-porcelain">{title}</h3>
       {attachments.length === 0 ? <p className="mt-4 text-sm leading-7 text-[#666666]">未提交附件。</p> : null}
-      <div className="mt-4 grid gap-4">
+      <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
         {attachments.map((attachment, index) => (
           <AttachmentCard attachment={attachment} key={`${attachment.storagePath || attachment.originalName}-${index}`} />
         ))}
@@ -316,9 +333,11 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
     <div className="rounded-xl border border-[#e4ded0] bg-white p-4">
       <p className="break-all text-sm font-medium text-porcelain">{attachment.originalName}</p>
       <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">{formatAttachmentFieldName(attachment.fieldName)}</p>
+      {attachment.source === "supplement" ? <p className="mt-1 text-xs leading-5 text-[#7F1D1D]">补充提交{attachment.supplementRound ? ` · 第 ${attachment.supplementRound} 次` : ""}</p> : null}
+      {attachment.uploadedAt ? <p className="mt-1 text-xs leading-5 text-[#6f655b]">{formatDateTime(attachment.uploadedAt)}</p> : null}
       {isImage ? (
         // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
-        <img alt={attachment.originalName} className="mt-3 max-h-48 rounded-lg border border-[#e4ded0] object-contain" src={attachment.signedUrl} />
+        <img alt={attachment.originalName} className="mt-3 max-h-32 w-full rounded-lg border border-[#e4ded0] bg-[#fbf8ef] object-contain" src={attachment.signedUrl} />
       ) : null}
       {!attachment.storagePath ? (
         <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">此附件仅记录文件名，附件文件暂不可显示，请联系协会秘书处核验。</p>
@@ -373,10 +392,62 @@ function formatAttachmentFieldName(fieldName: string) {
     educationProof: "学历 / 培训证明",
     practiceReport: "道教实践报告",
     organizationLetter: "组织推荐信",
-    crossCulturePlan: "跨文化传道计划"
+    crossCulturePlan: "跨文化传道计划",
+    supplementFiles: "补充材料",
+    supplementPhoto: "补充道装证件照"
   };
 
   return labels[fieldName] || "申请证明材料";
+}
+
+function sortLatestAttachments(attachments: CertificationAttachment[]) {
+  return [...attachments].sort((a, b) => {
+    const aTime = a.uploadedAt ? new Date(a.uploadedAt).getTime() : 0;
+    const bTime = b.uploadedAt ? new Date(b.uploadedAt).getTime() : 0;
+    return bTime - aTime;
+  });
+}
+
+async function attachSupplementalSubmissionUrls(submissions: CertificationApplicationAdminRecord["supplementalSubmissions"]) {
+  const results = [];
+  for (const submission of submissions) {
+    results.push({ ...submission, files: await attachSignedUrls(submission.files) });
+  }
+  return results;
+}
+
+function SupplementalRecords({ submissions }: { submissions: Array<CertificationApplicationAdminRecord["supplementalSubmissions"][number]> }) {
+  return (
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+      <h2 className="font-serif text-2xl text-porcelain">补充 / 修改记录</h2>
+      {submissions.length === 0 ? <p className="mt-4 text-sm leading-7 text-[#666666]">暂无补充 / 修改记录。</p> : null}
+      <div className="mt-5 grid gap-4">
+        {submissions.map((submission, index) => (
+          <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5" key={`${submission.submittedAt}-${index}`}>
+            <div className="grid gap-3 text-sm leading-7 text-[#5f5b52] md:grid-cols-2">
+              <DetailItem label="补充提交时间" value={submission.submittedAt ? formatDateTime(submission.submittedAt) : "未记录"} />
+              <DetailItem label="提交时联系方式" value={submission.contact || "未记录"} />
+              <DetailItem label="状态变化" value={`${submission.previousStatus || "未记录"} → ${submission.nextStatus || "未记录"}`} />
+              <DetailItem label="修改字段摘要" value={submission.changedFields.length > 0 ? submission.changedFields.map((field) => field.field).join("、") : "未记录字段变化"} />
+              <DetailItem className="md:col-span-2" label="补充说明" value={submission.note || "未填写"} />
+            </div>
+            {submission.files.length > 0 ? <AttachmentGroup attachments={submission.files} title="本次补充文件" /> : null}
+          </div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+function formatMaterialReview(value: string) {
+  const labels: Record<string, string> = {
+    pending: "待审核",
+    passed: "通过",
+    need_more_info: "需补充",
+    questionable: "存疑",
+    not_applicable: "不适用"
+  };
+  return labels[value] || value || "待审核";
 }
 
 function DetailItem({ className = "", label, value }: { className?: string; label: string; value: string }) {

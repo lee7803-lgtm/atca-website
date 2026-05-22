@@ -4,7 +4,7 @@ import { listApplications, SupabaseConfigError, SupabaseRequestError } from "@/l
 import type { ApplicationStatus, ApplicationType } from "@/types/application";
 
 const validTypes: ApplicationType[] = ["personal_member", "organization_member"];
-const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "need_more_info", "approved", "rejected", "archived"];
+const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "under_review", "need_more_info", "approved", "rejected", "archived"];
 
 export async function GET(request: Request) {
   const session = request instanceof Request ? request.headers.get("cookie") : "";

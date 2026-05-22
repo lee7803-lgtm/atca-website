@@ -36,7 +36,7 @@ const overview: Array<{ title: string; text: string; icon: IconBadgeName }> = [
 
 function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
-    <section className={tone === "soft" ? "bg-white/26" : ""}>
+    <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
       <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -93,7 +93,7 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Open Project" title="当前开放认证类别" tone="soft">
+      <CertificationSection eyebrow="Open Project" title="当前开放认证" tone="soft">
         <div className="grid gap-6 lg:grid-cols-[1fr_0.9fr]">
           <InfoCard icon={<CertificationIcon name="certification" />} title="道士资格认证" text="道士资格认证围绕申请人的身份资料、师承关系、宗派背景、修道经历与相关证明文件进行审核，用于协会备案、证书签发及后续核验。" />
           <div className="min-h-full rounded-2xl border border-gold/35 bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
@@ -115,7 +115,7 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Process" title="认证流程">
+      <CertificationSection eyebrow="Process" title="认证流程" tone="soft">
         <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <div className="absolute left-6 right-6 top-8 hidden h-px bg-gradient-to-r from-transparent via-gold/45 to-transparent xl:block" aria-hidden="true" />
           {process.map((item, index) => (
@@ -128,7 +128,7 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Verification" title="证书公开核验方式" tone="soft" compact>
+      <CertificationSection eyebrow="Verification" title="证书公开核验方式" compact>
         <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
           <InfoCard icon={<CertificationIcon name="query" />} title="官网公开核验" text="证书生成后，公众、合作方及第三方机构可通过证书编号与持证人姓名核验证书公开信息。查询结果仅展示公开核验所需资料。" />
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
@@ -137,13 +137,13 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Future" title="后续认证项目说明" compact>
+      <CertificationSection eyebrow="Future" title="后续认证项目说明" tone="soft" compact>
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           ITCA 当前仅开放道士资格认证。其他认证项目将根据协会制度建设、认证标准完善及实际工作安排另行公告。未正式公告前，不作为开放申请项目。
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Notice" title="重要提示" tone="soft" compact>
+      <CertificationSection eyebrow="Notice" title="重要提示" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。
           <br />

@@ -42,7 +42,7 @@ const functions = [
 
 function AssociationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
-    <section className={tone === "soft" ? "bg-white/26" : ""}>
+    <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
       <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -119,7 +119,7 @@ export default function AssociationPage() {
         </div>
       </AssociationSection>
 
-      <AssociationSection eyebrow="Values" title="核心价值">
+      <AssociationSection eyebrow="Values" title="核心价值" tone="soft">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {values.map(([title, text, icon], index) => (
             <InfoCard icon={<AssociationIcon name={icon} />} index={`0${index + 1}`} key={title} text={text} title={title} />
@@ -127,7 +127,7 @@ export default function AssociationPage() {
         </div>
       </AssociationSection>
 
-      <AssociationSection eyebrow="Structure" title="组织架构" tone="soft">
+      <AssociationSection eyebrow="Structure" title="组织架构">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-3">
           {structure.map(([title, text, icon], index) => (
             <InfoCard icon={<AssociationIcon name={icon} />} index={`0${index + 1}`} key={title} text={text} title={title} />

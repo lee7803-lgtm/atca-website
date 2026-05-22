@@ -22,7 +22,7 @@ const memberTypes = [
     text: "适用于宫观道堂、道教文化机构、传统文化组织、文化交流机构及其他经协会审核认可的机构。",
     href: "/organization/apply",
     icon: "institution" as IconBadgeName,
-    labels: ["宫观道堂及文化场所", "传统文化机构", "教育培训机构", "社团组织", "研究机构", "合作单位"]
+    labels: ["宫观道堂及文化场所", "传统文化机构", "教育研究机构", "社团组织", "合作单位"]
   }
 ];
 
@@ -42,7 +42,7 @@ const process: Array<{ title: string; icon: IconBadgeName }> = [
 
 function MembershipSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
-    <section className={tone === "soft" ? "bg-white/26" : ""}>
+    <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
       <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-14 md:pt-14 lg:pt-16 lg:pb-18" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -108,7 +108,7 @@ export default function MembershipPage() {
         </div>
       </MembershipSection>
 
-      <MembershipSection eyebrow="Member Types" title="会员类型">
+      <MembershipSection eyebrow="Member Types" title="会员类型" tone="soft">
         <div className="grid gap-6 md:grid-cols-2">
           {memberTypes.map((item) => (
             <article className="pattern-card rounded-[1.5rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8" key={item.title}>
@@ -125,7 +125,7 @@ export default function MembershipPage() {
         </div>
       </MembershipSection>
 
-      <MembershipSection eyebrow="Purpose" title="会员申请用途" tone="soft">
+      <MembershipSection eyebrow="Purpose" title="会员申请用途">
         <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {purposes.map((item, index) => (
             <InfoCard icon={<MembershipIcon name={item.icon} />} index={`0${index + 1}`} key={item.title} text={item.text} title={item.title} />
@@ -133,7 +133,7 @@ export default function MembershipPage() {
         </div>
       </MembershipSection>
 
-      <MembershipSection eyebrow="Process" title="申请流程">
+      <MembershipSection eyebrow="Process" title="申请流程" tone="soft">
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {process.map((item, index) => (
             <article className="rounded-2xl border border-[#e4ded0] bg-white/95 p-5 shadow-aureate" key={item.title}>
@@ -145,7 +145,7 @@ export default function MembershipPage() {
         </div>
       </MembershipSection>
 
-      <MembershipSection eyebrow="Notice" title="会员身份说明" tone="soft" compact>
+      <MembershipSection eyebrow="Notice" title="会员身份说明" compact>
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           会员身份属于协会会员服务与档案管理体系。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
         </div>

@@ -77,10 +77,11 @@ const steps: Step[] = [
       {
         title: "传承与师父资料",
         fields: [
-          { id: "lineage", label: "传承流派", kind: "select", required: true, options: ["正一教", "全真教", "其他"] },
-          { id: "sectFullName", label: "教派名称全称", badge: "按情况提交" },
-          { id: "masterName", label: "师父姓名 / 道名", required: true },
-          { id: "masterTemple", label: "师父所属流派 / 道场", required: true },
+          { id: "lineage", label: "道派 / 传承体系", kind: "select", required: true, options: ["正一教", "全真教", "其他"] },
+          { id: "sectFullName", label: "师承或传承说明", required: true },
+          { id: "masterName", label: "师父姓名", required: true },
+          { id: "masterTaoistName", label: "师父道名 / 法名", required: true },
+          { id: "masterTemple", label: "宫观 / 机构 / 所属组织", required: true },
           { id: "masterContact", label: "师父联系方式 / 地址", badge: "按情况提交" },
           { id: "apprenticeDate", label: "拜师时间", badge: "按情况提交" },
           { id: "witnessName", label: "拜师仪式见证人", badge: "按情况提交" },
@@ -128,11 +129,11 @@ const steps: Step[] = [
         ]
       },
       {
-        title: "引荐人信息",
+        title: "推荐人信息",
         fields: [
-          { id: "recommenderName", label: "引荐人姓名", badge: "按情况提交" },
-          { id: "recommenderContact", label: "引荐人联系方式", badge: "按情况提交" },
-          { id: "recommenderSignature", label: "引荐人签署说明", badge: "按情况提交" }
+          { id: "recommenderName", label: "推荐人姓名", required: true },
+          { id: "recommenderContact", label: "推荐人联系方式", required: true },
+          { id: "recommenderRelation", label: "推荐人与申请人的关系 / 推荐说明", required: true }
         ]
       }
     ]
@@ -189,8 +190,13 @@ const apiFieldToFormId: Record<string, string> = {
   phone: "phone",
   email: "email",
   masterName: "masterName",
+  masterTaoistName: "masterTaoistName",
   lineage: "lineage",
+  templeOrOrganization: "masterTemple",
   sect: "lineage",
+  recommenderName: "recommenderName",
+  recommenderContact: "recommenderContact",
+  recommenderRelation: "recommenderRelation",
   experienceSummary: "practiceHistory",
   applicationReason: "applicationReason",
   additionalNote: "additionalNote",
@@ -486,7 +492,7 @@ export default function TaoistPriestCertificationPage() {
         email: values.email,
         address: values.address,
         masterName: values.masterName,
-        masterTaoistName: values.masterName,
+        masterTaoistName: values.masterTaoistName,
         lineage: values.lineage,
         templeOrOrganization: values.templeName || values.masterTemple,
         sect: values.sectFullName || values.lineage,
@@ -494,6 +500,9 @@ export default function TaoistPriestCertificationPage() {
         experienceSummary: values.practiceHistory,
         applicationReason: values.applicationReason,
         additionalNote: values.additionalNote,
+        recommenderName: values.recommenderName,
+        recommenderContact: values.recommenderContact,
+        recommenderRelation: values.recommenderRelation,
         declarationAccepted: values.truthConfirm === "true" ? "true" : "false",
         ethicsConfirmed: values.dataUseConfirm === "true" ? "true" : "false",
         boundaryConfirmed: values.certificatePublicConfirm === "true" ? "true" : "false",
@@ -598,10 +607,7 @@ export default function TaoistPriestCertificationPage() {
         <StepNav current={current} onSelect={setCurrent} steps={steps.map((item) => item.title)} />
 
         <form ref={stepTopRef} className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
-          <label className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
-            公司网站
-            <input name="companyWebsite" tabIndex={-1} autoComplete="off" />
-          </label>
+          <input aria-hidden="true" autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} type="text" />
           <div className="mb-7 flex items-start gap-4">
             <ApplicationIcon name={step.icon} />
             <div>

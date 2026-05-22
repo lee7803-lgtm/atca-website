@@ -111,6 +111,9 @@ function validatePayload(payload: unknown) {
     experienceSummary: asString(payload.experienceSummary),
     applicationReason: asString(payload.applicationReason),
     additionalNote: asString(payload.additionalNote),
+    recommenderName: asString(payload.recommenderName) || asString(payload.recommender_name),
+    recommenderContact: asString(payload.recommenderContact) || asString(payload.recommender_contact),
+    recommenderRelation: asString(payload.recommenderRelation) || asString(payload.recommender_relation),
     existingCertificates: [],
     supportingDocuments: [],
     declarationAccepted: payload.declarationAccepted === true,
@@ -137,9 +140,12 @@ function validatePayload(payload: unknown) {
   if (values.phone && !phonePattern.test(values.phone)) fieldErrors.phone = "请填写有效联系电话。";
   if (!values.email) fieldErrors.email = "请填写邮箱。";
   if (values.email && !isEmail(values.email)) fieldErrors.email = "请输入有效邮箱地址。";
-  if (!values.masterName) fieldErrors.masterName = "请填写师父姓名。";
-  if (!values.lineage) fieldErrors.lineage = "请填写传承信息。";
-  if (!values.sect) fieldErrors.sect = "请填写所属道派。";
+  if (!values.masterName || !values.masterTaoistName || !values.lineage || !values.templeOrOrganization || !values.sect) {
+    fieldErrors.lineage = "请完整填写师承信息，包括师父姓名、道派 / 传承体系及宫观 / 机构信息。";
+  }
+  if (!values.recommenderName || !values.recommenderContact || !values.recommenderRelation) {
+    fieldErrors.recommenderName = "请填写推荐人姓名、联系方式及推荐关系说明。";
+  }
   if (!values.experienceSummary || !isValidLength(values.experienceSummary, 30, 2000)) fieldErrors.experienceSummary = "请填写道教履历说明，且不少于 30 字、不超过 2000 字。";
   if (values.applicationReason && !isValidLength(values.applicationReason, 20, 1500)) fieldErrors.applicationReason = "申请理由需不少于 20 字、不超过 1500 字。";
   if (values.additionalNote && values.additionalNote.length > 1000) fieldErrors.additionalNote = "补充备注不能超过 1000 字。";
@@ -233,6 +239,8 @@ export async function POST(request: Request) {
       reviewedAt: null,
       deliveryStatus: "not_delivered",
       deliveredAt: null,
+      supplementalSubmissions: [],
+      supplementSubmittedAt: null,
       createdAt: now,
       updatedAt: now
     };

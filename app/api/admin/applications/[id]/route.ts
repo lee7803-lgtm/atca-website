@@ -3,7 +3,7 @@ import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/au
 import { getApplicationById, SupabaseConfigError, SupabaseRequestError, updateApplicationReview } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/application";
 
-const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "need_more_info", "approved", "rejected", "archived"];
+const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "under_review", "need_more_info", "approved", "rejected", "archived"];
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];

@@ -79,6 +79,20 @@ export type CertificationAttachment = {
   fieldName: string;
   uploadedAt?: string;
   signedUrl?: string;
+  source?: "application" | "supplement";
+  supplementRound?: number;
+};
+
+export type SupplementalSubmission = {
+  submittedAt: string;
+  submittedBy: "applicant" | "admin";
+  applicationNo: string;
+  contact: string;
+  note: string;
+  changedFields: Array<{ field: string; oldValue?: string; newValue?: string }>;
+  files: CertificationAttachment[];
+  previousStatus: string;
+  nextStatus: string;
 };
 
 export type CertificationApplicationPayload = {
@@ -104,6 +118,9 @@ export type CertificationApplicationPayload = {
   experienceSummary: string;
   applicationReason: string;
   additionalNote: string;
+  recommenderName: string;
+  recommenderContact: string;
+  recommenderRelation: string;
   existingCertificates: CertificationAttachment[];
   supportingDocuments: CertificationAttachment[];
   declarationAccepted: boolean;
@@ -132,6 +149,8 @@ export type CertificationApplicationRecord = CertificationApplicationPayload & {
   reviewedAt: string | null;
   deliveryStatus: "not_delivered" | "delivered";
   deliveredAt: string | null;
+  supplementalSubmissions: SupplementalSubmission[];
+  supplementSubmittedAt: string | null;
   createdAt: string;
   updatedAt: string;
 };

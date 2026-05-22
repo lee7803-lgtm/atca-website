@@ -22,14 +22,23 @@ export default function AdminPage() {
   const isAuthed = isConfigured && isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value);
 
   return (
-    <section className="mx-auto max-w-6xl px-5 py-12 sm:px-8 lg:py-16">
-      <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Admin</p>
-      <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">后台管理</h1>
-      <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">后台用于查看会员申请、认证申请、更新审核状态、填写审核备注和生成证书记录。</p>
-      <div className="mt-6">
-        <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">
-          返回前台首页
-        </Link>
+    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:py-10">
+      <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Admin Console</p>
+            <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">后台管理</h1>
+            <p className="mt-4 max-w-3xl text-sm leading-8 text-[#5f5b52]">
+              用于秘书处查看会员申请、认证申请，处理审核状态、审核备注、材料核验与证书生成相关记录。
+            </p>
+          </div>
+          <div className="flex flex-col gap-3 sm:flex-row">
+            <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">
+              返回前台首页
+            </Link>
+            {isAuthed ? <AdminLogoutButton /> : null}
+          </div>
+        </div>
       </div>
 
       {!isConfigured ? (
@@ -37,18 +46,36 @@ export default function AdminPage() {
           后台密码尚未配置，请先在本地环境变量中设置 ADMIN_PASSWORD。
         </div>
       ) : isAuthed ? (
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link className="rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/admin/applications">
-            会员申请管理
-          </Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink" href="/admin/certification-applications">
-            认证申请管理
-          </Link>
-          <AdminLogoutButton />
+        <div className="mt-8 grid gap-5 md:grid-cols-2">
+          <AdminEntryCard
+            href="/admin/applications"
+            index="01"
+            title="会员申请管理"
+            text="查看个人会员与机构会员申请，筛选状态，进入详情处理审核备注。"
+          />
+          <AdminEntryCard
+            href="/admin/certification-applications"
+            index="02"
+            title="认证申请管理"
+            text="查看道士资格认证申请，处理材料审核、审核反馈、证书生成与下发状态。"
+          />
         </div>
       ) : (
         <AdminLoginForm />
       )}
     </section>
+  );
+}
+
+function AdminEntryCard({ href, index, text, title }: { href: string; index: string; text: string; title: string }) {
+  return (
+    <Link className="group rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate transition hover:border-gold/50 hover:bg-[#fffdf8] sm:p-7" href={href}>
+      <p className="text-xs tracking-[0.24em] text-gold">{index}</p>
+      <h2 className="mt-4 font-serif text-2xl text-porcelain">{title}</h2>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{text}</p>
+      <span className="mt-6 inline-flex rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white transition group-hover:bg-[#6f1919]">
+        进入管理
+      </span>
+    </Link>
   );
 }

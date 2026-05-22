@@ -4,7 +4,7 @@ create table if not exists public.applications (
   id uuid primary key default gen_random_uuid(),
   application_no text unique not null,
   application_type text not null check (application_type in ('personal_member', 'organization_member')),
-  status text not null default 'submitted' check (status in ('submitted', 'pending_review', 'need_more_info', 'approved', 'rejected', 'archived')),
+  status text not null default 'submitted' check (status in ('submitted', 'pending_review', 'under_review', 'need_more_info', 'approved', 'rejected', 'archived')),
   name text not null,
   contact_name text,
   phone text not null,
@@ -19,6 +19,8 @@ create table if not exists public.applications (
   privacy_accepted boolean default false,
   confirmed_at timestamptz,
   admin_note text,
+  supplemental_submissions jsonb default '[]'::jsonb,
+  supplement_submitted_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -27,7 +29,19 @@ alter table public.applications
   add column if not exists truth_confirmed boolean default false,
   add column if not exists terms_accepted boolean default false,
   add column if not exists privacy_accepted boolean default false,
-  add column if not exists confirmed_at timestamptz;
+  add column if not exists confirmed_at timestamptz,
+  add column if not exists supplemental_submissions jsonb default '[]'::jsonb,
+  add column if not exists supplement_submitted_at timestamptz;
+
+do $$
+begin
+  alter table public.applications
+    drop constraint if exists applications_status_check;
+
+  alter table public.applications
+    add constraint applications_status_check
+    check (status in ('submitted', 'pending_review', 'under_review', 'need_more_info', 'approved', 'rejected', 'archived'));
+end $$;
 
 create index if not exists applications_lookup_idx
   on public.applications (application_no, email);
@@ -80,6 +94,9 @@ create table if not exists public.certification_applications (
   experience_summary text,
   application_reason text,
   additional_note text,
+  recommender_name text,
+  recommender_contact text,
+  recommender_relation text,
   existing_certificates jsonb default '[]'::jsonb,
   supporting_documents jsonb default '[]'::jsonb,
   declaration_accepted boolean default false,
@@ -103,6 +120,8 @@ create table if not exists public.certification_applications (
   reviewed_at timestamptz,
   delivery_status text default 'not_delivered' check (delivery_status in ('not_delivered', 'delivered')),
   delivered_at timestamptz,
+  supplemental_submissions jsonb default '[]'::jsonb,
+  supplement_submitted_at timestamptz,
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
@@ -113,6 +132,9 @@ alter table public.certification_applications
   add column if not exists requested_level text,
   add column if not exists application_reason text,
   add column if not exists additional_note text,
+  add column if not exists recommender_name text,
+  add column if not exists recommender_contact text,
+  add column if not exists recommender_relation text,
   add column if not exists ethics_confirmed boolean default false,
   add column if not exists boundary_confirmed boolean default false,
   add column if not exists data_use_accepted boolean default false,
@@ -128,7 +150,9 @@ alter table public.certification_applications
   add column if not exists committee_review_note text,
   add column if not exists certificate_photo_path text,
   add column if not exists delivery_status text default 'not_delivered',
-  add column if not exists delivered_at timestamptz;
+  add column if not exists delivered_at timestamptz,
+  add column if not exists supplemental_submissions jsonb default '[]'::jsonb,
+  add column if not exists supplement_submitted_at timestamptz;
 
 do $$
 begin

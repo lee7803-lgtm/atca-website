@@ -89,10 +89,16 @@ a {
   background-size: 320px 118px;
 }
 
+.section-surface {
+  background: #f7f1e6;
+}
+
+.section-surface-soft {
+  background: #efe7d8;
+}
+
 .page-hero {
-  background:
-    radial-gradient(circle at 82% 18%, rgba(169, 122, 61, 0.16), transparent 18rem),
-    linear-gradient(135deg, #7f1d1d 0%, #33251f 46%, #2a1f1a 100%);
+  background: #2B1D18;
 }
 
 .page-hero::before {
@@ -124,16 +130,11 @@ a {
 }
 
 .page-hero--gate {
-  background:
-    radial-gradient(circle at 74% 12%, rgba(216, 189, 122, 0.18), transparent 17rem),
-    radial-gradient(circle at 18% 28%, rgba(143, 31, 45, 0.22), transparent 22rem),
-    linear-gradient(135deg, #7f1d1d 0%, #33251f 46%, #2a1f1a 100%);
+  background: #2B1D18;
 }
 
 .page-hero--credential {
-  background:
-    radial-gradient(circle at 68% 18%, rgba(176, 138, 69, 0.2), transparent 18rem),
-    linear-gradient(135deg, #7f1d1d 0%, #3a2b22 42%, #2a1f1a 100%);
+  background: #2B1D18;
 }
 
 .page-hero--credential::after {
@@ -144,18 +145,18 @@ a {
 }
 
 .page-hero__copy {
-  color: #fffaf0;
+  color: #F8F1E8;
 }
 
 .page-hero__eyebrow {
   display: inline-block;
   max-width: 100%;
   margin-bottom: 2rem;
-  border: 1px solid rgba(255, 255, 255, 0.2);
+  border: 1px solid rgba(216, 190, 130, 0.38);
   border-radius: 999px;
-  background: rgba(255, 255, 255, 0.1);
+  background: rgba(43, 29, 24, 0.42);
   padding: 0.5rem 1rem;
-  color: #e4cf97;
+  color: #D8BE82;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.26em;
@@ -165,7 +166,7 @@ a {
 }
 
 .page-hero__copy h1 {
-  color: #fffaf0;
+  color: #F8F1E8;
   font-family: var(--font-serif, Georgia), Georgia, serif;
   font-size: clamp(3rem, 6vw, 4.5rem);
   line-height: 1.25;
@@ -173,7 +174,7 @@ a {
 
 .page-hero__subtitle {
   margin-top: 1.5rem;
-  color: #e4cf97;
+  color: #D8BE82;
   font-family: var(--font-serif, Georgia), Georgia, serif;
   font-size: clamp(1.35rem, 3vw, 1.75rem);
   line-height: 1.3;
@@ -182,7 +183,7 @@ a {
 .page-hero__intro {
   max-width: 48rem;
   margin-top: 1.75rem;
-  color: rgba(255, 250, 240, 0.84);
+  color: rgba(248, 241, 232, 0.84);
   font-size: 1.125rem;
   line-height: 2;
 }
@@ -237,10 +238,10 @@ a {
 
 .page-hero__image-label {
   align-self: flex-start;
-  border: 1px solid rgba(248, 230, 194, 0.42);
-  background: rgba(31, 18, 13, 0.48);
+  border: 1px solid rgba(216, 190, 130, 0.38);
+  background: rgba(43, 29, 24, 0.42);
   padding: 0.45rem 0.7rem;
-  color: #f2dca7;
+  color: #D8BE82;
   font-size: 0.68rem;
   font-weight: 600;
   letter-spacing: 0.22em;
@@ -595,10 +596,10 @@ a {
   left: 1.5rem;
   top: 1.5rem;
   display: inline-flex;
-  border: 1px solid rgba(248, 230, 194, 0.42);
-  background: rgba(31, 18, 13, 0.46);
+  border: 1px solid rgba(216, 190, 130, 0.38);
+  background: rgba(43, 29, 24, 0.42);
   padding: 0.42rem 0.72rem;
-  color: #f2dca7;
+  color: #D8BE82;
   font-size: 0.72rem;
   letter-spacing: 0.18em;
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.28);

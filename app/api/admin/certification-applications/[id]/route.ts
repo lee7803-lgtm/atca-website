@@ -113,7 +113,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       }
 
       if (!isMaterialReviewReady(finalMaterialReview)) {
-        return NextResponse.json({ success: false, message: "请先完成材料审核清单，所有材料项目应为通过或不适用后再生成证书。" }, { status: 400 });
+        return NextResponse.json({ success: false, message: "请先完成各资料板块材料审核状态，所有材料项目应为通过或不适用后再生成证书。" }, { status: 400 });
       }
 
       const today = new Date();
@@ -186,6 +186,27 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       return NextResponse.json({ success: true, application: updated });
     }
 
+    if (action === "correct_not_delivered") {
+      const existing = await findCertificateByApplicationId(params.id);
+      if (!existing) return NextResponse.json({ success: false, message: "请先生成证书记录后再更正下发状态。" }, { status: 400 });
+
+      const updated = await updateCertificationReview(params.id, {
+        status: application.status === "delivered" ? "certificate_issued" : application.status,
+        reviewNote: asString(payload.reviewNote) || application.reviewNote,
+        internalReviewNote: internalReviewNote || application.internalReviewNote,
+        applicantFeedback: applicantFeedback || application.applicantFeedback,
+        approvedPath: approvedPath || application.approvedPath,
+        approvedLevel: approvedLevel || application.approvedLevel,
+        materialReview: materialReview || application.materialReview,
+        committeeReviewNote: committeeReviewNote || application.committeeReviewNote,
+        reviewer,
+        deliveryStatus: "not_delivered",
+        deliveredAt: null
+      });
+
+      return NextResponse.json({ success: true, application: updated });
+    }
+
     if (action === "archive") {
       const updated = await updateCertificationReview(params.id, {
         status: "archived",
@@ -205,7 +226,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const status = asString(payload.status) as CertificationStatus;
     if (!status || !validStatuses.includes(status)) return NextResponse.json({ success: false, message: "审核状态不正确。" }, { status: 400 });
     if (certificateIssuedStatuses.includes(status)) return NextResponse.json({ success: false, message: "请使用对应操作按钮生成证书或标记下发。" }, { status: 400 });
-    if ((status === "need_more_info" || status === "rejected") && !applicantFeedback && !application.applicantFeedback) {
+    if (status === "need_more_info" && !applicantFeedback && !application.applicantFeedback) {
+      return NextResponse.json({ success: false, message: "请填写需要申请人补充或修正的资料说明。" }, { status: 400 });
+    }
+    if (status === "rejected" && !applicantFeedback && !application.applicantFeedback) {
       return NextResponse.json({ success: false, message: "请填写对申请人反馈后再保存该审核状态。" }, { status: 400 });
     }
     if (status === "approved" && (!(approvedPath || application.approvedPath) || !(approvedLevel || application.approvedLevel))) {

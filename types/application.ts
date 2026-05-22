@@ -1,10 +1,10 @@
-import type { CertificationPath } from "./certification";
+import type { CertificationAttachment, CertificationPath, SupplementalSubmission } from "./certification";
 
 export type ApplicationType = "personal_member" | "organization_member";
 
-export type ApplicationStatus = "submitted" | "pending_review" | "need_more_info" | "approved" | "rejected" | "archived";
+export type ApplicationStatus = "submitted" | "pending_review" | "under_review" | "need_more_info" | "approved" | "rejected" | "archived";
 
-export type OrganizationType = "宫观" | "文化机构" | "培训机构" | "企业" | "其他";
+export type OrganizationType = "宫观" | "文化机构" | "培训机构" | "企业" | "其他" | "宫观道堂及文化场所" | "传统文化机构" | "教育研究机构" | "社团组织" | "合作单位";
 
 export type ApplicationRecord = {
   id?: string;
@@ -25,6 +25,8 @@ export type ApplicationRecord = {
   privacyAccepted: boolean;
   confirmedAt: string;
   adminNote?: string;
+  supplementalSubmissions?: SupplementalSubmission[];
+  supplementSubmittedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 };
@@ -38,6 +40,8 @@ export type ApplicationAdminRecord = Required<Pick<ApplicationRecord, "applicati
   privacyAccepted: boolean;
   confirmedAt: string;
   adminNote: string;
+  supplementalSubmissions: SupplementalSubmission[];
+  supplementSubmittedAt: string | null;
 };
 
 export type ApplicationSubmitPayload = {
@@ -90,6 +94,8 @@ export type ApplicationQueryResult = {
   certificatePhotoRecorded?: boolean;
   deliveryStatus?: "not_delivered" | "delivered";
   deliveredAt?: string | null;
+  editableData?: Record<string, string>;
+  supportingDocuments?: CertificationAttachment[];
   createdAt: string;
   updatedAt: string;
 };

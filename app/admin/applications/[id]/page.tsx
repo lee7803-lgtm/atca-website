@@ -16,6 +16,7 @@ const typeText: Record<ApplicationType, string> = {
 const statusText: Record<ApplicationStatus, string> = {
   submitted: "已提交",
   pending_review: "审核中",
+  under_review: "审核中",
   need_more_info: "需补充资料",
   approved: "已通过",
   rejected: "已驳回",

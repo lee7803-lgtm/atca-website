@@ -1,15 +1,9 @@
 "use client";
 
-type CsvColumn<T> = {
-  key: string;
-  label: string;
-  value: (row: T) => string | number | boolean | null | undefined;
-};
-
-type AdminCsvExportProps<T> = {
-  columns: Array<CsvColumn<T>>;
+type AdminCsvExportProps = {
+  headers: string[];
   filename: string;
-  rows: T[];
+  rows: string[][];
 };
 
 function escapeCsvCell(value: string | number | boolean | null | undefined) {
@@ -17,10 +11,10 @@ function escapeCsvCell(value: string | number | boolean | null | undefined) {
   return /[",\n\r]/.test(text) ? `"${text.replace(/"/g, '""')}"` : text;
 }
 
-export function AdminCsvExport<T>({ columns, filename, rows }: AdminCsvExportProps<T>) {
+export function AdminCsvExport({ headers, filename, rows }: AdminCsvExportProps) {
   const exportCsv = () => {
-    const header = columns.map((column) => escapeCsvCell(column.label)).join(",");
-    const body = rows.map((row) => columns.map((column) => escapeCsvCell(column.value(row))).join(","));
+    const header = headers.map((label) => escapeCsvCell(label)).join(",");
+    const body = rows.map((row) => row.map((cell) => escapeCsvCell(cell)).join(","));
     const csv = [header, ...body].join("\n");
     const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8" });
     const url = URL.createObjectURL(blob);

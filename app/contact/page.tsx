@@ -19,9 +19,9 @@ const categories: Array<{ title: string; text: string; icon: IconBadgeName }> = 
 
 const consultationItems = ["认证咨询", "会员申请", "机构合作", "文化交流", "网站信息更正"];
 
-function ContactSection({ eyebrow, title, intro, children, compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean; afterHero?: boolean }) {
+function ContactSection({ eyebrow, title, intro, children, compact = false, afterHero = false, tone = "default" }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean; afterHero?: boolean; tone?: "default" | "soft" }) {
   return (
-    <section>
+    <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
       <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
         <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
           <div>
@@ -76,7 +76,7 @@ export default function ContactPage() {
         </div>
       </ContactSection>
 
-      <ContactSection title="联系须知" compact>
+      <ContactSection title="联系须知" tone="soft" compact>
         <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
           <div className="rounded-[1.5rem] border border-[#d8d0bf] bg-white/92 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8">
             <div className="mb-5 flex items-center gap-4">

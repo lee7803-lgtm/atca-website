@@ -4,7 +4,7 @@ import { findOpenApplicationByContact, insertApplication, SupabaseConfigError, S
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
 const validApplicationTypes: ApplicationType[] = ["personal_member", "organization_member"];
-const validOrganizationTypes: OrganizationType[] = ["宫观", "文化机构", "培训机构", "企业", "其他"];
+const validOrganizationTypes: OrganizationType[] = ["宫观道堂及文化场所", "传统文化机构", "教育研究机构", "社团组织", "合作单位", "宫观", "文化机构", "培训机构", "企业", "其他"];
 const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -148,6 +148,8 @@ export async function POST(request: Request) {
       privacyAccepted: values.privacyAccepted,
       confirmedAt: now,
       adminNote: "",
+      supplementalSubmissions: [],
+      supplementSubmittedAt: null,
       createdAt: now,
       updatedAt: now
     };

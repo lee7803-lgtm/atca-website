@@ -169,8 +169,8 @@ export default function MemberApplyPage() {
         visualTitle="个人会员申请"
       />
 
-      <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
-        <section className="grid gap-8 lg:grid-cols-[0.72fr_1.28fr] lg:items-start">
+      <main className="section-surface">
+        <section className="mx-auto grid max-w-6xl gap-8 px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-start lg:pt-16 lg:pb-16">
           <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
             <p className="font-medium text-porcelain">申请说明</p>
             <p className="mt-3">
@@ -187,10 +187,7 @@ export default function MemberApplyPage() {
           </aside>
 
           <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
-            <label className="absolute -left-[9999px] h-px w-px overflow-hidden" aria-hidden="true">
-              公司网站
-              <input name="companyWebsite" tabIndex={-1} autoComplete="off" />
-            </label>
+            <input aria-hidden="true" autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} type="text" />
             <div className="mb-7">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Form</p>
               <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">个人会员资料</h2>

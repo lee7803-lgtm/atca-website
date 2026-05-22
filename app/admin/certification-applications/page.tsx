@@ -33,21 +33,7 @@ type CertificationApplicationExportRecord = CertificationApplicationAdminRecord 
   certificateNoForExport: string;
 };
 
-const csvColumns = [
-  { key: "applicationNo", label: "申请编号", value: (item: CertificationApplicationExportRecord) => item.applicationNo },
-  { key: "applicantName", label: "申请人姓名", value: (item: CertificationApplicationExportRecord) => item.applicantName },
-  { key: "email", label: "邮箱", value: (item: CertificationApplicationExportRecord) => item.email },
-  { key: "phone", label: "手机号 / WhatsApp", value: (item: CertificationApplicationExportRecord) => item.phone },
-  { key: "certificationPath", label: "传承体系", value: (item: CertificationApplicationExportRecord) => item.certificationPath },
-  { key: "requestedLevel", label: "申报认证等级", value: (item: CertificationApplicationExportRecord) => item.requestedLevel },
-  { key: "approvedPath", label: "核定传承体系", value: (item: CertificationApplicationExportRecord) => item.approvedPath },
-  { key: "approvedLevel", label: "核定认证等级", value: (item: CertificationApplicationExportRecord) => item.approvedLevel },
-  { key: "status", label: "当前状态", value: (item: CertificationApplicationExportRecord) => statusText[item.status] || item.status },
-  { key: "certificateNo", label: "证书编号", value: (item: CertificationApplicationExportRecord) => item.certificateNoForExport },
-  { key: "deliveryStatus", label: "下发状态", value: (item: CertificationApplicationExportRecord) => item.deliveryStatus === "delivered" ? "已下发" : "未下发" },
-  { key: "createdAt", label: "提交时间", value: (item: CertificationApplicationExportRecord) => item.createdAt },
-  { key: "updatedAt", label: "更新时间", value: (item: CertificationApplicationExportRecord) => item.updatedAt }
-];
+const csvHeaders = ["申请编号", "推荐人姓名", "推荐人联系方式", "推荐关系 / 推荐说明", "申请人姓名", "道名 / 法名", "邮箱", "手机号 / WhatsApp", "道派 / 传承体系", "申报认证等级", "核定传承体系", "核定认证等级", "当前状态", "证书编号", "下发状态", "是否有附件", "附件数量", "提交时间", "更新时间"];
 
 export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: CertificationStatus; q?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
@@ -104,6 +90,27 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
   if (exportRows.length === 0) {
     exportRows = applications.map((item) => ({ ...item, certificateNoForExport: "" }));
   }
+  const csvRows = exportRows.map((item) => [
+    item.applicationNo || "",
+    item.recommenderName || "",
+    item.recommenderContact || "",
+    item.recommenderRelation || "",
+    item.applicantName || "",
+    item.taoistName || "",
+    item.email || "",
+    item.phone || "",
+    item.sect || item.lineage || item.certificationPath || "",
+    item.requestedLevel || "",
+    item.approvedPath || "",
+    item.approvedLevel || "",
+    statusText[item.status] || item.status || "",
+    item.certificateNoForExport || "",
+    item.deliveryStatus === "delivered" ? "已下发" : "未下发",
+    item.existingCertificates.length + item.supportingDocuments.length > 0 ? "是" : "否",
+    String(item.existingCertificates.length + item.supportingDocuments.length),
+    item.createdAt || "",
+    item.updatedAt || ""
+  ]);
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
@@ -111,12 +118,12 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Applications</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">认证申请管理</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看道士资格认证申请，按状态、申请编号、姓名或道名筛选申请记录。</p>
+          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看道士资格认证申请，按状态、申请编号、姓名、道名或推荐人筛选申请记录。</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
-          <AdminCsvExport columns={csvColumns} filename="itca-certification-applications.csv" rows={exportRows} />
+          <AdminCsvExport headers={csvHeaders} filename="certification-applications.csv" rows={csvRows} />
           <AdminLogoutButton />
         </div>
       </div>
@@ -130,7 +137,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">搜索</span>
-          <input className="form-input" defaultValue={q || ""} name="q" placeholder="申请编号 / 姓名 / 道名" />
+          <input className="form-input" defaultValue={q || ""} name="q" placeholder="申请编号 / 姓名 / 道名 / 推荐人" />
         </label>
         <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">筛选</button>
       </form>
@@ -150,14 +157,18 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 shadow-aureate">
         <div className="overflow-x-auto">
-          <table className="min-w-[980px] w-full border-collapse text-left text-sm">
+          <table className="min-w-[1120px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
-              <tr>{["申请编号", "姓名", "道名 / 法名", "道派", "状态", "提交时间", "操作"].map((item) => <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>)}</tr>
+              <tr>{["申请编号", "推荐人", "姓名", "道名 / 法名", "道派", "状态", "提交时间", "操作"].map((item) => <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>)}</tr>
             </thead>
             <tbody>
               {applications.map((item) => (
                 <tr className="border-b border-[#eee7da] last:border-b-0" key={item.id}>
                   <td className="px-4 py-4 font-medium text-[#7F1D1D]">{item.applicationNo}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">
+                    <p className="font-medium text-porcelain">{item.recommenderName || "未填写"}</p>
+                    {item.recommenderContact || item.recommenderRelation ? <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">{[item.recommenderContact, item.recommenderRelation].filter(Boolean).join(" / ")}</p> : null}
+                  </td>
                   <td className="px-4 py-4 text-porcelain">{item.applicantName}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.taoistName}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.sect || item.lineage}</td>
@@ -166,7 +177,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
                   <td className="px-4 py-4"><Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/certification-applications/${item.id}`}>查看详情</Link></td>
                 </tr>
               ))}
-              {applications.length === 0 ? <tr><td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={7}>暂无符合条件的认证申请。</td></tr> : null}
+              {applications.length === 0 ? <tr><td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={8}>暂无符合条件的认证申请。</td></tr> : null}
             </tbody>
           </table>
         </div>

@@ -7,6 +7,7 @@ import type { ApplicationStatus } from "@/types/application";
 const statusOptions: Array<{ value: ApplicationStatus; label: string }> = [
   { value: "submitted", label: "已提交" },
   { value: "pending_review", label: "审核中" },
+  { value: "under_review", label: "审核中" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
   { value: "rejected", label: "已驳回" },

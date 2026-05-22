@@ -5,7 +5,7 @@ import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
 import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { listApplications } from "@/lib/supabase/server";
+import { isSupabaseSchemaError, listApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +23,7 @@ const statusOptions: Array<{ value: "" | ApplicationStatus; label: string }> = [
   { value: "", label: "全部状态" },
   { value: "submitted", label: "已提交" },
   { value: "pending_review", label: "审核中" },
+  { value: "under_review", label: "审核中" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
   { value: "rejected", label: "已驳回" },
@@ -37,29 +38,45 @@ const typeText: Record<ApplicationType, string> = {
 const statusText: Record<ApplicationStatus, string> = {
   submitted: "已提交",
   pending_review: "审核中",
+  under_review: "审核中",
   need_more_info: "需补充资料",
   approved: "已通过",
   rejected: "已驳回",
   archived: "已建档"
 };
 
-const csvColumns = [
-  { key: "applicationNo", label: "申请编号", value: (item: ApplicationAdminRecord) => item.applicationNo },
-  { key: "applicationType", label: "申请类型", value: (item: ApplicationAdminRecord) => typeText[item.applicationType] },
-  { key: "name", label: "姓名 / 机构名称", value: (item: ApplicationAdminRecord) => item.name },
-  { key: "email", label: "邮箱", value: (item: ApplicationAdminRecord) => item.email },
-  { key: "phone", label: "手机号 / WhatsApp", value: (item: ApplicationAdminRecord) => item.phone },
-  { key: "status", label: "当前状态", value: (item: ApplicationAdminRecord) => statusText[item.status] },
-  { key: "createdAt", label: "提交时间", value: (item: ApplicationAdminRecord) => item.createdAt },
-  { key: "updatedAt", label: "更新时间", value: (item: ApplicationAdminRecord) => item.updatedAt }
-];
+const csvHeaders = ["申请编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "提交时间", "更新时间"];
 
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   const applicationType = typeOptions.some((item) => item.value === searchParams?.applicationType) ? searchParams?.applicationType : undefined;
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
-  const applications = await listApplications({ applicationType, status });
+  let applications: ApplicationAdminRecord[] = [];
+  let databaseMessage = "";
+
+  try {
+    applications = await listApplications({ applicationType, status });
+  } catch (error) {
+    if (error instanceof SupabaseConfigError || isSupabaseSchemaError(error)) {
+      databaseMessage = "会员申请资料服务尚未完成系统配置，请联系网站管理员处理。";
+    } else if (error instanceof SupabaseRequestError) {
+      databaseMessage = "会员申请数据暂时无法读取，请稍后重试或检查 Supabase 服务状态。";
+    } else {
+      databaseMessage = "会员申请管理暂时无法读取数据，请稍后重试。";
+    }
+  }
+
+  const csvRows = applications.map((item) => [
+    item.applicationNo || "",
+    typeText[item.applicationType] || item.applicationType || "",
+    item.name || "",
+    item.email || "",
+    item.phone || "",
+    statusText[item.status] || item.status || "",
+    item.createdAt || "",
+    item.updatedAt || ""
+  ]);
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
@@ -76,10 +93,17 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">
             返回前台首页
           </Link>
-          <AdminCsvExport columns={csvColumns} filename="itca-member-applications.csv" rows={applications} />
+          <AdminCsvExport headers={csvHeaders} filename="membership-applications.csv" rows={csvRows} />
           <AdminLogoutButton />
         </div>
       </div>
+
+      {databaseMessage ? (
+        <div className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate">
+          <h2 className="font-serif text-2xl text-porcelain">会员申请数据表尚未配置</h2>
+          <p className="mt-3">{databaseMessage}</p>
+        </div>
+      ) : null}
 
       <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_auto] md:items-end">
         <label className="grid gap-2">

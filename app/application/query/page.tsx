@@ -55,6 +55,8 @@ function ApplicationQueryContent() {
   const [errorMessage, setErrorMessage] = useState("");
   const [applications, setApplications] = useState<ApplicationQueryResult[]>([]);
   const [selectedIndex, setSelectedIndex] = useState(0);
+  const [supplementSubmitted, setSupplementSubmitted] = useState(false);
+  const [supplementFiles, setSupplementFiles] = useState<string[]>([]);
 
   const selectedApplication = applications[selectedIndex] || null;
 
@@ -66,6 +68,8 @@ function ApplicationQueryContent() {
     setErrorMessage("");
     setApplications([]);
     setSelectedIndex(0);
+    setSupplementSubmitted(false);
+    setSupplementFiles([]);
 
     try {
       const params = new URLSearchParams({ mode: "number", applicationNo: applicationNumber.trim(), contact: contact.trim() });
@@ -179,6 +183,23 @@ function ApplicationQueryContent() {
                   </div>
                 ) : null}
                 {selectedApplication.certificateNo ? <ApplicantCertificatePrint application={selectedApplication} /> : null}
+                {selectedApplication.status === "need_more_info" ? (
+                  <SupplementForm
+                    application={selectedApplication}
+                    contact={contact}
+                    onSuccess={(files) => {
+                      setSupplementSubmitted(true);
+                      setSupplementFiles(files);
+                      setApplications((current) => current.map((item, index) => (index === selectedIndex ? { ...item, status: "under_review" } : item)));
+                    }}
+                  />
+                ) : null}
+                {supplementSubmitted ? <SupplementSuccess files={supplementFiles} onReset={() => {
+                  setApplications([]);
+                  setSelectedIndex(0);
+                  setSupplementSubmitted(false);
+                  setSupplementFiles([]);
+                }} /> : null}
               </div>
             ) : (
               <div className="mt-7 rounded-2xl border border-[#e4ded0] bg-white/74 p-5 text-sm leading-8 text-[#5f5b52]">
@@ -214,7 +235,7 @@ function nextStepText(status: string) {
   if (status === "submitted") return "申请已提交，请等待秘书处审核。";
   if (status === "pending_review") return "您的申请已进入待审核队列，请等待秘书处处理。";
   if (status === "under_review") return "申请正在审核中，请等待秘书处审核。";
-  if (status === "need_more_info") return "请根据反馈内容准备补充材料，并联系协会秘书处处理。本阶段不提供在线补充材料上传。";
+  if (status === "need_more_info") return "请根据反馈内容在线补充或修正资料，提交后申请将转回审核中。";
   if (status === "approved") return "申请已通过，等待生成证书或完成发证流程。";
   if (status === "certificate_issued" || status === "cert_issued") return "证书已生成，可查看证书编号、证书状态、证书查看与打印区和公开核验入口。";
   if (status === "delivered") return "证书已下发，仍可查看证书信息和公开核验入口。";
@@ -242,6 +263,143 @@ function formatDate(value?: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function SupplementForm({ application, contact, onSuccess }: { application: ApplicationQueryResult; contact: string; onSuccess: (files: string[]) => void }) {
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState("");
+  const data = application.editableData || {};
+  const isCertification = application.applicationType === "taoist_certification";
+
+  const submit = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSubmitting) return;
+    setIsSubmitting(true);
+    setMessage("");
+
+    try {
+      const formData = new FormData(event.currentTarget);
+      formData.set("applicationNo", application.applicationNo);
+      formData.set("contact", contact);
+
+      const response = await fetch("/api/applications/supplement", {
+        method: "POST",
+        body: formData
+      });
+      const result = (await response.json()) as { success: boolean; message?: string; files?: string[] };
+
+      if (!response.ok || !result.success) {
+        setMessage(result.message || "补充资料提交未成功，请检查后重试。");
+        return;
+      }
+
+      onSuccess(result.files || []);
+    } catch {
+      setMessage("补充资料提交服务暂时不可用，请稍后重试。");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <section className="mt-5 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate sm:p-6">
+      <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Supplement</p>
+      <h3 className="mt-2 font-serif text-2xl text-porcelain">在线补充 / 修改资料</h3>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">
+        协会已要求您补充或修正相关资料。请根据审核反馈修改对应内容，并上传补充材料。提交后，系统将更新您的当前申请资料，并保留本次修改记录，后台人员将基于最新资料继续审核。
+      </p>
+      <form className="mt-5 grid gap-4" onSubmit={submit}>
+        <input autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} />
+        <StatusRow label="申请编号" value={application.applicationNo} />
+        <StatusRow label="当前状态" value="需补充资料" />
+        <StatusRow label="对申请人的反馈" value={application.adminNote || "暂无反馈"} />
+        <div className="grid gap-4 sm:grid-cols-2">
+          {isCertification ? (
+            <>
+              <SupplementInput defaultValue={data.applicantNameEn} label="英文名" name="applicantNameEn" />
+              <SupplementInput defaultValue={data.gender} label="性别" name="gender" />
+              <SupplementInput defaultValue={data.birthDate} label="出生日期" name="birthDate" type="date" />
+              <SupplementInput defaultValue={data.nationality} label="国籍" name="nationality" />
+              <SupplementInput defaultValue={data.residence} label="现居地" name="residence" />
+              <SupplementInput defaultValue={data.address} label="地址" name="address" />
+              <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" />
+              <SupplementInput defaultValue={data.email} label="邮箱" name="email" type="email" />
+              <SupplementInput defaultValue={data.masterName} label="师父姓名" name="masterName" required />
+              <SupplementInput defaultValue={data.masterTaoistName} label="师父道名 / 法名" name="masterTaoistName" required />
+              <SupplementInput defaultValue={data.lineage} label="道派 / 传承体系" name="lineage" required />
+              <SupplementInput defaultValue={data.templeOrOrganization} label="宫观 / 机构 / 所属组织" name="templeOrOrganization" required />
+              <SupplementTextarea defaultValue={data.sect} label="师承或传承说明" name="sect" required />
+              <SupplementInput defaultValue={data.practiceYears} label="修行年限" name="practiceYears" />
+              <SupplementTextarea defaultValue={data.experienceSummary} label="经历说明" name="experienceSummary" />
+              <SupplementTextarea defaultValue={data.applicationReason} label="申请理由" name="applicationReason" />
+              <SupplementTextarea defaultValue={data.additionalNote} label="补充备注" name="additionalNote" />
+              <SupplementInput defaultValue={data.recommenderName} label="推荐人姓名" name="recommenderName" required />
+              <SupplementInput defaultValue={data.recommenderContact} label="推荐人联系方式" name="recommenderContact" required />
+              <SupplementTextarea defaultValue={data.recommenderRelation} label="推荐人与申请人的关系 / 推荐说明" name="recommenderRelation" required />
+            </>
+          ) : (
+            <>
+              <SupplementInput defaultValue={data.name} label="姓名 / 机构名称" name="name" />
+              <SupplementInput defaultValue={data.contactName} label="联系人" name="contactName" />
+              <SupplementInput defaultValue={data.email} label="邮箱" name="email" type="email" />
+              <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" />
+              <SupplementInput defaultValue={data.country} label="地址 / 国家地区" name="country" />
+              <SupplementTextarea defaultValue={data.profile} label="资料说明" name="profile" />
+              <SupplementTextarea defaultValue={data.purpose} label="申请说明" name="purpose" />
+            </>
+          )}
+        </div>
+        <SupplementTextarea label="补充说明" name="supplementNote" required />
+        <label className="grid gap-3 rounded-2xl bg-white/55 p-3 sm:col-span-2">
+          <span className="text-sm font-medium text-porcelain">补充材料</span>
+          <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" multiple name="supplementFiles" type="file" />
+          <span className="text-xs leading-5 text-[#8a6b3e]">支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB，单次最多 5 个文件。重新上传道装证件照时，请使用下方照片控件。</span>
+        </label>
+        {isCertification ? (
+          <label className="grid gap-3 rounded-2xl bg-white/55 p-3 sm:col-span-2">
+            <span className="text-sm font-medium text-porcelain">重新上传道装证件照</span>
+            <input accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" name="photo" type="file" />
+          </label>
+        ) : null}
+        <p className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">提交后申请状态将转回审核中，协会将基于更新后的资料继续审核。</p>
+        {message ? <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]">{message}</div> : null}
+        <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
+          {isSubmitting ? "正在提交..." : "提交补充 / 修改资料"}
+        </button>
+      </form>
+    </section>
+  );
+}
+
+function SupplementInput({ defaultValue = "", label, name, required = false, type = "text" }: { defaultValue?: string; label: string; name: string; required?: boolean; type?: string }) {
+  return (
+    <label className="grid gap-2 rounded-2xl bg-white/55 p-3">
+      <span className="text-sm font-medium text-porcelain">{label}{required ? <span className="text-[#7F1D1D]"> *</span> : null}</span>
+      <input className="form-input" defaultValue={defaultValue} name={name} required={required} type={type} />
+    </label>
+  );
+}
+
+function SupplementTextarea({ defaultValue = "", label, name, required = false }: { defaultValue?: string; label: string; name: string; required?: boolean }) {
+  return (
+    <label className="grid gap-2 rounded-2xl bg-white/55 p-3 sm:col-span-2">
+      <span className="text-sm font-medium text-porcelain">{label}{required ? <span className="text-[#7F1D1D]"> *</span> : null}</span>
+      <textarea className="form-input min-h-28 resize-y" defaultValue={defaultValue} name={name} required={required} />
+    </label>
+  );
+}
+
+function SupplementSuccess({ files, onReset }: { files: string[]; onReset: () => void }) {
+  return (
+    <section className="mt-5 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate sm:p-6">
+      <h3 className="font-serif text-2xl text-porcelain">补充资料已提交</h3>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">您的补充资料已提交成功，当前申请资料已更新，申请状态已转回审核中。协会将基于最新资料继续审核，请稍后通过申请编号和登记联系方式查询处理进度。</p>
+      {files.length > 0 ? <p className="mt-3 text-sm leading-7 text-[#5f5b52]">已上传文件：{files.join("、")}</p> : null}
+      <button className="mt-5 rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" onClick={onReset} type="button">
+        重新查询申请状态
+      </button>
+    </section>
+  );
 }
 
 function printCertificateArea() {
