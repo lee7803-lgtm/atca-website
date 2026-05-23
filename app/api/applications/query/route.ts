@@ -19,6 +19,15 @@ export async function GET(request: Request) {
   const applicationNo = searchParams.get("applicationNo")?.trim() || "";
   const contact = searchParams.get("contact")?.trim() || searchParams.get("email")?.trim() || "";
 
+  if (mode !== "number") {
+    const response: ApplicationQueryResponse = {
+      success: false,
+      message: "请使用申请编号和手机 / WhatsApp 或邮箱查询申请记录。"
+    };
+
+    return NextResponse.json(response, { status: 400 });
+  }
+
   if (mode === "number" && (!applicationNo || !contact)) {
     const response: ApplicationQueryResponse = {
       success: false,

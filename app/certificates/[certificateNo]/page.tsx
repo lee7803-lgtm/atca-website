@@ -48,7 +48,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
             返回证书公开核验页
           </Link>
           <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink" href="/application/query">
-            返回申请进度 / 申请结果查询
+            返回申请查询
           </Link>
         </section>
       </main>
@@ -59,7 +59,7 @@ export default async function CertificateDetailPage({ params }: { params: { cert
     <main className="mx-auto max-w-5xl px-5 py-10 sm:px-8 lg:py-14">
       <div className="no-print mb-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
         <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/application/query">
-          返回申请进度 / 申请结果查询
+          返回申请查询
         </Link>
         <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/certificate-query">
           返回证书公开核验

@@ -45,6 +45,27 @@ const certificationLevelOptions: Array<{ value: "" | CertificationLevel; label: 
 
 const terminalStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered", "archived", "revoked"];
 
+const committeeReviewTemplates = [
+  { label: "资料完整", text: "申请资料完整，师承 / 传承信息、资质文件、推荐资料及实践经历说明基本符合审核要求，建议审核通过。" },
+  { label: "需补充材料", text: "申请资料尚需补充，建议申请人补充师承 / 传承证明、资质文件、推荐说明或实践经历材料后再复核。" },
+  { label: "暂缓通过", text: "当前资料尚不足以完成认证判断，建议暂缓通过，待补充材料或进一步人工核验后再作决定。" },
+  { label: "建议不通过", text: "当前资料暂不符合本项认证申请要求，建议不予通过。" }
+];
+
+const applicantFeedbackTemplates = [
+  { label: "审核通过", text: "您的申请资料已通过审核，后续将根据协会流程生成证书记录并完成证书下发安排。" },
+  { label: "请补充资料", text: "您的申请资料尚需补充，请根据本页提示补充相关证明材料或说明后重新提交。" },
+  { label: "待复核", text: "您提交的补充资料已收到，协会将进行复核，请等待后续审核结果。" },
+  { label: "未通过说明", text: "经审核，当前资料暂不符合本项认证申请要求，暂无法通过本次申请。" }
+];
+
+const internalReviewTemplates = [
+  { label: "已核对", text: "已核对基本身份资料、师承 / 传承信息、推荐人资料及上传材料，待进一步审核确认。" },
+  { label: "待复核", text: "该申请仍需人工复核材料真实性、传承信息与资质证明。" },
+  { label: "已要求补充", text: "已要求申请人补充资料，待申请人在线补充 / 修改后再继续复核。" },
+  { label: "发证前复查", text: "发证前需确认申请状态为审核通过、核定信息完整，且所有材料审核项均已通过。" }
+];
+
 function buildReviewNote(reviewNote: string, taoistRank: string) {
   const cleaned = reviewNote.replace(/\n?证书等级 \/ 项目：.*$/m, "").trim();
   const rankLine = `证书等级 / 项目：${taoistRank || "道士资格认证"}`;
@@ -288,14 +309,17 @@ export function CertificationReviewForm({
               <span className="text-sm font-medium text-porcelain">认证委员会审核意见</span>
               <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={committeeReviewNote} onChange={(event) => setCommitteeReviewNote(event.target.value)} />
             </label>
+            <TemplateButtons disabled={isReadonlyStatus} onSelect={setCommitteeReviewNote} templates={committeeReviewTemplates} />
             <label className="grid gap-3 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
               <span className="text-sm font-medium text-porcelain">对申请人反馈</span>
               <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={applicantFeedback} onChange={(event) => setApplicantFeedback(event.target.value)} />
             </label>
+            <TemplateButtons disabled={isReadonlyStatus} onSelect={setApplicantFeedback} templates={applicantFeedbackTemplates} />
             <label className="grid gap-3 rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-4">
               <span className="text-sm font-medium text-porcelain">后台审核备注</span>
               <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={internalReviewNote} onChange={(event) => setInternalReviewNote(event.target.value)} />
             </label>
+            <TemplateButtons disabled={isReadonlyStatus} onSelect={setInternalReviewNote} templates={internalReviewTemplates} />
           </div>
         </div>
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
@@ -355,5 +379,23 @@ export function CertificationReviewForm({
         </div>
       </div>
     </section>
+  );
+}
+
+function TemplateButtons({ disabled, onSelect, templates }: { disabled: boolean; onSelect: (value: string) => void; templates: Array<{ label: string; text: string }> }) {
+  return (
+    <div className="-mt-2 flex flex-wrap gap-2">
+      {templates.map((template) => (
+        <button
+          className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D] disabled:cursor-not-allowed disabled:opacity-50"
+          disabled={disabled}
+          key={template.label}
+          onClick={() => onSelect(template.text)}
+          type="button"
+        >
+          {template.label}
+        </button>
+      ))}
+    </div>
   );
 }

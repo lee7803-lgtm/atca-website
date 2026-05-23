@@ -9,6 +9,9 @@ import { formatQueryStatus } from "@/lib/status-labels";
 import { certificationPathLabels } from "@/types/certification";
 import type { ApplicationQueryResponse, ApplicationQueryResult } from "@/types/application";
 
+const contactEmail = "aseantaoist@gmail.com";
+const applicationLookupMailto = `mailto:${contactEmail}?subject=${encodeURIComponent("找回申请编号")}`;
+
 const deliveryStatusText: Record<string, string> = {
   not_delivered: "待下发",
   delivered: "已下发"
@@ -45,6 +48,7 @@ function ApplicationQueryContent() {
   const [selectedIndex, setSelectedIndex] = useState(0);
   const [supplementSubmitted, setSupplementSubmitted] = useState(false);
   const [supplementFiles, setSupplementFiles] = useState<string[]>([]);
+  const [isLookupOpen, setIsLookupOpen] = useState(false);
 
   const selectedApplication = applications[selectedIndex] || null;
 
@@ -82,20 +86,20 @@ function ApplicationQueryContent() {
     <>
       <PageHero
         actions={[
-          { label: "申请进度查询", href: "/application/query" },
-          { label: "证书公开核验", href: "/certificate-query" }
+          { label: "查询申请", href: "/application/query" },
+          { label: "证书核验", href: "/certificate-query" }
         ]}
         eyebrow="Application Query"
-        title="申请进度 / 申请结果查询"
+        title="申请查询"
         subtitle="Application Status And Result Query"
-        intro="本页面供申请人本人查询认证申请进度、审核反馈、证书生成情况、证书查看与打印入口。"
+        intro="本页面供申请人本人查询认证申请进度、审核反馈、证书生成情况，以及证书查看与打印信息。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
         visualDescription="查询结果仅脱敏显示申请状态和必要备注，不公开完整申请资料。"
         visualEyebrow="Query"
         visualMark="Status"
         visualSeal="查询"
-        visualTitle="申请结果查询"
+        visualTitle="申请记录查询"
       />
 
       <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
@@ -108,12 +112,50 @@ function ApplicationQueryContent() {
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
               如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名。
             </div>
+            <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/70 p-4 text-xs leading-6 text-[#666666]">
+              申请编号是申请人本人查询申请进度、补充资料和查看审核结果的重要凭证，请妥善保存。为保护申请资料安全，系统不会通过姓名和邮箱在网页上直接公开申请编号。
+            </div>
 
             <div className="mt-7 grid gap-5">
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
                 <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
                 <input className="form-input" placeholder="例如 ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
+                <span className="text-sm leading-6 text-[#5f5b52]">
+                  忘记申请编号？
+                  <button className="ml-1 font-semibold text-[#7F1D1D] underline-offset-4 hover:underline" onClick={() => setIsLookupOpen((value) => !value)} type="button">
+                    找回申请编号
+                  </button>
+                </span>
               </label>
+              {isLookupOpen ? (
+                <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+                  <h3 className="font-serif text-2xl text-porcelain">找回申请编号</h3>
+                  <p className="mt-3 text-sm leading-7 text-[#5f5b52]">
+                    为保护申请资料安全，申请编号暂不支持通过姓名和邮箱在网页上直接找回。若您忘记申请编号，请使用提交申请时登记的邮箱发送邮件至协会联系邮箱，由秘书处核对后协助处理。
+                  </p>
+                  <div className="mt-4 rounded-xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
+                    <p className="font-medium text-porcelain">请在邮件中提供：</p>
+                    <ol className="mt-2 list-decimal space-y-1 pl-5">
+                      <li>申请人姓名 / 机构名称</li>
+                      <li>登记邮箱或手机号</li>
+                      <li>申请类型，如道士资格认证、个人会员申请或机构会员申请</li>
+                      <li>大致提交时间，如可提供</li>
+                    </ol>
+                  </div>
+                  <p className="mt-4 text-sm leading-7 text-[#5f5b52]">
+                    协会核对后，将只会把申请编号回复至原登记邮箱或原登记手机号，不会在网页上直接显示申请编号。
+                  </p>
+                  <p className="mt-4 text-sm leading-7 text-[#5f5b52]">
+                    联系邮箱：
+                    <a className="ml-1 break-all font-semibold text-[#7F1D1D] underline-offset-4 hover:underline" href={`mailto:${contactEmail}`}>
+                      {contactEmail}
+                    </a>
+                  </p>
+                  <a className="mt-4 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={applicationLookupMailto}>
+                    发送邮件找回
+                  </a>
+                </div>
+              ) : null}
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
                 <span className="text-sm font-medium text-porcelain">邮箱或手机 / WhatsApp <span className="text-[#7F1D1D]">*</span></span>
                 <input className="form-input" placeholder="请输入提交申请时填写的联络方式" required value={contact} onChange={(event) => setContact(event.target.value)} />
@@ -131,7 +173,7 @@ function ApplicationQueryContent() {
 
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Status</p>
-            <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询结果</h2>
+            <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">申请记录查询</h2>
             {applications.length > 1 ? (
               <div className="mt-6 grid gap-3">
                 <p className="text-sm leading-7 text-[#5f5b52]">查询到多条匹配记录，请选择一条查看脱敏详情。</p>
@@ -536,7 +578,7 @@ function QueryPageFallback() {
       <section className="grid gap-8 lg:grid-cols-[0.86fr_1.14fr] lg:items-start">
         <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>
-          <h1 className="mt-3 font-serif text-3xl text-porcelain">申请进度 / 申请结果查询</h1>
+          <h1 className="mt-3 font-serif text-3xl text-porcelain">申请查询</h1>
           <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人通过申请编号和登记联系方式查询个人会员申请、机构会员申请、道士资格认证申请、证书生成情况及证书查看与打印信息。</p>
           <div className="mt-7 grid gap-5">
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">

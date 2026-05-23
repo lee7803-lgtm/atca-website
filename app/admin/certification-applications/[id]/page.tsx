@@ -130,20 +130,22 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         </div>
       </div>
       <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-        <div className="grid gap-6 lg:grid-cols-[1fr_auto] lg:items-start">
-          <div>
+        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,520px)] lg:items-start">
+          <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Detail</p>
             <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">认证申请详情</h1>
             <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <p className="break-all rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-base font-semibold text-[#7F1D1D]">申请编号：{application.applicationNo}</p>
               <CopyButton label="复制申请编号" text={application.applicationNo} />
               <span className="rounded-full bg-[#7F1D1D] px-4 py-2 text-sm font-semibold text-white">{formatCertificationApplicationStatus(application)}</span>
+            </div>
+            <div className="mt-4 flex flex-wrap gap-3">
               <a className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink" href={`/api/admin/certification-applications/${application.id}/export`}>
                 下载本申请资料
               </a>
             </div>
           </div>
-          <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52] lg:min-w-72">
+          <div className="w-full max-w-[520px] justify-self-end rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-left text-sm leading-7 text-[#5f5b52]">
             <p>提交时间：{formatDateTime(application.createdAt)}</p>
             <p>申请人：{application.applicantName}</p>
             <p>邮箱 / 手机号：{application.email} / {application.phone}</p>

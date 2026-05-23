@@ -67,7 +67,7 @@ export default function CertificationPage() {
       <PageHero
         actions={[
           { label: "道士资格认证", href: "/certification/taoist-priest" },
-          { label: "申请结果查询", href: "/application/query" },
+          { label: "申请查询", href: "/application/query" },
           { label: "证书公开核验", href: "/certificate-query" }
         ]}
         eyebrow="Certification"
@@ -132,7 +132,7 @@ export default function CertificationPage() {
         <div className="grid gap-5 lg:grid-cols-[1fr_0.9fr]">
           <InfoCard icon={<CertificationIcon name="query" />} title="官网公开核验" text="证书生成后，公众、合作方及第三方机构可通过证书编号与持证人姓名核验证书公开信息。查询结果仅展示公开核验所需资料。" />
           <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
-            核验说明：证书公开核验不能查询申请进度，也不展示申请人的联系方式、上传材料、审核意见或道装证件照。申请人如需查看申请结果或证书打印信息，请前往申请进度 / 申请结果查询。
+            核验说明：证书公开核验不能查询申请进度，也不展示申请人的联系方式、上传材料、审核意见或道装证件照。申请人如需查看申请结果或证书打印信息，请前往申请查询。
           </div>
         </div>
       </CertificationSection>
