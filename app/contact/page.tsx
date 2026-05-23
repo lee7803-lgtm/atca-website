@@ -18,6 +18,7 @@ const categories: Array<{ title: string; text: string; icon: IconBadgeName }> = 
 ];
 
 const consultationItems = ["认证咨询", "会员申请", "机构合作", "文化交流", "网站信息更正"];
+const contactEmail = "aseantaoist@gmail.com";
 
 function ContactSection({ eyebrow, title, intro, children, compact = false, afterHero = false, tone = "default" }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean; afterHero?: boolean; tone?: "default" | "soft" }) {
   return (
@@ -105,11 +106,17 @@ export default function ContactPage() {
               </div>
             </div>
             <div className="grid gap-3 text-sm leading-7 text-[#5f5b52]">
-              <p>协会正式联系方式尚未公开，官网不会展示未经确认的电话、邮箱或地址。后续以协会秘书处公布信息为准。</p>
+              <p>联系方式：</p>
+              <a className="break-all font-semibold text-[#7F1D1D] underline-offset-4 hover:underline" href={`mailto:${contactEmail}`}>
+                {contactEmail}
+              </a>
             </div>
           </div>
         </div>
         <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <a className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={`mailto:${contactEmail}`}>
+            发送邮件
+          </a>
           <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/membership">
             查看会员申请
           </Link>

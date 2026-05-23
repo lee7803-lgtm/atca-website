@@ -14,6 +14,13 @@ const statusOptions: Array<{ value: ApplicationStatus; label: string }> = [
   { value: "archived", label: "已建档" }
 ];
 
+const reviewTemplates = [
+  { label: "资料完整", text: "资料完整，建议审核通过。" },
+  { label: "需补充资料", text: "资料基本完整，但仍需申请人补充联系方式、身份证明或相关说明后再复核。" },
+  { label: "暂不完整", text: "申请资料暂不完整，请申请人补充必要资料后再继续审核。" },
+  { label: "建议不通过", text: "当前资料暂不符合会员申请要求，建议暂不通过。" }
+];
+
 export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: { applicationId: string; initialAdminNote: string; initialStatus: ApplicationStatus }) {
   const router = useRouter();
   const [status, setStatus] = useState<ApplicationStatus>(initialStatus);
@@ -71,6 +78,18 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
           <span className="text-sm font-medium text-porcelain">审核备注</span>
           <textarea className="form-input min-h-36 resize-y" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />
         </label>
+        <div className="flex flex-wrap gap-2">
+          {reviewTemplates.map((template) => (
+            <button
+              className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D]"
+              key={template.label}
+              onClick={() => setAdminNote(template.text)}
+              type="button"
+            >
+              {template.label}
+            </button>
+          ))}
+        </div>
       </div>
       {message ? (
         <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>

@@ -7,7 +7,7 @@ import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { checkCertificatesTableConfigured, findCertificateByApplicationId, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatCertificationApplicationStatus, hasSupplementRecord } from "@/lib/status-labels";
-import type { CertificationApplicationAdminRecord, CertificationStatus } from "@/types/certification";
+import { certificationPathLabels, type CertificationApplicationAdminRecord, type CertificationPath, type CertificationStatus } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -107,7 +107,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
     item.taoistName || "",
     item.email || "",
     item.phone || "",
-    item.sect || item.lineage || item.certificationPath || "",
+    formatLineageForCsv(item),
     item.requestedLevel || "",
     item.approvedPath || "",
     item.approvedLevel || "",
@@ -196,4 +196,11 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function formatLineageForCsv(item: CertificationApplicationAdminRecord) {
+  if (item.lineage) return item.lineage;
+  if (item.certificationPath) return certificationPathLabels[item.certificationPath as CertificationPath] || item.certificationPath;
+  if (item.approvedPath) return certificationPathLabels[item.approvedPath as CertificationPath] || item.approvedPath;
+  return "";
 }

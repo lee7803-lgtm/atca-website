@@ -2,6 +2,8 @@ import Link from "next/link";
 import { BrandMark } from "@/components/BrandMark";
 import { CulturePattern } from "@/components/CulturePattern";
 
+const contactEmail = "aseantaoist@gmail.com";
+
 export function Footer() {
   return (
     <footer className="relative overflow-hidden border-t border-warmGold/35 bg-inkBrown text-white">
@@ -47,12 +49,12 @@ export function Footer() {
         </div>
         <div>
           <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">联系方式</p>
-          <p className="mt-3 text-sm leading-6 text-white/70">
-            请以后续官网公告或协会秘书处通知为准。
-          </p>
-          <Link className="mt-4 inline-flex rounded-lg border border-warmGold/45 bg-white/8 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/12" href="/contact">
-            联系入口
-          </Link>
+          <a className="mt-3 block break-all text-sm leading-6 text-white/78 underline-offset-4 hover:underline" href={`mailto:${contactEmail}`}>
+            {contactEmail}
+          </a>
+          <a className="mt-4 inline-flex rounded-lg border border-warmGold/45 bg-white/8 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-white/12" href={`mailto:${contactEmail}`}>
+            发送邮件
+          </a>
         </div>
       </div>
       <div className="relative border-t border-white/10 px-5 py-3.5 text-center text-xs leading-5 text-white/55 sm:py-4">

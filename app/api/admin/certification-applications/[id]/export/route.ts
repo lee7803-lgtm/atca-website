@@ -32,6 +32,13 @@ function section(title: string, content: string) {
   return `<section><h2>${escapeHtml(title)}</h2><div class="grid">${content}</div></section>`;
 }
 
+function formatFileSize(size?: number) {
+  if (!size || size <= 0) return "未记录";
+  if (size < 1024) return "< 1 KB";
+  if (size < 1024 * 1024) return `${Math.ceil(size / 1024)} KB`;
+  return `${(size / 1024 / 1024).toFixed(1)} MB`;
+}
+
 function attachmentRows(attachments: CertificationAttachment[]) {
   if (attachments.length === 0) return `<tr><td colspan="6">未提交附件</td></tr>`;
   return attachments
@@ -40,7 +47,7 @@ function attachmentRows(attachments: CertificationAttachment[]) {
         <td>${escapeHtml(item.originalName)}</td>
         <td>${escapeHtml(formatAttachmentFieldName(item.fieldName))}</td>
         <td>${escapeHtml(item.mimeType || "未记录")}</td>
-        <td>${escapeHtml(item.size ? `${Math.round(item.size / 1024)} KB` : "未记录")}</td>
+        <td>${escapeHtml(formatFileSize(item.size))}</td>
         <td>${escapeHtml(formatDateTime(item.uploadedAt))}</td>
         <td>${escapeHtml(item.source === "supplement" ? "是" : "否")}</td>
       </tr>`

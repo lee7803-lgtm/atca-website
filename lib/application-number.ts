@@ -1,8 +1,8 @@
 import type { ApplicationType } from "@/types/application";
 
-const typePrefix: Record<ApplicationType, "M" | "O"> = {
+const typePrefix: Record<ApplicationType, "M"> = {
   personal_member: "M",
-  organization_member: "O"
+  organization_member: "M"
 };
 
 function formatDateSegment(date: Date) {
