@@ -63,6 +63,10 @@ const associationHighlights = [
   ["国际合作", "面向不同国家和地区，推动宫观道堂、文化机构、传统文化组织之间的交流与合作。"]
 ];
 
+const homeContainedSectionClass = "mx-auto max-w-7xl px-5 py-20 sm:px-8 lg:py-28";
+const homeBandSectionClass = "px-5 py-20 sm:px-8 lg:py-28";
+const homeFirstContentSectionClass = "mx-auto max-w-7xl px-5 pb-20 pt-24 sm:px-8 lg:py-28";
+
 function PortalTitle({ eyebrow, title, intro, light = false }: { eyebrow?: string; title: string; intro?: string; light?: boolean }) {
   return (
     <div className="mb-12 flex flex-col gap-5 md:flex-row md:items-end md:justify-between">
@@ -154,12 +158,12 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-18 sm:px-8 lg:py-28">
+      <section className={homeFirstContentSectionClass}>
         <PortalTitle eyebrow="Institutional Role" title="协会定位" intro="ITCA 是面向道教文化传承、认证建档、会员组织与国际交流合作的协会平台，以清晰的信息入口承接申请、查询与合作沟通。" />
         <div className="grid gap-7 lg:grid-cols-[1.05fr_0.95fr] lg:items-stretch">
           <div className="relative overflow-hidden rounded-[1.75rem] border border-[#e4ded0] bg-white p-7 shadow-[0_18px_48px_rgba(31,42,40,0.055)]">
             <InkLandscape className="opacity-80" />
-            <div className="relative grid gap-5 sm:grid-cols-2">
+            <div className="relative grid gap-6 sm:grid-cols-2">
               {associationHighlights.map(([title, text]) => (
                 <div className="rounded-[1.25rem] border border-[#e4ded0] bg-[#fbf8ef]/90 p-5" key={title}>
                   <h3 className="text-lg font-medium text-porcelain">{title}</h3>
@@ -184,7 +188,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#efe7d8] px-5 py-18 sm:px-8 lg:py-28">
+      <section className={`bg-[#efe7d8] ${homeBandSectionClass}`}>
         <div className="mx-auto max-w-7xl">
           <PortalTitle eyebrow="Official Entries" title="核心服务" intro="官网当前提供认证服务、会员申请与证书核验三类核心入口，并公开说明申请须知、资料使用说明与查询方式。" />
           <div className="grid gap-7 lg:grid-cols-3">
@@ -193,9 +197,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-18 sm:px-8 lg:py-28">
+      <section className={homeContainedSectionClass}>
         <PortalTitle eyebrow="Certification" title="认证体系" intro="当前认证系统仅开放道士资格认证，用于登记申请人的道教身份、师承传承、学习经历与相关证明材料，并纳入协会认证与资料建档流程。" />
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
           {certificationFeatures.map(([title, text], index) => (
             <article className="rounded-[1.35rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
               <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
@@ -209,10 +213,10 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#efe7d8] px-5 py-18 sm:px-8 lg:py-28">
+      <section className={`bg-[#efe7d8] ${homeBandSectionClass}`}>
         <div className="mx-auto max-w-7xl">
           <PortalTitle eyebrow="Trust Service" title="为什么选择 ITCA" intro="以官网核验、审核记录、资料建档和文化交流服务为基础，提供清晰、可查询、可沟通的申请与核验入口。" />
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {trustFeatures.map(([title, text], index) => (
               <article className="rounded-[1.35rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
                 <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
@@ -224,9 +228,9 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-5 py-18 sm:px-8 lg:py-28">
+      <section className={homeContainedSectionClass}>
         <PortalTitle eyebrow="Certification Flow" title="认证流程图" intro="道士资格认证采用在线了解、资料提交、初步审核、委员会审核、必要时补充资料或面谈、结果确认、证书生成与官网公开核验的流程。" />
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {certificationFlow.map((title, index) => (
             <article className="relative rounded-[1.35rem] border border-[#e4ded0] bg-white/92 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
               <p className="text-xs tracking-[0.22em] text-gold">第 {index + 1} 步</p>
@@ -236,7 +240,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#efe7d8] px-5 py-18 sm:px-8 lg:py-28">
+      <section className={`bg-[#efe7d8] ${homeBandSectionClass}`}>
         <div className="mx-auto max-w-7xl">
           <PortalTitle eyebrow="ORGANIZATION" title="协会组织与职能" intro="协会依据章程和实际工作需要，设立相应组织分工，负责会员服务、认证审核、文化交流与合作沟通等事务。" />
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
@@ -268,7 +272,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="px-5 py-18 sm:px-8 lg:py-28" id="announcements">
+      <section className={homeBandSectionClass} id="announcements">
         <div className="mx-auto grid max-w-7xl gap-7 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch">
           <article className="relative overflow-hidden rounded-[1.85rem] bg-[#7F1D1D] p-8 text-white shadow-[0_22px_58px_rgba(127,29,29,0.16)] sm:p-10">
             <div className="absolute -right-14 -top-16 h-44 w-44 rounded-full border border-white/12" aria-hidden="true" />
@@ -297,7 +301,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#efe7d8] px-5 py-18 sm:px-8 lg:py-28">
+      <section className={`bg-[#efe7d8] ${homeBandSectionClass}`}>
         <div className="mx-auto max-w-7xl">
           <PortalTitle eyebrow="International Cooperation" title="国际合作与学术交流" intro="面向文化机构、社团组织、研究单位和国际项目伙伴，围绕文化研究、课程研修、资料整理与交流活动开展稳健合作。" />
           <CulturalImage
@@ -311,7 +315,7 @@ export default function Home() {
             variant="wide"
             className="mb-7 min-h-[21rem]"
           />
-          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
             {cooperation.map(([title, text, icon]) => (
               <article className="rounded-[1.35rem] border border-[#e4ded0] bg-white/88 p-6 shadow-[0_14px_34px_rgba(31,42,40,0.045)]" key={title}>
                 <IconBadge name={icon} />
@@ -323,7 +327,7 @@ export default function Home() {
         </div>
       </section>
 
-      <section className="bg-[#2A1F1A] px-5 py-14 text-white sm:px-8 lg:py-18">
+      <section className="bg-[#2A1F1A] px-5 py-16 text-white sm:px-8 lg:py-18">
         <div className="mx-auto flex max-w-7xl flex-col gap-7 md:flex-row md:items-center md:justify-between">
           <div>
             <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd7a]">Next Step</p>

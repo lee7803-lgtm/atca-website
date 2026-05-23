@@ -108,6 +108,9 @@ function ApplicationQueryContent() {
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Query Form</p>
             <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">查询申请记录</h2>
             <p className="mt-4 text-sm leading-7 text-[#5f5b52]">请输入申请编号，以及提交申请时使用的邮箱或手机 / WhatsApp，用于核对本人申请进度、申请结果、审核反馈、证书生成状态与证书查看 / 打印信息。</p>
+            <p className="mt-3 text-sm leading-7 text-[#5f5b52]">
+              如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。
+            </p>
 
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
               如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名。
@@ -120,27 +123,27 @@ function ApplicationQueryContent() {
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
                 <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
                 <input className="form-input" placeholder="例如 ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
-                <span className="text-sm leading-6 text-[#5f5b52]">
-                  忘记申请编号？
-                  <button className="ml-1 font-semibold text-[#7F1D1D] underline-offset-4 hover:underline" onClick={() => setIsLookupOpen((value) => !value)} type="button">
-                    找回申请编号
-                  </button>
-                </span>
               </label>
+              <div className="rounded-2xl border border-[#e4ded0] bg-[#fff8ed] px-4 py-3 text-sm leading-6 text-[#5f5b52]">
+                <span className="font-medium text-porcelain">忘记申请编号？</span>
+                <button className="ml-1 font-semibold text-[#7F1D1D] underline underline-offset-4 transition hover:text-[#5f1515]" onClick={() => setIsLookupOpen((value) => !value)} type="button">
+                  找回申请编号
+                </button>
+              </div>
               {isLookupOpen ? (
-                <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+                <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
                   <h3 className="font-serif text-2xl text-porcelain">找回申请编号</h3>
                   <p className="mt-3 text-sm leading-7 text-[#5f5b52]">
                     为保护申请资料安全，申请编号暂不支持通过姓名和邮箱在网页上直接找回。若您忘记申请编号，请使用提交申请时登记的邮箱发送邮件至协会联系邮箱，由秘书处核对后协助处理。
                   </p>
                   <div className="mt-4 rounded-xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
                     <p className="font-medium text-porcelain">请在邮件中提供：</p>
-                    <ol className="mt-2 list-decimal space-y-1 pl-5">
+                    <ul className="mt-2 list-disc space-y-1 pl-5">
                       <li>申请人姓名 / 机构名称</li>
                       <li>登记邮箱或手机号</li>
-                      <li>申请类型，如道士资格认证、个人会员申请或机构会员申请</li>
+                      <li>申请类型</li>
                       <li>大致提交时间，如可提供</li>
-                    </ol>
+                    </ul>
                   </div>
                   <p className="mt-4 text-sm leading-7 text-[#5f5b52]">
                     协会核对后，将只会把申请编号回复至原登记邮箱或原登记手机号，不会在网页上直接显示申请编号。
