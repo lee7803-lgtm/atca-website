@@ -3,7 +3,6 @@
 import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { useMemo, useState } from "react";
-import { CopyButton } from "@/components/CopyButton";
 import {
   certificationLevelLabels,
   certificationPathLabels,
@@ -19,19 +18,6 @@ const statusOptions: Array<{ value: CertificationStatus; label: string }> = [
   { value: "approved", label: "审核通过" },
   { value: "rejected", label: "审核驳回" }
 ];
-
-const statusText: Record<string, string> = {
-  submitted: "已提交",
-  under_review: "审核中",
-  need_more_info: "需补充材料",
-  approved: "审核通过",
-  rejected: "审核未通过",
-  certificate_issued: "已生成证书",
-  cert_issued: "已生成证书",
-  delivered: "已下发",
-  archived: "已归档",
-  revoked: "已撤销"
-};
 
 const certificationPathOptions: Array<{ value: "" | CertificationPath; label: string }> = [
   { value: "", label: "暂不核定" },
@@ -52,13 +38,6 @@ const committeeReviewTemplates = [
   { label: "建议不通过", text: "当前资料暂不符合本项认证申请要求，建议不予通过。" }
 ];
 
-const applicantFeedbackTemplates = [
-  { label: "审核通过", text: "您的申请资料已通过审核，后续将根据协会流程生成证书记录并完成证书下发安排。" },
-  { label: "请补充资料", text: "您的申请资料尚需补充，请根据本页提示补充相关证明材料或说明后重新提交。" },
-  { label: "待复核", text: "您提交的补充资料已收到，协会将进行复核，请等待后续审核结果。" },
-  { label: "未通过说明", text: "经审核，当前资料暂不符合本项认证申请要求，暂无法通过本次申请。" }
-];
-
 const internalReviewTemplates = [
   { label: "已核对", text: "已核对基本身份资料、师承 / 传承信息、推荐人资料及上传材料，待进一步审核确认。" },
   { label: "待复核", text: "该申请仍需人工复核材料真实性、传承信息与资质证明。" },
@@ -72,45 +51,8 @@ function buildReviewNote(reviewNote: string, taoistRank: string) {
   return cleaned ? `${cleaned}\n${rankLine}` : rankLine;
 }
 
-function buildNotice(params: {
-  type: "approved" | "need_more_info" | "rejected" | "certificate";
-  applicantName: string;
-  applicationNo: string;
-  status: CertificationStatus;
-  certificateNo?: string;
-  applicantFeedback: string;
-}) {
-  const base = [`${params.applicantName} 您好：`, "", `您的 ITCA 道士资格认证申请（申请编号：${params.applicationNo}）当前状态为：${statusText[params.status] || params.status}。`];
-
-  if (params.type === "approved") {
-    base.push("", params.applicantFeedback || "您的申请已通过审核。后续如生成证书记录，可继续通过官网申请进度查询查看申请状态、证书编号与证书核验详情。");
-  }
-
-  if (params.type === "need_more_info") {
-    base.push("", params.applicantFeedback || "您的申请资料需要补充。请根据 ITCA 秘书处反馈补充相关材料后再继续审核。");
-  }
-
-  if (params.type === "rejected") {
-    base.push("", params.applicantFeedback || "您的申请暂未通过审核。如需核对具体情况，请联系 ITCA 秘书处。");
-  }
-
-  if (params.type === "certificate") {
-    base.push("", params.certificateNo ? `您的证书记录已生成，证书编号：${params.certificateNo}。` : "您的证书记录已生成或已完成下发。");
-  }
-
-  base.push("", "申请进度查询入口：/application/query");
-  if (params.certificateNo) {
-    base.push(`证书核验详情入口：/certificates/${encodeURIComponent(params.certificateNo)}`);
-    base.push(`公开证书核验入口：/certificate-query?certificateNo=${encodeURIComponent(params.certificateNo)}&holderName=${encodeURIComponent(params.applicantName)}`);
-  }
-  base.push("", "如联系方式或资料需更新，请联系 ITCA 秘书处协助处理。");
-
-  return base.join("\n");
-}
-
 type CertificationReviewFormProps = {
   applicationId: string;
-  applicantName: string;
   applicationNo: string;
   certificateNo?: string;
   deliveryStatus: "not_delivered" | "delivered";
@@ -128,7 +70,6 @@ type CertificationReviewFormProps = {
 
 export function CertificationReviewForm({
   applicationId,
-  applicantName,
   applicationNo,
   certificateNo,
   deliveryStatus,
@@ -164,6 +105,36 @@ export function CertificationReviewForm({
   const canMarkDelivered = hasCertificate && deliveryStatus !== "delivered" && (initialStatus === "certificate_issued" || initialStatus === "cert_issued");
   const canCorrectNotDelivered = hasCertificate && deliveryStatus === "delivered";
   const canArchive = initialStatus === "delivered";
+  const applicantFeedbackTemplates = useMemo(() => {
+    const currentCertificateNo = certificateNo?.trim() || "尚未生成";
+
+    return [
+      {
+        label: "审核通过通知",
+        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已通过审核。后续将根据协会流程生成证书记录，并完成证书下发安排。请继续保留申请编号，以便查询申请结果和证书生成情况。`
+      },
+      {
+        label: "补充材料通知",
+        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）尚需补充材料。请登录申请查询页面，使用申请编号与登记联系方式查询申请状态，并根据页面提示补充相关资料。协会将在收到补充资料后继续复核。`
+      },
+      {
+        label: "审核未通过通知",
+        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）经审核暂未通过。您可通过申请查询页面查看审核反馈。如需再次申请，请根据协会后续说明重新准备资料。`
+      },
+      {
+        label: "证书已生成通知",
+        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已生成证书记录。证书编号为：${currentCertificateNo}。请继续关注证书下发状态，并以官网公开核验信息为准。`
+      },
+      {
+        label: "证书已下发通知",
+        text: `您好，您的 ITCA 道士资格认证证书已完成下发。证书编号为：${currentCertificateNo}。您可通过官网证书核验入口进行公开核验。请妥善保存证书编号。`
+      },
+      {
+        label: "已补充待复核通知",
+        text: `您好，您补充提交的资料已收到。您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已进入复核阶段，请等待后续审核结果。`
+      }
+    ];
+  }, [applicationNo, certificateNo]);
 
   const statusGuide = useMemo(() => {
     if (initialStatus === "submitted" || initialStatus === "under_review") return "当前申请处于受理或审核阶段，可保存审核中、要求补充材料、审核通过或审核驳回；审核通过前不能生成证书。";
@@ -246,16 +217,6 @@ export function CertificationReviewForm({
   const markDelivered = () => request({ action: "mark_delivered" }, "证书已标记为已下发。");
   const correctNotDelivered = () => request({ action: "correct_not_delivered" }, "证书下发状态已更正为未下发。");
   const archive = () => request({ action: "archive" }, "申请已归档。");
-
-  const notices = useMemo(
-    () => [
-      { label: "复制审核通过通知", text: buildNotice({ type: "approved", applicantName, applicationNo, status: "approved", certificateNo, applicantFeedback }) },
-      { label: "复制补充材料通知", text: buildNotice({ type: "need_more_info", applicantName, applicationNo, status: "need_more_info", certificateNo, applicantFeedback }) },
-      { label: "复制审核未通过通知", text: buildNotice({ type: "rejected", applicantName, applicationNo, status: "rejected", certificateNo, applicantFeedback }) },
-      { label: "复制证书通知", text: buildNotice({ type: "certificate", applicantName, applicationNo, status: deliveryStatus === "delivered" ? "delivered" : "certificate_issued", certificateNo, applicantFeedback }) }
-    ],
-    [applicantFeedback, applicantName, applicationNo, certificateNo, deliveryStatus]
-  );
 
   return (
     <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
@@ -363,20 +324,6 @@ export function CertificationReviewForm({
         {canArchive ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={archive} type="button">
           归档
         </button> : null}
-      </div>
-
-      <div className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-        <h3 className="font-serif text-2xl text-porcelain">通知文案复制</h3>
-        <div className="mt-5 grid gap-4">
-          {notices.map((notice) => (
-            <div className="rounded-xl border border-[#e4ded0] bg-white p-4" key={notice.label}>
-              <textarea className="form-input min-h-32 resize-y text-xs leading-6" readOnly value={notice.text} />
-              <div className="mt-3">
-                <CopyButton label={notice.label} text={notice.text} />
-              </div>
-            </div>
-          ))}
-        </div>
       </div>
     </section>
   );

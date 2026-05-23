@@ -130,11 +130,11 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         </div>
       </div>
       <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-        <div className="grid gap-8 lg:grid-cols-[minmax(0,1fr)_minmax(18rem,520px)] lg:items-start">
+        <div className="grid grid-cols-1 gap-8 lg:grid-cols-[minmax(0,1fr)_520px] lg:items-start">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Detail</p>
             <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">认证申请详情</h1>
-            <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+            <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <p className="break-all rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-base font-semibold text-[#7F1D1D]">申请编号：{application.applicationNo}</p>
               <CopyButton label="复制申请编号" text={application.applicationNo} />
               <span className="rounded-full bg-[#7F1D1D] px-4 py-2 text-sm font-semibold text-white">{formatCertificationApplicationStatus(application)}</span>
@@ -145,13 +145,15 @@ export default async function AdminCertificationApplicationDetailPage({ params }
               </a>
             </div>
           </div>
-          <div className="w-full max-w-[520px] justify-self-end rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-left text-sm leading-7 text-[#5f5b52]">
-            <p>提交时间：{formatDateTime(application.createdAt)}</p>
-            <p>申请人：{application.applicantName}</p>
-            <p>邮箱 / 手机号：{application.email} / {application.phone}</p>
+          <div className="w-full max-w-[520px] justify-self-start rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-left text-sm leading-7 text-[#5f5b52] lg:justify-self-end">
+            <div className="grid gap-3">
+              <HeaderInfoItem label="提交时间" value={formatDateTime(application.createdAt)} />
+              <HeaderInfoItem label="申请人" value={application.applicantName} />
+              <HeaderInfoItem label="邮箱 / 手机号" value={`${application.email} / ${application.phone}`} />
+            </div>
           </div>
         </div>
-        <div className="mt-7 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryItem label="传承体系" value={formatCertificationPath(application.certificationPath)} />
           <SummaryItem label="申报认证等级" value={formatCertificationLevel(application.requestedLevel)} />
           <SummaryItem label="核定传承体系" value={formatCertificationPath(application.approvedPath)} />
@@ -248,7 +250,6 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
         <div className="grid gap-6 lg:order-1">
           <CertificationReviewForm
-            applicantName={application.applicantName}
             applicationId={application.id}
             applicationNo={application.applicationNo}
             certificateNo={certificate?.certificateNo}
@@ -379,6 +380,15 @@ function SummaryItem({ label, value }: { label: string; value: string }) {
     <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3">
       <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
       <p className="mt-2 break-all text-sm font-medium leading-6 text-porcelain">{value}</p>
+    </div>
+  );
+}
+
+function HeaderInfoItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="grid gap-1 sm:grid-cols-[7rem_minmax(0,1fr)] sm:gap-3">
+      <span className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</span>
+      <span className="break-words text-sm font-medium text-porcelain">{value}</span>
     </div>
   );
 }
