@@ -1,5 +1,6 @@
 using Itca.Api.Data;
 using Itca.Api.Features.Certificates;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -64,7 +65,11 @@ app.MapGet(
                 });
             }
 
-            return Results.Ok(certificate);
+            return Results.Ok(new
+            {
+                success = true,
+                certificate
+            });
         }
         catch (SupabaseDbConfigurationException error)
         {
@@ -74,6 +79,28 @@ app.MapGet(
                     success = false,
                     message = "证书公开查询服务尚未完成数据库配置。",
                     missingConfiguration = error.EnvironmentVariable
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (ArgumentException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "证书公开查询服务的数据库连接配置格式无效。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (NpgsqlException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "证书公开查询服务暂时无法连接数据库，请稍后再试。"
                 },
                 statusCode: StatusCodes.Status503ServiceUnavailable
             );

@@ -18,12 +18,9 @@ public sealed class CertificateQueries(SupabaseDb database)
             select
               certificate_no,
               holder_name,
-              taoist_name,
               taoist_rank,
-              sect,
               certification_path,
               certification_level,
-              lineage_or_temple,
               issued_date,
               valid_from,
               valid_until,
@@ -49,23 +46,21 @@ public sealed class CertificateQueries(SupabaseDb database)
         return new CertificatePublicDto(
             publicCertificateNo,
             reader.GetString(1),
-            GetNullableString(reader, 2),
+            GetNullableString(reader, 2, "道士资格认证"),
             GetNullableString(reader, 3),
-            GetNullableString(reader, 4),
-            GetNullableString(reader, 5),
-            GetNullableString(reader, 6),
-            GetNullableString(reader, 7),
-            GetDateString(reader, 8),
-            GetDateString(reader, 9),
-            GetDateString(reader, 10),
-            reader.GetString(11),
+            FormatCertificationLevel(GetNullableString(reader, 4), GetNullableString(reader, 2, "道士资格认证")),
+            "ITCA / 国际道教与文化协会",
+            GetDateString(reader, 5),
+            GetDateString(reader, 6),
+            GetDateString(reader, 7),
+            reader.GetString(8),
             $"/certificates/{Uri.EscapeDataString(publicCertificateNo)}"
         );
     }
 
-    private static string GetNullableString(NpgsqlDataReader reader, int ordinal)
+    private static string GetNullableString(NpgsqlDataReader reader, int ordinal, string fallback = "")
     {
-        return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal);
+        return reader.IsDBNull(ordinal) ? fallback : reader.GetString(ordinal);
     }
 
     private static string GetDateString(NpgsqlDataReader reader, int ordinal)
@@ -76,5 +71,18 @@ public sealed class CertificateQueries(SupabaseDb database)
         }
 
         return reader.GetFieldValue<DateOnly>(ordinal).ToString("yyyy-MM-dd");
+    }
+
+    private static string FormatCertificationLevel(string level, string fallback)
+    {
+        return level switch
+        {
+            "refuge_entry" => "皈依 / 入道确认",
+            "transmission_or_crowning" => "传度 / 冠巾资格确认",
+            "register_or_precept" => "授箓 / 传戒资格确认",
+            "senior_taoist" => "高道 / 资深道职确认",
+            "special_lineage" => "其他特殊传承说明",
+            _ => fallback
+        };
     }
 }
