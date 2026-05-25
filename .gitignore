@@ -3,6 +3,8 @@ node_modules/
 .npm-cache/
 out/
 dist/
+bin/
+obj/
 .env*.local
 .DS_Store
 npm-debug.log*
