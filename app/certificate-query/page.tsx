@@ -5,8 +5,9 @@ import { FormEvent, useEffect, useState } from "react";
 import { IconBadge } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { Section } from "@/components/Section";
+import { queryPublicCertificate } from "@/lib/api/certificates";
 import { maskName } from "@/lib/masking";
-import { certificationPathLabels, type CertificateQueryResponse, type CertificateQueryResult } from "@/types/certification";
+import { certificationPathLabels, type CertificateQueryResult } from "@/types/certification";
 
 const statusText: Record<string, string> = {
   pending: "待确认",
@@ -37,9 +38,7 @@ export default function CertificateQueryPage() {
     setCertificate(null);
 
     try {
-      const params = new URLSearchParams({ certificateNo: certificateNo.trim(), holderName: holderName.trim() });
-      const response = await fetch(`/api/certificates/query?${params.toString()}`);
-      const result = (await response.json()) as CertificateQueryResponse;
+      const { response, result } = await queryPublicCertificate(certificateNo, holderName);
 
       if (!response.ok || !result.success) {
         setMessage(result.success === false ? result.message : "证书公开核验未成功，请检查资料后重新查询。");
