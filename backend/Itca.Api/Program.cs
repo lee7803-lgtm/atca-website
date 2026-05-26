@@ -1,4 +1,5 @@
 using Itca.Api.Data;
+using Itca.Api.Features.Applications;
 using Itca.Api.Features.Certificates;
 using Npgsql;
 
@@ -24,6 +25,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddSingleton<SupabaseDb>();
+builder.Services.AddScoped<ApplicationQueries>();
 builder.Services.AddScoped<CertificateQueries>();
 
 var app = builder.Build();
@@ -35,6 +37,100 @@ app.MapGet("/api/health", () => Results.Json(new
     status = "ok",
     service = "ITCA API"
 }));
+
+app.MapGet(
+    "/api/applications/query",
+    async (
+        string? mode,
+        string? applicationNo,
+        string? contact,
+        string? email,
+        ApplicationQueries queries,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        var normalizedMode = string.IsNullOrWhiteSpace(mode) ? "number" : mode.Trim();
+        var normalizedApplicationNo = applicationNo?.Trim() ?? string.Empty;
+        var normalizedContact = contact?.Trim() ?? email?.Trim() ?? string.Empty;
+
+        if (normalizedMode != "number")
+        {
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "请使用申请编号和手机 / WhatsApp 或邮箱查询申请记录。"
+            });
+        }
+
+        if (string.IsNullOrWhiteSpace(normalizedApplicationNo) || string.IsNullOrWhiteSpace(normalizedContact))
+        {
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "请填写申请编号和手机 / WhatsApp 或邮箱后再查询。"
+            });
+        }
+
+        try
+        {
+            var application = await queries.FindApplicationProgressAsync(
+                normalizedApplicationNo,
+                normalizedContact,
+                cancellationToken
+            );
+
+            if (application is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未查询到匹配的申请记录。请确认申请编号和联系方式是否准确。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                applications = new[] { application },
+                application
+            });
+        }
+        catch (SupabaseDbConfigurationException error)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "申请查询服务尚未完成数据库配置，请联系协会秘书处协助核验。",
+                    missingConfiguration = error.EnvironmentVariable
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (ArgumentException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "申请查询服务的数据库连接配置格式无效。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (NpgsqlException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "申请查询服务暂时无法连接数据库，请稍后再试。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+    }
+);
 
 app.MapGet(
     "/api/certificates/query",

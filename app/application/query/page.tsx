@@ -4,6 +4,7 @@ import { useSearchParams } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
 import { Suspense, useState } from "react";
 import { PageHero } from "@/components/PageHero";
+import { queryApplicationProgress } from "@/lib/api/applications";
 import { maskApplicationNo, maskName } from "@/lib/masking";
 import { formatQueryStatus } from "@/lib/status-labels";
 import { certificationPathLabels } from "@/types/certification";
@@ -64,10 +65,7 @@ function ApplicationQueryContent() {
     setSupplementFiles([]);
 
     try {
-      const params = new URLSearchParams({ mode: "number", applicationNo: applicationNumber.trim(), contact: contact.trim() });
-
-      const response = await fetch(`/api/applications/query?${params.toString()}`);
-      const result = (await response.json()) as ApplicationQueryResponse;
+      const { response, result } = await queryApplicationProgress(applicationNumber, contact);
 
       if (!response.ok || !result.success) {
         setErrorMessage(result.success === false ? result.message : "申请查询未成功，请检查资料后重新查询。");
