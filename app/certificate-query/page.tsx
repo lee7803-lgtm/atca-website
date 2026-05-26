@@ -115,10 +115,8 @@ export default function CertificateQueryPage() {
                 <ResultRow label="有效期" value={`${certificate.validFrom || "未记录"} 至 ${certificate.validUntil || "未记录"}`} />
                 <ResultRow label="证书状态" value={statusText[certificate.status]} />
                 <ResultRow label="核验说明" value="本页面用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。公开核验信息不等同于证书原件。" />
-                <div className="mt-2">
-                  <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={certificate.detailUrl}>
-                    查看证书公开核验详情
-                  </Link>
+                <div className="mt-2 rounded-xl border border-[#e4ded0] bg-white px-4 py-3 text-sm leading-7 text-[#5f5b52]">
+                  公开核验结果已在本页展示。为保护申请人与证书信息安全，独立核验详情页后续将改为随机 token、短期 token 或授权核验链接机制。
                 </div>
               </div>
             ) : (

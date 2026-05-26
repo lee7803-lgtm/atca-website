@@ -59,7 +59,7 @@ export function Footer() {
       </div>
       <div className="relative border-t border-white/10 px-5 py-3.5 text-center text-xs leading-5 text-white/55 sm:py-4">
         <p className="mx-auto max-w-4xl text-white/58">
-          相关申请与证书信息以 ITCA 官方审核及登记记录为准。证书状态以官网核验结果为准。
+          相关申请与证书信息以 ITCA 官方审核及登记记录为准。公开核验结果以官网查询页为准。
         </p>
         <p className="mt-1.5">
           © 2026 ITCA · International Taoisme And Cultural Association. All Rights Reserved.

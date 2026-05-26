@@ -217,8 +217,8 @@ function ApplicationQueryContent() {
                     <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
                     <p className="mt-2 break-all text-sm leading-7 text-porcelain">{selectedApplication.certificateNo}</p>
                     <div className="mt-3 flex flex-wrap gap-2">
-                      <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href={selectedApplication.certificateDetailUrl || `/certificates/${encodeURIComponent(selectedApplication.certificateNo)}`}>
-                        查看证书公开核验
+                      <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
+                        前往证书查询页
                       </a>
                     </div>
                   </div>
@@ -508,7 +508,7 @@ function printCertificateArea() {
 }
 
 function ApplicantCertificatePrint({ application }: { application: ApplicationQueryResult }) {
-  const verificationUrl = application.certificateNo ? `/certificates/${encodeURIComponent(application.certificateNo)}` : "";
+  const verificationUrl = "/certificate-query";
 
   return (
     <section className="mt-4 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate sm:p-6">
@@ -557,6 +557,7 @@ function ApplicantCertificatePrint({ application }: { application: ApplicationQu
         </div>
         <div className="mt-6 rounded-xl border border-dashed border-[#b08a45] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
           <p className="break-all">证书公开核验入口：{verificationUrl}</p>
+          <p className="mt-2">公开核验需通过证书编号与持证人姓名共同验证，不能仅凭证书编号打开详情。</p>
           <p className="mt-2">认证范围说明：本认证属于协会认证与文化传承体系内的资格备案和身份记录，不具备政府机关行政许可、职业准入或宗教职务任命效力。</p>
         </div>
       </div>
