@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { getApplicationById, SupabaseConfigError, SupabaseRequestError, updateApplicationReview } from "@/lib/supabase/server";
+import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationReview } from "@/lib/api/admin-applications";
+import { getApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/application";
 
 const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "under_review", "need_more_info", "approved", "rejected", "archived"];
@@ -56,7 +57,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   try {
-    const application = await updateApplicationReview(params.id, {
+    const application = await updateAdminApplicationReview(params.id, {
       status: body.status,
       adminNote: body.adminNote?.trim() || ""
     });
@@ -67,6 +68,14 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
     return NextResponse.json({ success: true, application });
   } catch (error) {
+    if (error instanceof AdminApiUnauthorizedError) {
+      return unauthorized();
+    }
+
+    if (error instanceof AdminApiRequestError) {
+      return NextResponse.json({ success: false, message: error.message }, { status: error.status });
+    }
+
     if (error instanceof SupabaseConfigError) {
       return NextResponse.json({ success: false, message: `数据库配置缺失：${error.missing.join(", ")}。` }, { status: 500 });
     }

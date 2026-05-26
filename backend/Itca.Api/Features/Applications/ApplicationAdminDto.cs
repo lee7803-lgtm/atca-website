@@ -26,3 +26,17 @@ public sealed record ApplicationAdminDto(
     string CreatedAt,
     string UpdatedAt
 );
+
+public sealed record ApplicationAdminReviewRequest(
+    string? Status,
+    string? AdminNote
+);
+
+public sealed record ApplicationAdminReviewSummaryDto(
+    Guid Id,
+    string ApplicationNo,
+    string ApplicationType,
+    string Status,
+    string AdminNote,
+    string UpdatedAt
+);
