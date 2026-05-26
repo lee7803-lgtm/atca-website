@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { getCertificateDetail } from "@/lib/api/certificates";
 import { findPublicCertificateByNo, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { certificationPathLabels, type CertificateQueryResult } from "@/types/certification";
 
@@ -22,7 +23,10 @@ export default async function CertificateDetailPage({ params }: { params: { cert
   const certificateNo = decodeURIComponent(params.certificateNo || "").trim();
 
   try {
-    certificate = certificateNo ? await findPublicCertificateByNo(certificateNo) : null;
+    if (certificateNo) {
+      const result = await getCertificateDetail(certificateNo, findPublicCertificateByNo);
+      certificate = result.status === "found" ? result.certificate : null;
+    }
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
       message = "证书公开核验详情服务尚未完成系统配置，请联系协会秘书处核验。";

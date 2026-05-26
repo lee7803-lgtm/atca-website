@@ -108,6 +108,77 @@ app.MapGet(
     }
 );
 
+app.MapGet(
+    "/api/certificates/{certificateNo}",
+    async (string? certificateNo, CertificateQueries queries, CancellationToken cancellationToken) =>
+    {
+        var normalizedCertificateNo = certificateNo?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(normalizedCertificateNo))
+        {
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "请提供证书编号后再核验。"
+            });
+        }
+
+        try
+        {
+            var certificate = await queries.FindPublicCertificateByNoAsync(normalizedCertificateNo, cancellationToken);
+
+            if (certificate is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未查询到对应公开核验证书记录。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                certificate
+            });
+        }
+        catch (SupabaseDbConfigurationException error)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "证书公开核验详情服务尚未完成数据库配置。",
+                    missingConfiguration = error.EnvironmentVariable
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (ArgumentException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "证书公开核验详情服务的数据库连接配置格式无效。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (NpgsqlException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "证书公开核验详情服务暂时无法连接数据库，请稍后再试。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+    }
+);
+
 app.Run();
 
 public sealed class SupabasePostgresOptions

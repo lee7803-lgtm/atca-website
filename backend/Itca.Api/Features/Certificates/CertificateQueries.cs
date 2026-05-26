@@ -41,6 +41,47 @@ public sealed class CertificateQueries(SupabaseDb database)
             return null;
         }
 
+        return ReadPublicCertificate(reader);
+    }
+
+    public async Task<CertificatePublicDto?> FindPublicCertificateByNoAsync(
+        string certificateNo,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        await using var command = connection.CreateCommand();
+
+        command.CommandText = """
+            select
+              certificate_no,
+              holder_name,
+              taoist_rank,
+              certification_path,
+              certification_level,
+              issued_date,
+              valid_from,
+              valid_until,
+              status
+            from certificates
+            where certificate_no = @certificateNo
+              and public_query_enabled = true
+              and status = 'valid'
+            limit 1;
+            """;
+        command.Parameters.AddWithValue("certificateNo", certificateNo);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return ReadPublicCertificate(reader);
+    }
+
+    private static CertificatePublicDto ReadPublicCertificate(NpgsqlDataReader reader)
+    {
         var publicCertificateNo = reader.GetString(0);
 
         return new CertificatePublicDto(
