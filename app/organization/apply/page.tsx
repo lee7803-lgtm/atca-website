@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { PageHero } from "@/components/PageHero";
-import type { ApplicationSubmitResponse } from "@/types/application";
+import { submitOrganizationApplication } from "@/lib/api/applications";
 
 const organizationTypes = ["宫观道堂及文化场所", "传统文化机构", "教育研究机构", "社团组织", "合作单位"];
 
@@ -119,26 +119,21 @@ export default function OrganizationApplyPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicationType: "organization_member",
-          name: values.organizationName,
-          contactName: values.principalName,
-          phone: values.contact,
-          email: values.email,
-          country: values.region,
-          profile: values.profile,
-          purpose: values.cooperation,
-          organizationType: values.organizationType,
-          truthConfirmed: values.truthConfirmed,
-          termsAccepted: values.termsAccepted,
-          privacyAccepted: values.privacyAccepted,
-          companyWebsite
-        })
+      const { response, result } = await submitOrganizationApplication({
+        applicationType: "organization_member",
+        name: values.organizationName,
+        contactName: values.principalName,
+        phone: values.contact,
+        email: values.email,
+        country: values.region,
+        profile: values.profile,
+        purpose: values.cooperation,
+        organizationType: values.organizationType,
+        truthConfirmed: values.truthConfirmed,
+        termsAccepted: values.termsAccepted,
+        privacyAccepted: values.privacyAccepted,
+        companyWebsite
       });
-      const result = (await response.json()) as ApplicationSubmitResponse;
 
       if (!response.ok || !result.success) {
         setErrorMessage(result.success === false ? result.message : "申请提交未成功，请检查资料后重新提交。");

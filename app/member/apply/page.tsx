@@ -5,7 +5,7 @@ import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { PageHero } from "@/components/PageHero";
-import type { ApplicationSubmitResponse } from "@/types/application";
+import { submitMemberApplication } from "@/lib/api/applications";
 
 type FormValues = {
   memberType: string;
@@ -113,26 +113,21 @@ export default function MemberApplyPage() {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch("/api/applications", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          applicationType: "personal_member",
-          name: values.name,
-          contactName: values.name,
-          phone: values.contact,
-          email: values.email,
-          country: values.region,
-          profile: values.profile,
-          purpose: values.reason,
-          receiveNotice: values.notice,
-          truthConfirmed: values.truthConfirmed,
-          termsAccepted: values.termsAccepted,
-          privacyAccepted: values.privacyAccepted,
-          companyWebsite
-        })
+      const { response, result } = await submitMemberApplication({
+        applicationType: "personal_member",
+        name: values.name,
+        contactName: values.name,
+        phone: values.contact,
+        email: values.email,
+        country: values.region,
+        profile: values.profile,
+        purpose: values.reason,
+        receiveNotice: values.notice,
+        truthConfirmed: values.truthConfirmed,
+        termsAccepted: values.termsAccepted,
+        privacyAccepted: values.privacyAccepted,
+        companyWebsite
       });
-      const result = (await response.json()) as ApplicationSubmitResponse;
 
       if (!response.ok || !result.success) {
         setErrorMessage(result.success === false ? result.message : "申请提交未成功，请检查资料后重新提交。");
