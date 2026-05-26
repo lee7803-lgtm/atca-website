@@ -95,6 +95,10 @@ function buildAdminApplicationsPath(filters: ListAdminApplicationsFilters) {
   return query ? `/api/admin/applications?${query}` : "/api/admin/applications";
 }
 
+function isValidUuid(value: string) {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
+}
+
 export async function listAdminApplications(filters: ListAdminApplicationsFilters = {}) {
   try {
     const response = await fetch(`${getItcaApiBaseUrl()}${buildAdminApplicationsPath(filters)}`, {
@@ -135,6 +139,10 @@ export async function listAdminApplications(filters: ListAdminApplicationsFilter
 }
 
 export async function getAdminApplication(id: string) {
+  if (!isValidUuid(id)) {
+    return null;
+  }
+
   try {
     const response = await fetch(`${getItcaApiBaseUrl()}/api/admin/applications/${encodeURIComponent(id)}`, {
       cache: "no-store",

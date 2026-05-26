@@ -168,7 +168,7 @@ function ApplicationQueryContent() {
               {isQuerying ? "正在查询..." : "查询申请进度 / 结果"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果仅用于申请人本人查看，不展示后台内部备注、后台操作记录或其他申请人的资料。
+              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果仅用于申请人本人查看，不展示处理说明以外的后台操作记录或其他申请人的资料。
             </div>
           </form>
 
