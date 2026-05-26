@@ -27,7 +27,7 @@ export async function GET(request: Request, { params }: { params: { id: string }
     return NextResponse.json({ success: true, application });
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
-      return NextResponse.json({ success: false, message: `数据库配置缺失：${error.missing.join(", ")}。` }, { status: 500 });
+      return NextResponse.json({ success: false, message: "会员申请详情服务尚未完成系统配置，请联系网站管理员处理。" }, { status: 500 });
     }
 
     if (error instanceof SupabaseRequestError) {
@@ -77,7 +77,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     if (error instanceof SupabaseConfigError) {
-      return NextResponse.json({ success: false, message: `数据库配置缺失：${error.missing.join(", ")}。` }, { status: 500 });
+      return NextResponse.json({ success: false, message: "会员申请审核服务尚未完成系统配置，请联系网站管理员处理。" }, { status: 500 });
     }
 
     if (error instanceof SupabaseRequestError) {
