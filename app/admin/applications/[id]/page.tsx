@@ -3,7 +3,7 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { ReviewForm } from "./ReviewForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { getApplicationById } from "@/lib/supabase/server";
+import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
 import { formatApplicationStatus } from "@/lib/status-labels";
 import type { ApplicationStatus, ApplicationType } from "@/types/application";
 
@@ -27,7 +27,13 @@ const statusText: Record<ApplicationStatus, string> = {
 export default async function AdminApplicationDetailPage({ params }: { params: { id: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
-  const application = await getApplicationById(params.id);
+  let application = null;
+  try {
+    application = await getAdminApplication(params.id);
+  } catch (error) {
+    if (error instanceof AdminApiUnauthorizedError) redirect("/admin");
+    throw error;
+  }
   if (!application) notFound();
 
   return (

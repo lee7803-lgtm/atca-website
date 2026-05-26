@@ -1,4 +1,5 @@
 using Itca.Api.Data;
+using Itca.Api.Features.Admin;
 using Itca.Api.Features.Applications;
 using Itca.Api.Features.Certificates;
 using Npgsql;
@@ -25,6 +26,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddSingleton<SupabaseDb>();
+builder.Services.AddScoped<ApplicationAdminQueries>();
 builder.Services.AddScoped<ApplicationQueries>();
 builder.Services.AddScoped<ApplicationSubmissionService>();
 builder.Services.AddScoped<CertificateQueries>();
@@ -56,6 +58,79 @@ app.MapPost(
         return await SubmitApplicationAsync(
             () => submissions.SubmitOrganizationApplicationAsync(request, cancellationToken)
         );
+    }
+);
+
+app.MapGet(
+    "/api/admin/applications",
+    async (
+        HttpRequest request,
+        string? type,
+        string? applicationType,
+        string? status,
+        string? keyword,
+        int? page,
+        int? pageSize,
+        ApplicationAdminQueries queries,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(request);
+
+            var applications = await queries.ListApplicationsAsync(
+                string.IsNullOrWhiteSpace(applicationType) ? type?.Trim() : applicationType.Trim(),
+                status?.Trim(),
+                keyword?.Trim(),
+                page ?? 1,
+                pageSize ?? 100,
+                cancellationToken
+            );
+
+            return Results.Ok(new
+            {
+                success = true,
+                applications,
+                page = page ?? 1,
+                pageSize = pageSize ?? 100
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
+app.MapGet(
+    "/api/admin/applications/{id:guid}",
+    async (HttpRequest request, Guid id, ApplicationAdminQueries queries, CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(request);
+
+            var application = await queries.GetApplicationAsync(id, cancellationToken);
+            if (application is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未找到申请记录。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                application
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
     }
 );
 
@@ -366,6 +441,62 @@ static async Task<IResult> SubmitApplicationAsync(Func<Task<ApplicationSubmissio
             statusCode: StatusCodes.Status503ServiceUnavailable
         );
     }
+}
+
+static IResult HandleAdminReadException(Exception error)
+{
+    return error switch
+    {
+        AdminTokenConfigurationException => Results.Json(
+            new
+            {
+                success = false,
+                message = "后台读取服务尚未完成安全配置。"
+            },
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        ),
+        AdminUnauthorizedException => Results.Json(
+            new
+            {
+                success = false,
+                message = "请先完成后台验证。"
+            },
+            statusCode: StatusCodes.Status401Unauthorized
+        ),
+        SupabaseDbConfigurationException dbConfigError => Results.Json(
+            new
+            {
+                success = false,
+                message = "后台读取服务尚未完成数据库配置。",
+                missingConfiguration = dbConfigError.EnvironmentVariable
+            },
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        ),
+        ArgumentException => Results.Json(
+            new
+            {
+                success = false,
+                message = "后台读取服务的数据库连接配置格式无效。"
+            },
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        ),
+        NpgsqlException => Results.Json(
+            new
+            {
+                success = false,
+                message = "后台读取服务暂时无法连接数据库，请稍后再试。"
+            },
+            statusCode: StatusCodes.Status503ServiceUnavailable
+        ),
+        _ => Results.Json(
+            new
+            {
+                success = false,
+                message = "后台读取服务暂时不可用，请稍后重试。"
+            },
+            statusCode: StatusCodes.Status500InternalServerError
+        )
+    };
 }
 
 public sealed class SupabasePostgresOptions

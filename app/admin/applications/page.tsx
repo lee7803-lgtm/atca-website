@@ -5,7 +5,8 @@ import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
 import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { isSupabaseSchemaError, listApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
+import { isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatApplicationStatus } from "@/lib/status-labels";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
@@ -57,9 +58,11 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
   let databaseMessage = "";
 
   try {
-    applications = await listApplications({ applicationType, status });
+    applications = await listAdminApplications({ applicationType, status });
   } catch (error) {
-    if (error instanceof SupabaseConfigError || isSupabaseSchemaError(error)) {
+    if (error instanceof AdminApiUnauthorizedError) {
+      redirect("/admin");
+    } else if (error instanceof SupabaseConfigError || isSupabaseSchemaError(error)) {
       databaseMessage = "会员申请资料服务尚未完成系统配置，请联系网站管理员处理。";
     } else if (error instanceof SupabaseRequestError) {
       databaseMessage = "会员申请数据暂时无法读取，请稍后重试或检查 Supabase 服务状态。";
