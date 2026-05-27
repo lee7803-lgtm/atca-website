@@ -32,6 +32,30 @@ ITCA_ADMIN_API_TOKEN=...
 ITCA_ALLOWED_ORIGINS=https://your-vercel-preview-url.vercel.app,https://your-production-domain
 ```
 
+`ITCA_SUPABASE_DB_CONNECTION_STRING` may use either Npgsql key-value syntax or the Supabase PostgreSQL URL format copied from the Supabase dashboard. Do not commit the value.
+
+Recommended Render format for Supabase:
+
+```env
+ITCA_SUPABASE_DB_CONNECTION_STRING=Host=aws-0-region.pooler.supabase.com;Port=5432;Database=postgres;Username=postgres.project-ref;Password=your-url-unsafe-password-kept-in-render-only;SSL Mode=Require;Pooling=true
+```
+
+Equivalent Supabase URL format is also accepted:
+
+```env
+ITCA_SUPABASE_DB_CONNECTION_STRING=postgresql://postgres.project-ref:your-percent-encoded-password@aws-0-region.pooler.supabase.com:5432/postgres?sslmode=require
+```
+
+Render / Supabase checklist:
+
+- Prefer Supabase Session Pooler for the online API.
+- Use the project-scoped pooler username format, usually `postgres.project-ref`.
+- Use the Session Pooler host from Supabase, usually ending in `.pooler.supabase.com`.
+- Use the Session Pooler port shown by Supabase, commonly `5432`. Supavisor transaction pooler examples may use `6543`; only use it if that is the pooler mode intentionally selected.
+- Require TLS with `SSL Mode=Require` or `?sslmode=require`.
+- If using URL format, percent-encode password characters that are special in URLs, especially `@`, `:`, `/`, `?`, `#`, `%`, and `&`.
+- A malformed connection string, unencoded password character, wrong pooler host, wrong port, or wrong username can make database-backed endpoints return a safe `503` while `/api/health` still returns `200`.
+
 `PORT` is read when the hosting platform provides it. If `PORT` is absent, local `launchSettings.json` keeps `dotnet run --project backend/Itca.Api` on `http://localhost:5001`.
 
 For Vercel, set this in the Preview environment:
