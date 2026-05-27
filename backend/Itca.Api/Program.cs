@@ -7,6 +7,10 @@ using Npgsql;
 var builder = WebApplication.CreateBuilder(args);
 
 const string localNextJsCorsPolicy = "LocalNextJs";
+const string allowedOriginsEnvironmentVariable = "ITCA_ALLOWED_ORIGINS";
+const string portEnvironmentVariable = "PORT";
+
+ConfigurePort(builder);
 
 builder.Services.Configure<SupabasePostgresOptions>(
     builder.Configuration.GetSection(SupabasePostgresOptions.SectionName)
@@ -19,8 +23,11 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy(localNextJsCorsPolicy, policy =>
     {
+        var corsOrigins = GetAllowedCorsOrigins();
+
         policy
-            .WithOrigins("http://localhost:3000")
+            .WithOrigins(corsOrigins.ExactOrigins)
+            .SetIsOriginAllowed(origin => corsOrigins.IsAllowed(origin))
             .AllowAnyHeader()
             .AllowAnyMethod();
     });
@@ -39,7 +46,9 @@ app.UseCors(localNextJsCorsPolicy);
 app.MapGet("/api/health", () => Results.Json(new
 {
     status = "ok",
-    service = "ITCA API"
+    service = "ITCA API",
+    environment = app.Environment.EnvironmentName,
+    utcTime = DateTimeOffset.UtcNow
 }));
 
 app.MapPost(
@@ -545,6 +554,35 @@ static IResult HandleAdminReadException(Exception error)
     };
 }
 
+static void ConfigurePort(WebApplicationBuilder builder)
+{
+    var port = Environment.GetEnvironmentVariable(portEnvironmentVariable);
+    if (string.IsNullOrWhiteSpace(port))
+    {
+        return;
+    }
+
+    if (!int.TryParse(port, out var parsedPort) || parsedPort <= 0 || parsedPort > 65535)
+    {
+        throw new InvalidOperationException($"{portEnvironmentVariable} must be a valid TCP port.");
+    }
+
+    builder.WebHost.UseUrls($"http://0.0.0.0:{parsedPort}");
+}
+
+static CorsOriginSettings GetAllowedCorsOrigins()
+{
+    var configuredOrigins = Environment.GetEnvironmentVariable(allowedOriginsEnvironmentVariable);
+    var origins = string.IsNullOrWhiteSpace(configuredOrigins)
+        ? ["http://localhost:3000"]
+        : configuredOrigins
+            .Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(origin => !string.IsNullOrWhiteSpace(origin))
+            .ToArray();
+
+    return new CorsOriginSettings(origins);
+}
+
 public sealed class SupabasePostgresOptions
 {
     public const string SectionName = "Supabase:Postgres";
@@ -561,4 +599,44 @@ public sealed class SupabaseStorageOptions
     public string? Bucket { get; set; }
 
     public string? ServiceRoleKey { get; set; }
+}
+
+public sealed class CorsOriginSettings
+{
+    private readonly string[] wildcardOrigins;
+
+    public CorsOriginSettings(string[] origins)
+    {
+        ExactOrigins = origins
+            .Where(origin => !origin.Contains('*', StringComparison.Ordinal))
+            .ToArray();
+
+        wildcardOrigins = origins
+            .Where(origin => origin.Contains('*', StringComparison.Ordinal))
+            .ToArray();
+    }
+
+    public string[] ExactOrigins { get; }
+
+    public bool IsAllowed(string origin)
+    {
+        if (ExactOrigins.Contains(origin, StringComparer.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        return wildcardOrigins.Any(pattern => MatchesWildcardOrigin(origin, pattern));
+    }
+
+    private static bool MatchesWildcardOrigin(string origin, string pattern)
+    {
+        var parts = pattern.Split('*', 2);
+        if (parts.Length != 2)
+        {
+            return false;
+        }
+
+        return origin.StartsWith(parts[0], StringComparison.OrdinalIgnoreCase)
+            && origin.EndsWith(parts[1], StringComparison.OrdinalIgnoreCase);
+    }
 }
