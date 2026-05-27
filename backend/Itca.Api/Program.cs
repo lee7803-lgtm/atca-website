@@ -2,6 +2,7 @@ using Itca.Api.Data;
 using Itca.Api.Features.Admin;
 using Itca.Api.Features.Applications;
 using Itca.Api.Features.Certificates;
+using Itca.Api.Features.Members;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -38,6 +39,7 @@ builder.Services.AddScoped<ApplicationAdminQueries>();
 builder.Services.AddScoped<ApplicationQueries>();
 builder.Services.AddScoped<ApplicationSubmissionService>();
 builder.Services.AddScoped<CertificateQueries>();
+builder.Services.AddScoped<MemberQueries>();
 
 var app = builder.Build();
 
@@ -268,6 +270,88 @@ app.MapGet(
                 {
                     success = false,
                     message = "申请查询服务暂时无法连接数据库，请稍后再试。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+    }
+);
+
+app.MapGet(
+    "/api/members/query",
+    async (string? memberNo, string? holderName, MemberQueries queries, CancellationToken cancellationToken) =>
+    {
+        var normalizedMemberNo = memberNo?.Trim() ?? string.Empty;
+        var normalizedHolderName = holderName?.Trim() ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(normalizedMemberNo) || string.IsNullOrWhiteSpace(normalizedHolderName))
+        {
+            return Results.BadRequest(new
+            {
+                success = false,
+                message = "请填写完整的会员编号和姓名 / 机构名称。"
+            });
+        }
+
+        try
+        {
+            var member = await queries.FindPublicMemberAsync(normalizedMemberNo, normalizedHolderName, cancellationToken);
+
+            if (member is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未查询到匹配会员记录。请确认会员编号和姓名 / 机构名称是否准确。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                member
+            });
+        }
+        catch (SupabaseDbConfigurationException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "会员核验服务暂时不可用，请稍后重试或联系协会秘书处。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (ArgumentException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "会员核验服务暂时不可用，请稍后重试或联系协会秘书处。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (NpgsqlException)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "会员核验服务暂时不可用，请稍后重试或联系协会秘书处。"
+                },
+                statusCode: StatusCodes.Status503ServiceUnavailable
+            );
+        }
+        catch (Exception)
+        {
+            return Results.Json(
+                new
+                {
+                    success = false,
+                    message = "会员核验服务暂时不可用，请稍后重试或联系协会秘书处。"
                 },
                 statusCode: StatusCodes.Status503ServiceUnavailable
             );

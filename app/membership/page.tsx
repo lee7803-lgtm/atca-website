@@ -85,7 +85,8 @@ export default function MembershipPage() {
       <PageHero
         actions={[
           { label: "个人会员申请", href: "/member/apply" },
-          { label: "机构会员申请", href: "/organization/apply" }
+          { label: "机构会员申请", href: "/organization/apply" },
+          { label: "会员公开核验", href: "/member-query" }
         ]}
         eyebrow="Membership"
         title="会员申请"
@@ -119,6 +120,7 @@ export default function MembershipPage() {
               <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={item.href}>{item.title}申请</Link>
                 <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/application/query">查询申请进度</Link>
+                <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/member-query">会员公开核验</Link>
               </div>
             </article>
           ))}
@@ -153,6 +155,7 @@ export default function MembershipPage() {
           <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/organization/apply">申请机构会员</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/application/query">申请进度查询</Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member-query">会员公开核验</Link>
         </div>
       </MembershipSection>
     </>

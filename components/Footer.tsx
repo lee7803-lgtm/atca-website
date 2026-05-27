@@ -30,6 +30,7 @@ export function Footer() {
             <Link href="/association">关于协会</Link>
             <Link href="/certification">认证体系</Link>
             <Link href="/membership">会员申请</Link>
+            <Link href="/member-query">会员查询</Link>
             <Link href="/certificate-query">证书核验</Link>
             <Link href="/contact">联系合作</Link>
           </div>
@@ -43,6 +44,7 @@ export function Footer() {
           </div>
           <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-white/70 sm:grid-cols-2 lg:grid-cols-2">
             <Link href="/certificate-query">证书核验入口</Link>
+            <Link href="/member-query">会员查询入口</Link>
             <Link href="/application/query">申请进度查询</Link>
             <Link href="/membership">隐私政策与服务条款</Link>
           </div>

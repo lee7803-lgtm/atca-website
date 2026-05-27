@@ -85,6 +85,7 @@ function ApplicationQueryContent() {
       <PageHero
         actions={[
           { label: "查询申请", href: "/application/query" },
+          { label: "会员核验", href: "/member-query" },
           { label: "证书核验", href: "/certificate-query" }
         ]}
         eyebrow="Application Query"
@@ -111,7 +112,7 @@ function ApplicationQueryContent() {
             </p>
 
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名。
+              如查询的是认证申请，证书生成后仍可继续使用申请编号与登记联系方式查询申请结果、证书生成情况及证书查看与打印信息。公众证书公开核验请使用证书编号与持证人姓名，会员公开核验请使用会员编号与姓名 / 机构名称。
             </div>
             <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/70 p-4 text-xs leading-6 text-[#666666]">
               申请编号是申请人本人查询申请进度、补充资料和查看审核结果的重要凭证，请妥善保存。为保护申请资料安全，系统不会通过姓名和邮箱在网页上直接公开申请编号。

@@ -58,6 +58,7 @@ export default function CertificateQueryPage() {
       <PageHero
         actions={[
           { label: "证书公开核验", href: "/certificate-query" },
+          { label: "会员公开核验", href: "/member-query" },
           { label: "申请查询", href: "/application/query" }
         ]}
         eyebrow="Certificate Verification"
@@ -82,6 +83,9 @@ export default function CertificateQueryPage() {
               <p>本页面不能查询申请进度，也不提供证书打印。申请人如需查询申请进度、申请结果或查看 / 打印证书，请前往申请查询。</p>
               <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href="/application/query">
                 前往申请查询
+              </Link>
+              <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink sm:ml-3" href="/member-query">
+                前往会员公开核验
               </Link>
             </div>
             <div className="grid gap-5">
