@@ -7,12 +7,12 @@ export type CertificateDetailResult =
   | {
       status: "found";
       certificate: CertificateQueryResult;
-      source: "dotnet" | "fallback";
+      source: "dotnet";
     }
   | {
       status: "not-found";
       message: string;
-      source: "dotnet" | "fallback";
+      source: "dotnet";
     };
 
 function getItcaApiBaseUrl() {
@@ -32,8 +32,10 @@ async function readCertificateQueryResponse(response: Response) {
   return (await response.json()) as CertificateQueryResponse;
 }
 
-function buildCertificateDetailPath(certificateNo: string) {
-  return `/api/certificates/${encodeURIComponent(certificateNo.trim())}`;
+function buildCertificateDetailPath(certificateNo: string, verificationToken: string) {
+  const params = new URLSearchParams({ vt: verificationToken });
+
+  return `/api/certificates/${encodeURIComponent(certificateNo.trim())}?${params.toString()}`;
 }
 
 async function queryNextCertificateApi(certificateNo: string, holderName: string) {
@@ -60,12 +62,19 @@ export async function queryPublicCertificate(certificateNo: string, holderName: 
   return queryNextCertificateApi(certificateNo, holderName);
 }
 
-export async function getCertificateDetail(
-  certificateNo: string,
-  fallbackQuery?: (certificateNo: string) => Promise<CertificateQueryResult | null>
-): Promise<CertificateDetailResult> {
+export async function getCertificateDetail(certificateNo: string, verificationToken: string): Promise<CertificateDetailResult> {
   const normalizedCertificateNo = certificateNo.trim();
-  const detailPath = buildCertificateDetailPath(normalizedCertificateNo);
+  const normalizedVerificationToken = verificationToken.trim();
+
+  if (!normalizedVerificationToken) {
+    return {
+      status: "not-found",
+      message: "请先完成证书核验。为保护持证人信息，请返回证书查询页面，输入证书编号与持证人姓名进行核验。",
+      source: "dotnet"
+    };
+  }
+
+  const detailPath = buildCertificateDetailPath(normalizedCertificateNo, normalizedVerificationToken);
 
   try {
     const response = await fetch(`${getItcaApiBaseUrl()}${detailPath}`, {
@@ -81,45 +90,16 @@ export async function getCertificateDetail(
       };
     }
 
-    if (response.status === 404) {
-      return {
-        status: "not-found",
-        message: result.success === false ? result.message : "未查询到对应公开证书记录。",
-        source: "dotnet"
-      };
-    }
-  } catch {
-    return getCertificateDetailFromFallback(normalizedCertificateNo, fallbackQuery);
-  }
-
-  return getCertificateDetailFromFallback(normalizedCertificateNo, fallbackQuery);
-}
-
-async function getCertificateDetailFromFallback(
-  certificateNo: string,
-  fallbackQuery?: (certificateNo: string) => Promise<CertificateQueryResult | null>
-): Promise<CertificateDetailResult> {
-  if (!fallbackQuery) {
     return {
       status: "not-found",
-      message: "证书公开核验详情服务暂时不可用，请稍后重试。",
-      source: "fallback"
+      message: result.success === false ? result.message : "未查询到对应公开证书记录。",
+      source: "dotnet"
     };
-  }
-
-  const certificate = await fallbackQuery(certificateNo);
-
-  if (certificate) {
+  } catch {
     return {
-      status: "found",
-      certificate,
-      source: "fallback"
+      status: "not-found",
+      message: "证书公开核验详情服务暂时不可用，请稍后重试或返回证书查询页面重新核验。",
+      source: "dotnet"
     };
   }
-
-  return {
-    status: "not-found",
-    message: "未查询到对应公开证书记录。请确认链接是否正确，或返回证书公开核验页重新核验。",
-    source: "fallback"
-  };
 }

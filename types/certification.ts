@@ -210,6 +210,8 @@ export type CertificateQueryResponse =
   | {
       success: true;
       certificate: CertificateQueryResult;
+      verificationToken?: string;
+      detailUrl?: string;
     }
   | {
       success: false;

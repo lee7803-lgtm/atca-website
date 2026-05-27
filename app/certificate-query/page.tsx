@@ -20,6 +20,7 @@ export default function CertificateQueryPage() {
   const [certificateNo, setCertificateNo] = useState("");
   const [holderName, setHolderName] = useState("");
   const [certificate, setCertificate] = useState<CertificateQueryResult | null>(null);
+  const [certificateDetailHref, setCertificateDetailHref] = useState("");
   const [message, setMessage] = useState("");
   const [isQuerying, setIsQuerying] = useState(false);
 
@@ -36,6 +37,7 @@ export default function CertificateQueryPage() {
     setIsQuerying(true);
     setMessage("");
     setCertificate(null);
+    setCertificateDetailHref("");
 
     try {
       const { response, result } = await queryPublicCertificate(certificateNo, holderName);
@@ -46,6 +48,12 @@ export default function CertificateQueryPage() {
       }
 
       setCertificate(result.certificate);
+      setCertificateDetailHref(
+        result.detailUrl ||
+          (result.verificationToken
+            ? `/certificates/${encodeURIComponent(result.certificate.certificateNo)}?vt=${encodeURIComponent(result.verificationToken)}`
+            : "")
+      );
     } catch {
       setMessage("证书公开核验服务暂时不可用，请稍后重试或联系协会秘书处。");
     } finally {
@@ -119,8 +127,13 @@ export default function CertificateQueryPage() {
                 <ResultRow label="有效期" value={`${certificate.validFrom || "未记录"} 至 ${certificate.validUntil || "未记录"}`} />
                 <ResultRow label="证书状态" value={statusText[certificate.status]} />
                 <ResultRow label="核验说明" value="本页面用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。公开核验信息不等同于证书原件。" />
+                {certificateDetailHref ? (
+                  <Link className="mt-2 inline-flex justify-center rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={certificateDetailHref}>
+                    查看证书核验详情
+                  </Link>
+                ) : null}
                 <div className="mt-2 rounded-xl border border-[#e4ded0] bg-white px-4 py-3 text-sm leading-7 text-[#5f5b52]">
-                  公开核验结果已在本页展示。为保护申请人与证书信息安全，独立核验详情页后续将改为随机 token、短期 token 或授权核验链接机制。
+                  公开核验结果已在本页展示。证书详情页需使用本次核验生成的短期链接访问，链接过期后请重新核验。
                 </div>
               </div>
             ) : (

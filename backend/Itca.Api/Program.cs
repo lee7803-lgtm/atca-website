@@ -39,6 +39,7 @@ builder.Services.AddScoped<ApplicationAdminQueries>();
 builder.Services.AddScoped<ApplicationQueries>();
 builder.Services.AddScoped<ApplicationSubmissionService>();
 builder.Services.AddScoped<CertificateQueries>();
+builder.Services.AddSingleton<CertificateVerificationTokenService>();
 builder.Services.AddScoped<MemberQueries>();
 
 var app = builder.Build();
@@ -361,7 +362,13 @@ app.MapGet(
 
 app.MapGet(
     "/api/certificates/query",
-    async (string? certificateNo, string? holderName, CertificateQueries queries, CancellationToken cancellationToken) =>
+    async (
+        string? certificateNo,
+        string? holderName,
+        CertificateQueries queries,
+        CertificateVerificationTokenService tokens,
+        CancellationToken cancellationToken
+    ) =>
     {
         var normalizedCertificateNo = certificateNo?.Trim() ?? string.Empty;
         var normalizedHolderName = holderName?.Trim() ?? string.Empty;
@@ -388,10 +395,14 @@ app.MapGet(
                 });
             }
 
+            var verificationToken = tokens.CreateToken(certificate.CertificateNo);
+
             return Results.Ok(new
             {
                 success = true,
-                certificate
+                certificate,
+                verificationToken,
+                detailUrl = CertificateVerificationTokenService.BuildDetailUrl(certificate.CertificateNo, verificationToken)
             });
         }
         catch (SupabaseDbConfigurationException error)
@@ -433,7 +444,7 @@ app.MapGet(
 
 app.MapGet(
     "/api/certificates/{certificateNo}",
-    async (string? certificateNo, CertificateQueries queries, CancellationToken cancellationToken) =>
+    async (string? certificateNo, string? vt, CertificateQueries queries, CertificateVerificationTokenService tokens, CancellationToken cancellationToken) =>
     {
         var normalizedCertificateNo = certificateNo?.Trim() ?? string.Empty;
 
@@ -444,6 +455,12 @@ app.MapGet(
                 success = false,
                 message = "请提供证书编号后再核验。"
             });
+        }
+
+        var tokenValidation = tokens.ValidateToken(vt, normalizedCertificateNo);
+        if (tokenValidation != CertificateVerificationTokenValidationResult.Valid)
+        {
+            return BuildCertificateVerificationTokenError(tokenValidation);
         }
 
         try
@@ -636,6 +653,33 @@ static IResult HandleAdminReadException(Exception error)
             statusCode: StatusCodes.Status500InternalServerError
         )
     };
+}
+
+static IResult BuildCertificateVerificationTokenError(CertificateVerificationTokenValidationResult validationResult)
+{
+    var message = validationResult switch
+    {
+        CertificateVerificationTokenValidationResult.Missing => "请先完成证书核验。为保护持证人信息，请返回证书查询页面，输入证书编号与持证人姓名进行核验。",
+        CertificateVerificationTokenValidationResult.Expired => "证书核验链接已过期。请返回证书查询页面重新完成核验。",
+        CertificateVerificationTokenValidationResult.CertificateMismatch => "证书核验链接与当前证书编号不匹配。请返回证书查询页面重新完成核验。",
+        _ => "证书核验链接无效。请返回证书查询页面重新完成核验。"
+    };
+
+    var statusCode = validationResult switch
+    {
+        CertificateVerificationTokenValidationResult.Missing => StatusCodes.Status401Unauthorized,
+        CertificateVerificationTokenValidationResult.Expired => StatusCodes.Status410Gone,
+        _ => StatusCodes.Status403Forbidden
+    };
+
+    return Results.Json(
+        new
+        {
+            success = false,
+            message
+        },
+        statusCode: statusCode
+    );
 }
 
 static void ConfigurePort(WebApplicationBuilder builder)
