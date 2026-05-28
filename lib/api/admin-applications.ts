@@ -1,6 +1,7 @@
 import "server-only";
 
 import { getApplicationById, listApplications, updateApplicationReview } from "@/lib/supabase/server";
+import type { AdminSession } from "@/lib/admin/auth";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 const DEFAULT_ITCA_API_BASE_URL = "http://localhost:5001";
@@ -57,6 +58,9 @@ type AdminApplicationReviewResponse =
 type UpdateAdminApplicationReviewValues = {
   status: ApplicationStatus;
   adminNote: string;
+  actor?: AdminSession;
+  ipAddress?: string;
+  userAgent?: string;
 };
 
 export class AdminApiUnauthorizedError extends Error {
@@ -80,6 +84,18 @@ function getAdminApiHeaders() {
 
   return {
     "X-ITCA-ADMIN-API-TOKEN": token
+  };
+}
+
+function getAdminActorHeaders(actor?: AdminSession, ipAddress?: string, userAgent?: string) {
+  return {
+    ...(actor?.actorType ? { "X-ITCA-ADMIN-ACTOR-TYPE": actor.actorType } : {}),
+    ...(actor?.adminId ? { "X-ITCA-ADMIN-ACTOR-ID": actor.adminId } : {}),
+    ...(actor?.email ? { "X-ITCA-ADMIN-ACTOR-EMAIL": actor.email } : {}),
+    ...(actor?.displayName ? { "X-ITCA-ADMIN-ACTOR-NAME": actor.displayName } : {}),
+    ...(actor?.role ? { "X-ITCA-ADMIN-ACTOR-ROLE": actor.role } : {}),
+    ...(ipAddress ? { "X-ITCA-ADMIN-IP": ipAddress } : {}),
+    ...(userAgent ? { "X-ITCA-ADMIN-USER-AGENT": userAgent } : {})
   };
 }
 
@@ -183,7 +199,8 @@ export async function updateAdminApplicationReview(id: string, values: UpdateAdm
       cache: "no-store",
       headers: {
         "Content-Type": "application/json",
-        ...getAdminApiHeaders()
+        ...getAdminApiHeaders(),
+        ...getAdminActorHeaders(values.actor, values.ipAddress, values.userAgent)
       },
       body: JSON.stringify({
         status: values.status,

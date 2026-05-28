@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 
 export function AdminLoginForm() {
   const router = useRouter();
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [message, setMessage] = useState("");
@@ -18,7 +19,7 @@ export function AdminLoginForm() {
       const response = await fetch("/api/admin/login", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ password })
+        body: JSON.stringify({ email, password })
       });
       const result = (await response.json()) as { success: boolean; message?: string };
 
@@ -39,6 +40,10 @@ export function AdminLoginForm() {
   return (
     <form className="mt-8 max-w-lg rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submit}>
       <label className="grid gap-3">
+        <span className="text-sm font-medium text-porcelain">管理员邮箱</span>
+        <input className="form-input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+      </label>
+      <label className="mt-5 grid gap-3">
         <span className="text-sm font-medium text-porcelain">后台密码</span>
         <input className="form-input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
       </label>

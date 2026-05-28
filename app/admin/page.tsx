@@ -59,6 +59,12 @@ export default function AdminPage() {
             title="认证申请管理"
             text="查看道士资格认证申请，处理材料审核、审核反馈、证书生成与下发状态。"
           />
+          <AdminEntryCard
+            href="/admin/audit-logs"
+            index="03"
+            title="操作记录"
+            text="查看后台关键写操作的基础审计记录，用于追踪审核状态修改和后续操作留痕。"
+          />
         </div>
       ) : (
         <AdminLoginForm />

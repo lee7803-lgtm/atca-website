@@ -1,9 +1,10 @@
 using Itca.Api.Data;
+using Itca.Api.Features.Admin;
 using Npgsql;
 
 namespace Itca.Api.Features.Applications;
 
-public sealed class ApplicationAdminCommands(SupabaseDb database)
+public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter auditLogs)
 {
     private static readonly HashSet<string> ValidStatuses =
     [
@@ -19,6 +20,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database)
     public async Task<ApplicationAdminReviewSummaryDto?> UpdateReviewAsync(
         Guid id,
         ApplicationAdminReviewRequest? request,
+        AdminActorContext actor,
         CancellationToken cancellationToken
     )
     {
@@ -40,6 +42,12 @@ public sealed class ApplicationAdminCommands(SupabaseDb database)
         }
 
         await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        var before = await GetReviewSnapshotAsync(connection, id, cancellationToken);
+        if (before is null)
+        {
+            return null;
+        }
+
         await using var command = connection.CreateCommand();
         command.CommandText = """
             update applications
@@ -68,7 +76,76 @@ public sealed class ApplicationAdminCommands(SupabaseDb database)
             return null;
         }
 
-        return new ApplicationAdminReviewSummaryDto(
+        var updated = new ApplicationAdminReviewSummaryDto(
+            reader.GetGuid(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+            reader.GetFieldValue<DateTime>(5).ToString("O")
+        );
+
+        await reader.DisposeAsync();
+
+        await auditLogs.WriteAsync(
+            new AuditLogEntry(
+                actor.AdminId,
+                actor.Email,
+                actor.Name,
+                actor.Role,
+                string.IsNullOrWhiteSpace(actor.ActorType) ? "legacy_admin" : actor.ActorType,
+                "member_application.review_update",
+                "application",
+                updated.Id.ToString(),
+                updated.ApplicationNo,
+                before,
+                new ApplicationReviewAuditSnapshot(
+                    updated.Id,
+                    updated.ApplicationNo,
+                    updated.ApplicationType,
+                    updated.Status,
+                    updated.AdminNote,
+                    updated.UpdatedAt
+                ),
+                $"会员申请 {updated.ApplicationNo} 审核状态更新为 {updated.Status}。",
+                actor.IpAddress,
+                actor.UserAgent
+            ),
+            cancellationToken
+        );
+
+        return updated;
+    }
+
+    private static async Task<ApplicationReviewAuditSnapshot?> GetReviewSnapshotAsync(
+        NpgsqlConnection connection,
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            select
+              id,
+              application_no,
+              application_type,
+              status,
+              admin_note,
+              updated_at
+            from applications
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            limit 1;
+            """;
+        command.Parameters.AddWithValue("id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ApplicationReviewAuditSnapshot(
             reader.GetGuid(0),
             reader.GetString(1),
             reader.GetString(2),
@@ -80,3 +157,12 @@ public sealed class ApplicationAdminCommands(SupabaseDb database)
 }
 
 public sealed class ApplicationAdminReviewValidationException(string message) : Exception(message);
+
+public sealed record ApplicationReviewAuditSnapshot(
+    Guid Id,
+    string ApplicationNo,
+    string ApplicationType,
+    string Status,
+    string AdminNote,
+    string UpdatedAt
+);

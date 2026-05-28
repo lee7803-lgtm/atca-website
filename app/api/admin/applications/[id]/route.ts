@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationReview } from "@/lib/api/admin-applications";
 import { getApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/application";
@@ -12,6 +12,10 @@ function getAdminCookie(request: Request) {
 
 function unauthorized() {
   return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
+}
+
+function getRequestIp(request: Request) {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
@@ -39,7 +43,8 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
+  const adminCookie = getAdminCookie(request);
+  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: { status?: ApplicationStatus; adminNote?: string };
 
@@ -59,7 +64,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   try {
     const application = await updateAdminApplicationReview(params.id, {
       status: body.status,
-      adminNote: body.adminNote?.trim() || ""
+      adminNote: body.adminNote?.trim() || "",
+      actor: getAdminSession(adminCookie) || undefined,
+      ipAddress: getRequestIp(request),
+      userAgent: request.headers.get("user-agent") || ""
     });
 
     if (!application) {

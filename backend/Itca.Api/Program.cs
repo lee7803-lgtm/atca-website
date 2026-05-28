@@ -34,6 +34,7 @@ builder.Services.AddCors(options =>
     });
 });
 builder.Services.AddSingleton<SupabaseDb>();
+builder.Services.AddScoped<AuditLogWriter>();
 builder.Services.AddScoped<ApplicationAdminCommands>();
 builder.Services.AddScoped<ApplicationAdminQueries>();
 builder.Services.AddScoped<ApplicationQueries>();
@@ -161,7 +162,7 @@ app.MapPatch(
         {
             AdminGuard.RequireAdminToken(httpRequest);
 
-            var application = await commands.UpdateReviewAsync(id, request, cancellationToken);
+            var application = await commands.UpdateReviewAsync(id, request, GetAdminActorContext(httpRequest), cancellationToken);
             if (application is null)
             {
                 return Results.NotFound(new
@@ -653,6 +654,35 @@ static IResult HandleAdminReadException(Exception error)
             statusCode: StatusCodes.Status500InternalServerError
         )
     };
+}
+
+static AdminActorContext GetAdminActorContext(HttpRequest request)
+{
+    Guid? adminId = null;
+    var actorIdHeader = request.Headers["X-ITCA-ADMIN-ACTOR-ID"].ToString();
+    if (Guid.TryParse(actorIdHeader, out var parsedAdminId))
+    {
+        adminId = parsedAdminId;
+    }
+
+    var actorType = request.Headers["X-ITCA-ADMIN-ACTOR-TYPE"].ToString();
+    if (string.IsNullOrWhiteSpace(actorType))
+    {
+        actorType = "legacy_admin";
+    }
+
+    return new AdminActorContext(
+        adminId,
+        request.Headers["X-ITCA-ADMIN-ACTOR-EMAIL"].ToString(),
+        request.Headers["X-ITCA-ADMIN-ACTOR-NAME"].ToString(),
+        request.Headers["X-ITCA-ADMIN-ACTOR-ROLE"].ToString(),
+        actorType,
+        request.Headers["X-ITCA-ADMIN-IP"].ToString()
+            ?? request.Headers["X-Forwarded-For"].ToString().Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries).FirstOrDefault()
+            ?? request.HttpContext.Connection.RemoteIpAddress?.ToString(),
+        request.Headers["X-ITCA-ADMIN-USER-AGENT"].ToString()
+            ?? request.Headers.UserAgent.ToString()
+    );
 }
 
 static IResult BuildCertificateVerificationTokenError(CertificateVerificationTokenValidationResult validationResult)
