@@ -55,6 +55,8 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
           <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
           <div className="mt-8 grid gap-4 md:grid-cols-2">
+            <DetailItem label="申请编号" value={application.applicationNo} />
+            <DetailItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
             <DetailItem label="申请类型" value={typeText[application.applicationType]} />
             <DetailItem label="当前状态" value={formatApplicationStatus(application)} />
             <DetailItem label="姓名 / 机构名称" value={application.name} />
@@ -70,6 +72,8 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
             <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
+            <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
+            <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
             <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />
             <DetailItem className="md:col-span-2" label="申请理由 / 合作意向" value={application.purpose} />
             <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />

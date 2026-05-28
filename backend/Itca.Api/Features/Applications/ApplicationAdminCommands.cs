@@ -49,17 +49,36 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         }
 
         await using var command = connection.CreateCommand();
+        var updatedAt = DateTimeOffset.UtcNow;
+        var sequenceYear = updatedAt.Year;
+        var issuedBy = string.IsNullOrWhiteSpace(actor.Email)
+            ? string.IsNullOrWhiteSpace(actor.Name) ? "admin" : actor.Name
+            : actor.Email;
+
         command.CommandText = """
             update applications
             set
               status = @status,
               admin_note = @adminNote,
+              member_no = case
+                when @status = 'approved' and member_no is null then public.generate_itca_number(@memberSequenceKey, @memberPrefix, @sequenceYear)
+                else member_no
+              end,
+              member_no_issued_at = case
+                when @status = 'approved' and member_no is null then @updatedAt
+                else member_no_issued_at
+              end,
+              member_no_issued_by = case
+                when @status = 'approved' and member_no is null then @issuedBy
+                else member_no_issued_by
+              end,
               updated_at = @updatedAt
             where id = @id
               and application_type in ('personal_member', 'organization_member')
             returning
               id,
               application_no,
+              member_no,
               application_type,
               status,
               admin_note,
@@ -68,7 +87,11 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         command.Parameters.AddWithValue("id", id);
         command.Parameters.AddWithValue("status", status);
         command.Parameters.AddWithValue("adminNote", adminNote);
-        command.Parameters.AddWithValue("updatedAt", DateTime.UtcNow);
+        command.Parameters.AddWithValue("updatedAt", updatedAt);
+        command.Parameters.AddWithValue("issuedBy", issuedBy);
+        command.Parameters.AddWithValue("sequenceYear", sequenceYear);
+        command.Parameters.AddWithValue("memberSequenceKey", NumberingGenerator.GetMemberSequenceKey(before.ApplicationType, sequenceYear));
+        command.Parameters.AddWithValue("memberPrefix", NumberingGenerator.GetMemberPrefix(before.ApplicationType));
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken))
@@ -79,10 +102,11 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         var updated = new ApplicationAdminReviewSummaryDto(
             reader.GetGuid(0),
             reader.GetString(1),
-            reader.GetString(2),
+            reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
             reader.GetString(3),
-            reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-            reader.GetFieldValue<DateTime>(5).ToString("O")
+            reader.GetString(4),
+            reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+            reader.GetFieldValue<DateTime>(6).ToString("O")
         );
 
         await reader.DisposeAsync();
@@ -102,6 +126,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
                 new ApplicationReviewAuditSnapshot(
                     updated.Id,
                     updated.ApplicationNo,
+                    updated.MemberNo,
                     updated.ApplicationType,
                     updated.Status,
                     updated.AdminNote,
@@ -128,6 +153,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
             select
               id,
               application_no,
+              member_no,
               application_type,
               status,
               admin_note,
@@ -148,10 +174,11 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         return new ApplicationReviewAuditSnapshot(
             reader.GetGuid(0),
             reader.GetString(1),
-            reader.GetString(2),
+            reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
             reader.GetString(3),
-            reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
-            reader.GetFieldValue<DateTime>(5).ToString("O")
+            reader.GetString(4),
+            reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+            reader.GetFieldValue<DateTime>(6).ToString("O")
         );
     }
 }
@@ -161,6 +188,7 @@ public sealed class ApplicationAdminReviewValidationException(string message) : 
 public sealed record ApplicationReviewAuditSnapshot(
     Guid Id,
     string ApplicationNo,
+    string MemberNo,
     string ApplicationType,
     string Status,
     string AdminNote,

@@ -44,7 +44,7 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
 
       <main className="mx-auto max-w-5xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-center shadow-aureate sm:p-10">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Number</p>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Reference ID</p>
           <h2 className="mt-4 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">
             {applicationNumber ? "申请已提交" : "未找到申请编号"}
           </h2>
@@ -67,7 +67,7 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
           </p>
           <div className="mx-auto mt-6 max-w-2xl rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-left text-sm leading-7 text-[#5f5b52]">
             <p className="font-medium text-porcelain">请保存申请编号</p>
-            <p className="mt-2">申请提交不代表审核通过。请通过申请进度查询入口查看状态、反馈及后续处理说明。</p>
+            <p className="mt-2">申请提交不代表审核通过。申请编号用于进度查询；正式会员编号或证书编号会在审核通过及对应记录生成后另行显示。</p>
           </div>
           <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
             <CopyButton text={applicationNumber} />

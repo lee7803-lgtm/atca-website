@@ -61,7 +61,13 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
         }
 
         var now = DateTimeOffset.UtcNow;
-        var applicationNo = GenerateApplicationNo(now);
+        var applicationNo = await NumberingGenerator.GenerateAsync(
+            connection,
+            NumberingGenerator.GetApplicationSequenceKey(values.ApplicationType, now.Year),
+            NumberingGenerator.GetApplicationPrefix(values.ApplicationType),
+            now.Year,
+            cancellationToken
+        );
 
         await InsertApplicationAsync(connection, applicationNo, values, now, cancellationToken);
 
@@ -265,6 +271,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
         command.CommandText = """
             insert into applications (
               application_no,
+              application_no_scheme,
               application_type,
               status,
               name,
@@ -287,6 +294,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
               updated_at
             ) values (
               @applicationNo,
+              'arid',
               @applicationType,
               'submitted',
               @name,
@@ -329,12 +337,6 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
         command.Parameters.AddWithValue("updatedAt", now);
 
         await command.ExecuteNonQueryAsync(cancellationToken);
-    }
-
-    private static string GenerateApplicationNo(DateTimeOffset now)
-    {
-        var sequence = Random.Shared.Next(1, 1_000_000).ToString().PadLeft(6, '0');
-        return $"ITCA-M-{now.Year}-{sequence}";
     }
 
     private static string Trim(string? value)

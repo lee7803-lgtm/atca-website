@@ -9,6 +9,10 @@ export type OrganizationType = "宫观" | "文化机构" | "培训机构" | "企
 export type ApplicationRecord = {
   id?: string;
   applicationNo: string;
+  memberNo?: string | null;
+  memberNoIssuedAt?: string | null;
+  memberNoIssuedBy?: string | null;
+  applicationNoScheme?: "legacy" | "arid" | string | null;
   applicationType: ApplicationType;
   status: ApplicationStatus;
   name: string;
@@ -33,6 +37,10 @@ export type ApplicationRecord = {
 
 export type ApplicationAdminRecord = Required<Pick<ApplicationRecord, "applicationNo" | "applicationType" | "status" | "name" | "contactName" | "phone" | "email" | "country" | "profile" | "purpose" | "createdAt" | "updatedAt">> & {
   id: string;
+  memberNo: string;
+  memberNoIssuedAt: string | null;
+  memberNoIssuedBy: string;
+  applicationNoScheme: string;
   organizationType: OrganizationType | null;
   receiveNotice: boolean;
   truthConfirmed: boolean;
@@ -74,6 +82,7 @@ export type ApplicationSubmitResponse =
 
 export type ApplicationQueryResult = {
   applicationNo: string;
+  memberNo?: string | null;
   applicationType: ApplicationType | "taoist_certification";
   name: string;
   status: ApplicationStatus | "under_review" | "certificate_issued" | "cert_issued" | "delivered" | "revoked";

@@ -2,6 +2,7 @@ namespace Itca.Api.Features.Applications;
 
 public sealed record ApplicationProgressDto(
     string ApplicationNo,
+    string? MemberNo,
     string ApplicationType,
     string Name,
     string Status,

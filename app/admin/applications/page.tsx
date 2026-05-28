@@ -47,7 +47,7 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
-const csvHeaders = ["申请编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "提交时间", "更新时间"];
+const csvHeaders = ["申请编号", "会员编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "提交时间", "更新时间"];
 
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
@@ -73,6 +73,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
 
   const csvRows = applications.map((item) => [
     item.applicationNo || "",
+    item.memberNo || "",
     typeText[item.applicationType] || item.applicationType || "",
     item.name || "",
     item.email || "",
@@ -132,7 +133,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <table className="min-w-[980px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["申请编号", "类型", "名称", "邮箱", "电话", "国家 / 地区", "状态", "提交时间", "操作"].map((item) => (
+                {["申请编号", "会员编号", "类型", "名称", "邮箱", "电话", "国家 / 地区", "状态", "提交时间", "操作"].map((item) => (
                   <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
                 ))}
               </tr>
@@ -141,6 +142,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
               {applications.map((item) => (
                 <tr className="border-b border-[#eee7da] last:border-b-0" key={item.id}>
                   <td className="px-4 py-4 font-medium text-[#7F1D1D]">{item.applicationNo}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">{item.memberNo || "审核通过后生成"}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{typeText[item.applicationType]}</td>
                   <td className="px-4 py-4 text-porcelain">{item.name}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.email}</td>
@@ -155,7 +157,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
               ))}
               {applications.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={9}>暂无符合条件的申请记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无符合条件的申请记录。</td>
                 </tr>
               ) : null}
             </tbody>

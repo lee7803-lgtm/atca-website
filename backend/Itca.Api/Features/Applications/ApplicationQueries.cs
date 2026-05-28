@@ -33,6 +33,7 @@ public sealed class ApplicationQueries(SupabaseDb database)
         command.CommandText = """
             select
               application_no,
+              member_no,
               application_type,
               name,
               status,
@@ -143,14 +144,15 @@ public sealed class ApplicationQueries(SupabaseDb database)
 
     private static ApplicationProgressDto ReadMemberApplication(NpgsqlDataReader reader)
     {
-        var status = reader.GetString(3);
+        var status = reader.GetString(4);
 
         return new ApplicationProgressDto(
             reader.GetString(0),
-            reader.GetString(1),
+            GetNullableStringOrNull(reader, 1),
             reader.GetString(2),
+            reader.GetString(3),
             status,
-            GetNullableString(reader, 4),
+            GetNullableString(reader, 5),
             null,
             null,
             null,
@@ -166,23 +168,23 @@ public sealed class ApplicationQueries(SupabaseDb database)
             null,
             null,
             null,
-            GetTimestampString(reader, 13),
-            reader.GetInt32(12) > 0,
+            GetTimestampString(reader, 14),
+            reader.GetInt32(13) > 0,
             status == "need_more_info"
                 ? new Dictionary<string, string>
                 {
-                    ["name"] = reader.GetString(2),
-                    ["contactName"] = GetNullableString(reader, 5),
-                    ["phone"] = GetNullableString(reader, 6),
-                    ["email"] = GetNullableString(reader, 7),
-                    ["country"] = GetNullableString(reader, 8),
-                    ["profile"] = GetNullableString(reader, 10),
-                    ["purpose"] = GetNullableString(reader, 11),
-                    ["organizationType"] = GetNullableString(reader, 9)
+                    ["name"] = reader.GetString(3),
+                    ["contactName"] = GetNullableString(reader, 6),
+                    ["phone"] = GetNullableString(reader, 7),
+                    ["email"] = GetNullableString(reader, 8),
+                    ["country"] = GetNullableString(reader, 9),
+                    ["profile"] = GetNullableString(reader, 11),
+                    ["purpose"] = GetNullableString(reader, 12),
+                    ["organizationType"] = GetNullableString(reader, 10)
                 }
                 : null,
-            GetTimestampString(reader, 14),
-            GetTimestampString(reader, 15)
+            GetTimestampString(reader, 15),
+            GetTimestampString(reader, 16)
         );
     }
 
@@ -195,6 +197,7 @@ public sealed class ApplicationQueries(SupabaseDb database)
 
         return new ApplicationProgressDto(
             reader.GetString(1),
+            null,
             "taoist_certification",
             reader.GetString(2),
             status,

@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
-import { generateApplicationNo } from "@/lib/application-number";
-import { findOpenApplicationByContact, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { applicationSequenceKey, generateApplicationNo } from "@/lib/application-number";
+import { findOpenApplicationByContact, generateItcaNumber, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
 const validApplicationTypes: ApplicationType[] = ["personal_member", "organization_member"];
@@ -128,10 +128,17 @@ export async function POST(request: Request) {
       return NextResponse.json(response, { status: 409 });
     }
 
-    const now = new Date().toISOString();
-    const applicationNo = generateApplicationNo(values.applicationType);
+    const nowDate = new Date();
+    const now = nowDate.toISOString();
+    let applicationNo = await generateItcaNumber({
+      sequenceKey: `${applicationSequenceKey[values.applicationType]}_${nowDate.getFullYear()}`,
+      prefix: values.applicationType === "organization_member" ? "ARID-ITCA-ORG" : "ARID-ITCA-M",
+      year: nowDate.getFullYear()
+    });
+    if (!applicationNo) applicationNo = generateApplicationNo(values.applicationType, nowDate);
     const application: ApplicationRecord = {
       applicationNo,
+      applicationNoScheme: "arid",
       applicationType: values.applicationType,
       status: "submitted",
       name: values.name,

@@ -45,7 +45,7 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
 
         if (!string.IsNullOrWhiteSpace(keyword))
         {
-            conditions.Add("(application_no ilike @keyword or name ilike @keyword or contact_name ilike @keyword or email ilike @keyword or phone ilike @keyword)");
+            conditions.Add("(application_no ilike @keyword or member_no ilike @keyword or name ilike @keyword or contact_name ilike @keyword or email ilike @keyword or phone ilike @keyword)");
             command.Parameters.AddWithValue("keyword", $"%{keyword}%");
         }
 
@@ -58,6 +58,10 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
             select
               id,
               application_no,
+              member_no,
+              member_no_issued_at,
+              member_no_issued_by,
+              application_no_scheme,
               application_type,
               status,
               name,
@@ -106,6 +110,10 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
             select
               id,
               application_no,
+              member_no,
+              member_no_issued_at,
+              member_no_issued_by,
+              application_no_scheme,
               application_type,
               status,
               name,
@@ -141,26 +149,30 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
         return new ApplicationAdminDto(
             reader.GetGuid(0),
             reader.GetString(1),
-            reader.GetString(2),
-            reader.GetString(3),
-            reader.GetString(4),
+            GetNullableString(reader, 2),
+            GetTimestampStringOrNull(reader, 3),
+            GetNullableString(reader, 4),
             GetNullableString(reader, 5),
             reader.GetString(6),
             reader.GetString(7),
             reader.GetString(8),
-            GetNullableStringOrNull(reader, 9),
+            reader.GetString(9),
             GetNullableString(reader, 10),
-            GetNullableString(reader, 11),
-            GetNullableBool(reader, 12),
-            GetNullableBool(reader, 13),
-            GetNullableBool(reader, 14),
-            GetNullableBool(reader, 15),
-            GetTimestampString(reader, 16),
-            GetNullableString(reader, 17),
-            GetJsonArray(reader, 18),
-            GetTimestampStringOrNull(reader, 19),
+            reader.GetString(11),
+            reader.GetString(12),
+            GetNullableStringOrNull(reader, 13),
+            GetNullableString(reader, 14),
+            GetNullableString(reader, 15),
+            GetNullableBool(reader, 16),
+            GetNullableBool(reader, 17),
+            GetNullableBool(reader, 18),
+            GetNullableBool(reader, 19),
             GetTimestampString(reader, 20),
-            GetTimestampString(reader, 21)
+            GetNullableString(reader, 21),
+            GetJsonArray(reader, 22),
+            GetTimestampStringOrNull(reader, 23),
+            GetTimestampString(reader, 24),
+            GetTimestampString(reader, 25)
         );
     }
 

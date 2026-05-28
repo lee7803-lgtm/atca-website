@@ -16,14 +16,15 @@ public sealed class MemberQueries(SupabaseDb database)
 
         command.CommandText = """
             select
-              application_no,
+              coalesce(member_no, application_no) as member_no,
               name,
               application_type,
               status,
               created_at,
-              updated_at
+              updated_at,
+              member_no_issued_at
             from applications
-            where application_no = @memberNo
+            where (member_no = @memberNo or application_no = @memberNo)
               and name = @holderName
               and application_type in ('personal_member', 'organization_member')
             limit 1;
@@ -43,7 +44,7 @@ public sealed class MemberQueries(SupabaseDb database)
     private static MemberPublicDto ReadPublicMember(NpgsqlDataReader reader)
     {
         var status = reader.GetString(3);
-        var approvedAt = status == "approved" ? GetTimestampString(reader, 5) : string.Empty;
+        var approvedAt = status == "approved" ? GetTimestampString(reader, 6, GetTimestampString(reader, 5)) : string.Empty;
 
         return new MemberPublicDto(
             reader.GetString(0),
@@ -83,11 +84,11 @@ public sealed class MemberQueries(SupabaseDb database)
         };
     }
 
-    private static string GetTimestampString(NpgsqlDataReader reader, int ordinal)
+    private static string GetTimestampString(NpgsqlDataReader reader, int ordinal, string fallback = "")
     {
         if (reader.IsDBNull(ordinal))
         {
-            return string.Empty;
+            return fallback;
         }
 
         return reader.GetFieldValue<DateTime>(ordinal).ToString("O");

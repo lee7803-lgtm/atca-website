@@ -23,6 +23,10 @@ type SupabaseConfig = {
 type SupabaseApplicationRow = {
   id: string;
   application_no: string;
+  member_no: string | null;
+  member_no_issued_at: string | null;
+  member_no_issued_by: string | null;
+  application_no_scheme: string | null;
   application_type: string;
   status: string;
   name: string;
@@ -195,6 +199,26 @@ export function isSupabaseSchemaError(error: unknown) {
   );
 }
 
+export async function generateItcaNumber(params: { sequenceKey: string; prefix: string; year: number }) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/rpc/generate_itca_number`, {
+    method: "POST",
+    headers: getHeaders(config),
+    body: JSON.stringify({
+      p_sequence_key: params.sequenceKey,
+      p_prefix: params.prefix,
+      p_year: params.year
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const value = await response.json();
+  return String(value || "").trim();
+}
+
 function getSupabaseConfig(): SupabaseConfig {
   const config = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
@@ -228,6 +252,10 @@ function getHeaders(config: SupabaseConfig, prefer?: string) {
 function toSupabaseRow(application: ApplicationRecord) {
   return {
     application_no: application.applicationNo,
+    member_no: application.memberNo ?? null,
+    member_no_issued_at: application.memberNoIssuedAt ?? null,
+    member_no_issued_by: application.memberNoIssuedBy ?? null,
+    application_no_scheme: application.applicationNoScheme ?? null,
     application_type: application.applicationType,
     status: application.status,
     name: application.name,
@@ -253,11 +281,13 @@ function toSupabaseRow(application: ApplicationRecord) {
 
 function toApplicationQueryResult(
   row: Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at"> &
+    Partial<Pick<SupabaseApplicationRow, "member_no">> &
     Partial<Pick<SupabaseApplicationRow, "contact_name" | "phone" | "email" | "country" | "profile" | "purpose" | "organization_type" | "supplement_submitted_at" | "supplemental_submissions">>
 ): ApplicationQueryResult {
   const supplementalSubmissions = normalizeSupplementalSubmissions(row.supplemental_submissions);
   return {
     applicationNo: row.application_no,
+    memberNo: row.member_no ?? null,
     applicationType: row.application_type as ApplicationQueryResult["applicationType"],
     name: row.name,
     status: row.status as ApplicationQueryResult["status"],
@@ -348,6 +378,10 @@ function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdmin
   return {
     id: row.id,
     applicationNo: row.application_no,
+    memberNo: row.member_no ?? "",
+    memberNoIssuedAt: row.member_no_issued_at,
+    memberNoIssuedBy: row.member_no_issued_by ?? "",
+    applicationNoScheme: row.application_no_scheme ?? "",
     applicationType: row.application_type as ApplicationType,
     status: row.status as ApplicationStatus,
     name: row.name,
@@ -694,7 +728,7 @@ export async function findApplicationByNoAndContact(applicationNo: string, conta
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "application_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: "application_no,member_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -723,7 +757,7 @@ export async function findApplicationsByIdentity(filters: {
     application_type: `eq.${filters.applicationType}`,
     name: `eq.${filters.name}`,
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "application_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: "application_no,member_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "10"
   });
@@ -750,7 +784,7 @@ export async function findOpenApplicationByContact(filters: { applicationType: A
     application_type: `eq.${filters.applicationType}`,
     status: "in.(submitted,pending_review,under_review,need_more_info,approved)",
     or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
-    select: "application_no,application_type,name,status,admin_note,created_at,updated_at",
+    select: "application_no,member_no,application_type,name,status,admin_note,created_at,updated_at",
     order: "created_at.desc",
     limit: "1"
   });
@@ -764,7 +798,7 @@ export async function findOpenApplicationByContact(filters: { applicationType: A
     throw new SupabaseRequestError(await readSupabaseError(response), response.status);
   }
 
-  const rows = (await response.json()) as Array<Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at">>;
+  const rows = (await response.json()) as Array<Pick<SupabaseApplicationRow, "application_no" | "member_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at">>;
   const row = rows[0];
 
   return row ? toApplicationQueryResult(row) : null;
@@ -859,7 +893,7 @@ export async function listApplications(filters: { applicationType?: ApplicationT
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     select:
-      "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc"
   });
 
@@ -886,7 +920,7 @@ export async function getApplicationById(id: string) {
   const params = new URLSearchParams({
     id: `eq.${id}`,
     select:
-      "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -905,7 +939,7 @@ export async function getApplicationById(id: string) {
   return row ? toApplicationAdminRecord(row) : null;
 }
 
-export async function updateApplicationReview(id: string, values: { status: ApplicationStatus; adminNote: string }) {
+export async function updateApplicationReview(id: string, values: { status: ApplicationStatus; adminNote: string; issuedBy?: string }) {
   const config = getSupabaseConfig();
   const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
@@ -922,7 +956,36 @@ export async function updateApplicationReview(id: string, values: { status: Appl
   }
 
   const rows = (await response.json()) as SupabaseApplicationRow[];
-  const row = rows[0];
+  let row = rows[0];
+
+  if (row && values.status === "approved" && !row.member_no && (row.application_type === "personal_member" || row.application_type === "organization_member")) {
+    const now = new Date();
+    const year = now.getFullYear();
+    const isOrganization = row.application_type === "organization_member";
+    const memberNo = await generateItcaNumber({
+      sequenceKey: `${isOrganization ? "member_organization" : "member_personal"}_${year}`,
+      prefix: isOrganization ? "ITCA-ORG" : "ITCA-M",
+      year
+    });
+
+    const issueResponse = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}&member_no=is.null`, {
+      method: "PATCH",
+      headers: getHeaders(config, "return=representation"),
+      body: JSON.stringify({
+        member_no: memberNo,
+        member_no_issued_at: now.toISOString(),
+        member_no_issued_by: values.issuedBy || "next-admin-fallback",
+        updated_at: now.toISOString()
+      })
+    });
+
+    if (!issueResponse.ok) {
+      throw new SupabaseRequestError(await readSupabaseError(issueResponse), issueResponse.status);
+    }
+
+    const issuedRows = (await issueResponse.json()) as SupabaseApplicationRow[];
+    row = issuedRows[0] ?? row;
+  }
 
   return row ? toApplicationAdminRecord(row) : null;
 }
@@ -1076,7 +1139,7 @@ export async function findApplicationSupplementTarget(applicationNo: string, con
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
     select:
-      "id,application_no,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {

@@ -5,6 +5,10 @@ namespace Itca.Api.Features.Applications;
 public sealed record ApplicationAdminDto(
     Guid Id,
     string ApplicationNo,
+    string MemberNo,
+    string? MemberNoIssuedAt,
+    string MemberNoIssuedBy,
+    string ApplicationNoScheme,
     string ApplicationType,
     string Status,
     string Name,
@@ -35,6 +39,7 @@ public sealed record ApplicationAdminReviewRequest(
 public sealed record ApplicationAdminReviewSummaryDto(
     Guid Id,
     string ApplicationNo,
+    string MemberNo,
     string ApplicationType,
     string Status,
     string AdminNote,

@@ -42,7 +42,7 @@ export async function GET(request: Request) {
 
     if (mode === "number") {
       const normalizedApplicationNo = applicationNo.toUpperCase();
-      const isCertification = normalizedApplicationNo.startsWith("ITCA-TAO-") || normalizedApplicationNo.startsWith(legacyCertificationPrefix);
+      const isCertification = normalizedApplicationNo.startsWith("ARID-ITCA-TAO-") || normalizedApplicationNo.startsWith("ITCA-TAO-") || normalizedApplicationNo.startsWith(legacyCertificationPrefix);
       const application = isCertification
         ? await findCertificationByNoAndContact(applicationNo, contact)
         : await findApplicationByNoAndContact(applicationNo, contact);

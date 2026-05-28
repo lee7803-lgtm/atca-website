@@ -121,7 +121,7 @@ function ApplicationQueryContent() {
             <div className="mt-7 grid gap-5">
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
                 <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
-                <input className="form-input" placeholder="例如 ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
+                <input className="form-input" placeholder="例如 ARID-ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
               </label>
               <div className="rounded-2xl border border-[#e4ded0] bg-[#fff8ed] px-4 py-3 text-sm leading-6 text-[#5f5b52]">
                 <span className="font-medium text-porcelain">忘记申请编号？</span>
@@ -169,7 +169,7 @@ function ApplicationQueryContent() {
               {isQuerying ? "正在查询..." : "查询申请进度 / 结果"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ITCA-M、ITCA-O、ITCA-TAO 开头的申请编号。查询结果仅用于申请人本人查看，不展示处理说明以外的后台操作记录或其他申请人的资料。
+              支持 ARID-ITCA-M、ARID-ITCA-ORG、旧 ITCA-M / ITCA-O，以及 ITCA-TAO 开头的申请编号。查询结果仅用于申请人本人查看，不展示处理说明以外的后台操作记录或其他申请人的资料。
             </div>
           </form>
 
@@ -192,6 +192,9 @@ function ApplicationQueryContent() {
                 <StatusRow label="申请类型" value={typeText[selectedApplication.applicationType]} />
                 <StatusRow label="申请人 / 机构名称" value={maskName(selectedApplication.name)} />
                 <StatusRow label="当前状态" value={currentStatusText(selectedApplication)} />
+                {selectedApplication.applicationType !== "taoist_certification" ? (
+                  <StatusRow label="会员编号" value={selectedApplication.memberNo || "审核通过后生成"} />
+                ) : null}
                 <StatusRow label="提交时间" value={formatDateTime(selectedApplication.createdAt)} />
                 <StatusRow label={selectedApplication.applicationType === "taoist_certification" ? "对申请人的反馈" : "审核反馈"} value={selectedApplication.adminNote || "暂无反馈"} />
                 {selectedApplication.applicationType === "taoist_certification" ? (
@@ -367,6 +370,7 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
       </p>
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
         <StatusRow label="申请编号" value={application.applicationNo} />
+        {application.applicationType !== "taoist_certification" ? <StatusRow label="会员编号" value={application.memberNo || "审核通过后生成"} /> : null}
         <StatusRow label="当前状态" value="需补充资料" />
         <StatusRow label="审核反馈" value={application.adminNote || "暂无反馈"} />
       </div>
@@ -586,7 +590,7 @@ function QueryPageFallback() {
           <div className="mt-7 grid gap-5">
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">申请编号</span>
-              <input className="form-input" placeholder="例如 ITCA-M-2026-000001" readOnly />
+              <input className="form-input" placeholder="例如 ARID-ITCA-M-2026-000001" readOnly />
             </label>
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">邮箱或手机 / WhatsApp</span>

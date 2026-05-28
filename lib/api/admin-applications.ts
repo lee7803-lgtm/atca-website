@@ -39,6 +39,7 @@ type AdminApplicationDetailResponse =
 type AdminApplicationReviewSummary = {
   id: string;
   applicationNo: string;
+  memberNo?: string;
   applicationType: ApplicationType;
   status: ApplicationStatus;
   adminNote: string;
@@ -234,8 +235,16 @@ export async function updateAdminApplicationReview(id: string, values: UpdateAdm
       throw error;
     }
 
-    return updateApplicationReview(id, values);
+    return updateApplicationReview(id, {
+      status: values.status,
+      adminNote: values.adminNote,
+      issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback"
+    });
   }
 
-  return updateApplicationReview(id, values);
+  return updateApplicationReview(id, {
+    status: values.status,
+    adminNote: values.adminNote,
+    issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback"
+  });
 }
