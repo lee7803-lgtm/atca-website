@@ -160,12 +160,15 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           </div>
         </div>
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <SummaryItem label="申请编号" value={application.applicationNo} />
+          <SummaryItem label="申请人" value={application.applicantName} />
+          <SummaryItem label="当前审核状态" value={formatCertificationApplicationStatus(application)} />
+          <SummaryItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
           <SummaryItem label="传承体系" value={formatCertificationPath(application.certificationPath)} />
           <SummaryItem label="申报认证等级" value={formatCertificationLevel(application.requestedLevel)} />
           <SummaryItem label="核定传承体系" value={formatCertificationPath(application.approvedPath)} />
           <SummaryItem label="核定认证等级" value={formatCertificationLevel(application.approvedLevel)} />
-          <SummaryItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
-          <SummaryItem label="统一证书状态" value={certificate ? formatCertificateStatus(certificate) : "尚未生成"} />
+          <SummaryItem label="证书业务状态" value={certificate ? formatCertificateStatus(certificate) : "尚未生成"} />
           <SummaryItem label="证书有效期" value={certificate ? formatCertificateValidity(certificate) : "有效期未设置"} />
           <SummaryItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
           <SummaryItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />

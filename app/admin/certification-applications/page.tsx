@@ -7,7 +7,7 @@ import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { checkCertificatesTableConfigured, findCertificateByApplicationId, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatCertificationApplicationStatus, hasSupplementRecord } from "@/lib/status-labels";
-import { certificationPathLabels, type CertificationApplicationAdminRecord, type CertificationPath, type CertificationStatus } from "@/types/certification";
+import { certificationLevelLabels, certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord, type CertificationPath, type CertificationStatus } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -45,6 +45,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
   const q = searchParams?.q?.trim() || undefined;
   let applications: CertificationApplicationAdminRecord[] = [];
   let exportRows: CertificationApplicationExportRecord[] = [];
+  let certificateByApplicationId = new Map<string, CertificateQueryResult>();
   let databaseMessage = "";
   let certificateDatabaseMessage = "";
 
@@ -74,16 +75,16 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         applications.map(async (item) => {
           try {
             const certificate = await findCertificateByApplicationId(item.id);
-            return [item.id, certificate?.certificateNo || ""] as const;
+            return [item.id, certificate] as const;
           } catch {
-            return [item.id, ""] as const;
+            return [item.id, null] as const;
           }
         })
       );
-      const certificateNoByApplicationId = new Map(certificateEntries);
+      certificateByApplicationId = new Map(certificateEntries.filter((entry): entry is readonly [string, CertificateQueryResult] => Boolean(entry[1])));
       exportRows = applications.map((item) => ({
         ...item,
-        certificateNoForExport: certificateNoByApplicationId.get(item.id) || ""
+        certificateNoForExport: certificateByApplicationId.get(item.id)?.certificateNo || ""
       }));
     } catch (error) {
       if (isSupabaseSchemaError(error)) {
@@ -165,27 +166,56 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 shadow-aureate">
         <div className="overflow-x-auto">
-          <table className="min-w-[1120px] w-full border-collapse text-left text-sm">
+          <table className="min-w-[1200px] w-full table-fixed border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
-              <tr>{["申请编号", "推荐人", "姓名", "道名 / 法名", "道派", "状态", "提交时间", "操作"].map((item) => <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>)}</tr>
+              <tr>
+                <th className="w-[230px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请 / 证书</th>
+                <th className="w-[230px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请人 / 联系方式</th>
+                <th className="w-[220px] border-b border-[#e4ded0] px-4 py-3 font-medium">认证信息</th>
+                <th className="w-[170px] border-b border-[#e4ded0] px-4 py-3 font-medium">统一状态</th>
+                <th className="w-[210px] border-b border-[#e4ded0] px-4 py-3 font-medium">有效期</th>
+                <th className="w-[150px] border-b border-[#e4ded0] px-4 py-3 font-medium">提交时间</th>
+                <th className="w-[100px] border-b border-[#e4ded0] px-4 py-3 font-medium">操作</th>
+              </tr>
             </thead>
             <tbody>
-              {applications.map((item) => (
-                <tr className="border-b border-[#eee7da] last:border-b-0" key={item.id}>
-                  <td className="px-4 py-4 font-medium text-[#7F1D1D]">{item.applicationNo}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">
-                    <p className="font-medium text-porcelain">{item.recommenderName || "未填写"}</p>
-                    {item.recommenderContact || item.recommenderRelation ? <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">{[item.recommenderContact, item.recommenderRelation].filter(Boolean).join(" / ")}</p> : null}
-                  </td>
-                  <td className="px-4 py-4 text-porcelain">{item.applicantName}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.taoistName}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.sect || item.lineage}</td>
-                  <td className="px-4 py-4 text-[#8a6b3e]">{formatCertificationApplicationStatus(item)}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
-                  <td className="px-4 py-4"><Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/certification-applications/${item.id}`}>查看详情</Link></td>
-                </tr>
-              ))}
-              {applications.length === 0 ? <tr><td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={8}>暂无符合条件的认证申请。</td></tr> : null}
+              {applications.map((item) => {
+                const certificate = certificateByApplicationId.get(item.id);
+
+                return (
+                  <tr className="border-b border-[#eee7da] last:border-b-0" key={item.id}>
+                    <td className="px-4 py-4 align-top">
+                      <p className="break-all font-medium leading-6 text-[#7F1D1D]">{item.applicationNo}</p>
+                      <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{certificate?.certificateNo || "审核通过后生成"}</p>
+                    </td>
+                    <td className="px-4 py-4 align-top">
+                      <p className="font-medium leading-6 text-porcelain">{item.applicantName}</p>
+                      <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{item.email}</p>
+                      <p className="mt-1 whitespace-nowrap text-xs leading-5 text-[#5f5b52]">{item.phone}</p>
+                    </td>
+                    <td className="px-4 py-4 align-top text-[#5f5b52]">
+                      <p className="font-medium leading-6 text-porcelain">{formatCertificationType(item)}</p>
+                      <p className="mt-1 break-words text-xs leading-5">道名 / 法名：{item.taoistName || "未填写"}</p>
+                      <p className="mt-1 break-words text-xs leading-5">道派：{item.sect || item.lineage || "未填写"}</p>
+                    </td>
+                    <td className="px-4 py-4 align-top">
+                      <div className="flex flex-col items-start gap-2">
+                        <span className="inline-flex whitespace-nowrap rounded-full bg-[#fbf8ef] px-3 py-1.5 text-xs font-semibold text-[#8a6b3e]">{formatUnifiedStatus(item, certificate)}</span>
+                        {certificate ? <span className="inline-flex whitespace-nowrap rounded-full border border-[#e4ded0] bg-white px-3 py-1.5 text-xs font-semibold text-[#5f5b52]">{item.deliveryStatus === "delivered" ? "已下发" : "未下发"}</span> : null}
+                      </div>
+                    </td>
+                    <td className="px-4 py-4 align-top text-[#5f5b52]">
+                      <div className="whitespace-nowrap leading-7">
+                        <div>{formatCertificateValidityRange(certificate)}</div>
+                        <div className="font-medium text-[#8a6b3e]">{formatCertificateValidityStatus(certificate)}</div>
+                      </div>
+                    </td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
+                    <td className="whitespace-nowrap px-4 py-4 align-top"><Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/certification-applications/${item.id}`}>查看详情</Link></td>
+                  </tr>
+                );
+              })}
+              {applications.length === 0 ? <tr><td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={7}>暂无符合条件的认证申请。</td></tr> : null}
             </tbody>
           </table>
         </div>
@@ -196,6 +226,40 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function formatDateOnly(value?: string | null) {
+  if (!value) return "未设置";
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return value;
+  return `${match[1]}/${match[2]}/${match[3]}`;
+}
+
+function formatCertificationType(item: CertificationApplicationAdminRecord) {
+  if (item.requestedLevel) return certificationLevelLabels[item.requestedLevel] || item.requestedLevel;
+  if (item.approvedLevel) return certificationLevelLabels[item.approvedLevel] || item.approvedLevel;
+  return "道士资格认证";
+}
+
+function formatUnifiedStatus(item: CertificationApplicationAdminRecord, certificate?: CertificateQueryResult) {
+  if (certificate?.effectiveStatusLabel) return certificate.effectiveStatusLabel;
+  if (certificate) return "已生成证书";
+  return formatCertificationApplicationStatus(item);
+}
+
+function formatCertificateValidityRange(certificate?: CertificateQueryResult) {
+  if (!certificate || (!certificate.validFrom && !certificate.validUntil)) return "有效期未设置";
+  return `${formatDateOnly(certificate.validFrom)} - ${formatDateOnly(certificate.validUntil)}`;
+}
+
+function formatCertificateValidityStatus(certificate?: CertificateQueryResult) {
+  if (!certificate) return "";
+  if (certificate.effectiveStatus === "expiring_soon" && typeof certificate.daysUntilExpiry === "number") {
+    return `即将到期 · 剩余 ${Math.max(certificate.daysUntilExpiry, 0)} 天`;
+  }
+  if (certificate.effectiveStatus === "expired") return "已过期";
+  if (typeof certificate.daysUntilExpiry === "number" && certificate.daysUntilExpiry >= 0) return `剩余 ${certificate.daysUntilExpiry} 天`;
+  return certificate.effectiveStatusLabel || "";
 }
 
 function formatLineageForCsv(item: CertificationApplicationAdminRecord) {

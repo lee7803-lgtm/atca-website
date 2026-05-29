@@ -1587,6 +1587,8 @@ export async function updateCertificateBusinessStatus(
   values: {
     certificateStatus: "pending" | "valid" | "revoked";
     certificateReviewStatus: string;
+    validFrom?: string | null;
+    validUntil?: string | null;
     certificateStatusNote?: string;
   } & AuditActorValues
 ) {
@@ -1595,16 +1597,21 @@ export async function updateCertificateBusinessStatus(
 
   const config = getSupabaseConfig();
   const now = new Date().toISOString();
+  const body: Record<string, string | null> = {
+    status: values.certificateStatus,
+    certificate_review_status: values.certificateReviewStatus || "none",
+    certificate_status_note: values.certificateStatusNote || null,
+    last_reviewed_at: now,
+    updated_at: now
+  };
+
+  if (values.validFrom !== undefined) body.valid_from = values.validFrom;
+  if (values.validUntil !== undefined) body.valid_until = values.validUntil;
+
   const response = await fetch(`${config.url}/rest/v1/certificates?application_id=eq.${encodeURIComponent(applicationId)}`, {
     method: "PATCH",
     headers: getHeaders(config, "return=representation"),
-    body: JSON.stringify({
-      status: values.certificateStatus,
-      certificate_review_status: values.certificateReviewStatus || "none",
-      certificate_status_note: values.certificateStatusNote || null,
-      last_reviewed_at: now,
-      updated_at: now
-    })
+    body: JSON.stringify(body)
   });
 
   if (!response.ok) {

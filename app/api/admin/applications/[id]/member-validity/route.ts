@@ -4,7 +4,7 @@ import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminMemberValid
 import { SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 
 const validMemberStatuses = ["active", "suspended", "revoked", "terminated"];
-const validRenewalStatuses = ["none", "pending_renewal", "renewal_in_progress", "renewed", "pending_review"];
+const validRenewalStatuses = ["none", "pending_renewal", "renewal_in_progress", "renewed"];
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];

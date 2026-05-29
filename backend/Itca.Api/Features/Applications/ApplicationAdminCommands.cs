@@ -18,7 +18,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         "archived"
     ];
     private static readonly HashSet<string> ValidMemberStatuses = ["active", "suspended", "revoked", "terminated"];
-    private static readonly HashSet<string> ValidMemberRenewalStatuses = ["none", "pending_renewal", "renewal_in_progress", "renewed", "pending_review"];
+    private static readonly HashSet<string> ValidMemberRenewalStatuses = ["none", "pending_renewal", "renewal_in_progress", "renewed"];
 
     public async Task<ApplicationAdminReviewSummaryDto?> UpdateReviewAsync(
         Guid id,

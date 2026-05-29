@@ -30,7 +30,7 @@ const certificationLevelOptions: Array<{ value: "" | CertificationLevel; label: 
   ...Object.entries(certificationLevelLabels).map(([value, label]) => ({ value: value as CertificationLevel, label }))
 ];
 
-const terminalStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered", "archived", "revoked"];
+const lockedReviewStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered", "archived", "revoked"];
 
 const committeeReviewTemplates = [
   { label: "资料完整", text: "申请资料完整，师承 / 传承信息、资质文件、推荐资料及实践经历说明基本符合审核要求，建议审核通过。" },
@@ -112,7 +112,7 @@ export function CertificationReviewForm({
   const hasCertificate = Boolean(certificateNo);
   const materialReviewReady = Object.values(initialMaterialReview).every((item) => item === "passed");
   const materialReviewHasIncomplete = Object.values(initialMaterialReview).some((item) => item !== "passed");
-  const isReadonlyStatus = terminalStatuses.includes(initialStatus);
+  const isReadonlyStatus = hasCertificate || lockedReviewStatuses.includes(initialStatus);
   const canSaveReview = !isReadonlyStatus;
   const canGenerateCertificate = initialStatus === "approved" && !hasCertificate && Boolean(approvedPath) && Boolean(approvedLevel) && materialReviewReady;
   const canMarkDelivered = hasCertificate && deliveryStatus !== "delivered" && (initialStatus === "certificate_issued" || initialStatus === "cert_issued");
@@ -154,11 +154,11 @@ export function CertificationReviewForm({
     if (initialStatus === "need_more_info") return "当前申请等待申请人补充或秘书处线下处理。请保留清晰的对申请人反馈，本状态不能生成证书。";
     if (initialStatus === "rejected") return "当前申请已驳回。请保留对申请人的反馈，本状态不显示发证操作。";
     if (initialStatus === "approved") return "当前申请已审核通过。请确认核定传承体系、核定认证等级和各资料板块材料审核状态后生成证书。";
-    if (initialStatus === "certificate_issued" || initialStatus === "cert_issued") return "证书记录已生成，不能重复生成证书；可在证书完成交付后标记已下发。";
-    if (initialStatus === "delivered") return "证书已下发，不能重复生成证书；如后续处理完成，可归档申请。";
+    if (hasCertificate || initialStatus === "certificate_issued" || initialStatus === "cert_issued") return "证书已生成，审核流程已锁定；如需处理资料虚假、争议、续期或撤销等后续问题，请使用证书状态维护。";
+    if (initialStatus === "delivered") return "证书已下发，审核流程已锁定；如需处理后续问题，请使用证书状态维护。";
     if (initialStatus === "archived") return "申请已建档，原则上仅作记录查看，不再进行发证操作。";
     return "请根据申请资料和审核记录选择下一步操作。";
-  }, [initialStatus]);
+  }, [hasCertificate, initialStatus]);
 
   const generateBlockedReason = useMemo(() => {
     if (hasCertificate) return "证书记录已存在，不能重复生成证书。";
@@ -268,7 +268,7 @@ export function CertificationReviewForm({
               </select>
             </label>
             <label className="grid gap-3 md:col-span-2">
-              <span className="text-sm font-medium text-porcelain">当前状态</span>
+              <span className="text-sm font-medium text-porcelain">审核状态</span>
               <select className="form-input" disabled={isReadonlyStatus} value={status} onChange={(event) => setStatus(event.target.value as CertificationStatus)}>
                 {statusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
               </select>
@@ -310,14 +310,22 @@ export function CertificationReviewForm({
           </div>
         </div>
       </div>
-      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
-        <p>下发状态：{deliveryStatus === "delivered" ? "已下发" : "未下发"}</p>
+      {hasCertificate ? (
+        <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+          <p className="font-medium text-porcelain">证书已生成，审核流程已锁定</p>
+          <p className="mt-1">不能再将审核状态倒流为待审核、审核中、需补充资料或已驳回；资料虚假请在证书状态维护中设为已撤销，存在争议请设为已暂停。</p>
+        </div>
+      ) : null}
+      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
+        <p className="font-medium text-porcelain">证书下发状态维护</p>
+        <p className="mt-1">下发状态：{deliveryStatus === "delivered" ? "已下发" : "未下发"}</p>
         <p>下发时间：{deliveredAt ? new Date(deliveredAt).toLocaleString("zh-HK") : "未记录"}</p>
+        <p className="mt-1 text-xs leading-6 text-[#8a6b3e]">下发状态只表示是否已实际下发，不等同于证书业务状态。</p>
       </div>
       {message ? <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>{message}</div> : null}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         {canSaveReview ? <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={saveStatus} type="button">
-          {isSaving ? "正在保存..." : "保存状态与反馈"}
+          {isSaving ? "正在保存..." : "保存审核结果"}
         </button> : null}
         {initialStatus === "approved" && !hasCertificate ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving || !canGenerateCertificate} onClick={generateCertificate} type="button" title={generateBlockedReason || "生成证书"}>
           生成证书
@@ -345,6 +353,8 @@ export function CertificationReviewForm({
 export function CertificateStatusForm({ applicationId, certificate }: { applicationId: string; certificate: CertificateQueryResult }) {
   const router = useRouter();
   const [businessStatus, setBusinessStatus] = useState<CertificateBusinessStatus>(getInitialCertificateBusinessStatus(certificate));
+  const [validFrom, setValidFrom] = useState(certificate.validFrom || "");
+  const [validUntil, setValidUntil] = useState(certificate.validUntil || "");
   const [certificateStatusNote, setCertificateStatusNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -361,6 +371,8 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
         body: JSON.stringify({
           action: "update_certificate_status",
           certificateBusinessStatus: businessStatus,
+          validFrom: validFrom || null,
+          validUntil: validUntil || null,
           certificateStatusNote
         })
       });
@@ -391,6 +403,7 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
         <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
           <p className="break-all font-medium text-[#7F1D1D]">{certificate.certificateNo}</p>
           <p className="mt-1">当前统一状态：{certificate.effectiveStatusLabel || "状态待确认"}</p>
+          <p>当前有效期：{formatCertificateValidity(certificate)}</p>
         </div>
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">证书业务状态</span>
@@ -398,6 +411,16 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
             {certificateBusinessStatusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          <label className="grid gap-3">
+            <span className="text-sm font-medium text-porcelain">证书有效期开始</span>
+            <input className="form-input" type="date" value={validFrom} onChange={(event) => setValidFrom(event.target.value)} />
+          </label>
+          <label className="grid gap-3">
+            <span className="text-sm font-medium text-porcelain">证书有效期截止</span>
+            <input className="form-input" type="date" value={validUntil} onChange={(event) => setValidUntil(event.target.value)} />
+          </label>
+        </div>
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">状态备注</span>
           <textarea className="form-input min-h-24 resize-y" value={certificateStatusNote} onChange={(event) => setCertificateStatusNote(event.target.value)} />
@@ -413,6 +436,18 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
       </button>
     </section>
   );
+}
+
+function formatCertificateValidity(certificate: CertificateQueryResult) {
+  if (!certificate.validFrom && !certificate.validUntil) return "有效期未设置";
+  return `${formatDateOnly(certificate.validFrom)} - ${formatDateOnly(certificate.validUntil)}`;
+}
+
+function formatDateOnly(value?: string | null) {
+  if (!value) return "未设置";
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return value;
+  return `${match[1]}/${match[2]}/${match[3]}`;
 }
 
 function getInitialCertificateBusinessStatus(certificate: CertificateQueryResult): CertificateBusinessStatus {

@@ -1,4 +1,5 @@
 import Link from "next/link";
+import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { MemberStatusForm, ReviewForm } from "./ReviewForm";
@@ -50,21 +51,27 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
         </div>
       </div>
-      <div className="mt-6 grid gap-8 lg:grid-cols-[1.1fr_0.9fr] lg:items-start">
-        <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
-          <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
-          <div className="mt-8 grid gap-4 md:grid-cols-2">
+      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
+        <div className="grid gap-6">
+          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
+            <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
+          </section>
+          <DetailSection title="基本信息">
             <DetailItem label="申请编号" value={application.applicationNo} />
             <DetailItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
             <DetailItem label="申请类型" value={typeText[application.applicationType]} />
             <DetailItem label="当前状态" value={formatApplicationStatus(application)} />
             <DetailItem label="姓名 / 机构名称" value={application.name} />
             <DetailItem label="联系人" value={application.contactName || application.name} />
-            <DetailItem label="手机 / WhatsApp" value={application.phone} />
-            <DetailItem label="邮箱" value={application.email} />
             <DetailItem label="国家 / 地区" value={application.country} />
             <DetailItem label="机构类型" value={application.organizationType || "不适用"} />
+          </DetailSection>
+          <DetailSection title="联系方式">
+            <DetailItem label="手机 / WhatsApp" value={application.phone} />
+            <DetailItem label="邮箱" value={application.email} />
+          </DetailSection>
+          <DetailSection title="申请信息">
             <DetailItem label="是否接收通知" value={application.receiveNotice ? "是" : "否"} />
             <DetailItem label="资料真实性确认" value={application.truthConfirmed ? "已确认" : "未确认"} />
             <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
@@ -74,14 +81,19 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
             <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
             <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
+          </DetailSection>
+          <DetailSection title="补充说明">
             <DetailItem label="会员有效期" value={formatMemberValidityRange(application)} />
             <DetailItem label="统一状态" value={formatMemberValidityStatus(application)} />
             <DetailItem label="最近续期时间" value={application.lastRenewedAt ? formatDateTime(application.lastRenewedAt) : "未记录"} />
             <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />
             <DetailItem className="md:col-span-2" label="申请理由 / 合作意向" value={application.purpose} />
+          </DetailSection>
+          <DetailSection title="审核备注">
             <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />
-          </div>
-        </section>
+            <DetailItem className="md:col-span-2" label="状态备注" value={application.memberStatusNote || "暂无备注"} />
+          </DetailSection>
+        </div>
         <div className="grid gap-6">
           <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
           <MemberValidityPanel application={application} />
@@ -98,6 +110,15 @@ function DetailItem({ className = "", label, value }: { className?: string; labe
       <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">{label}</p>
       <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-porcelain">{value}</p>
     </div>
+  );
+}
+
+function DetailSection({ children, title }: { children: ReactNode; title: string }) {
+  return (
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+      <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
+    </section>
   );
 }
 

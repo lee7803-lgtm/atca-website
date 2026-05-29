@@ -20,6 +20,7 @@ const certificateIssuedStatuses: CertificationStatus[] = ["certificate_issued", 
 const validCertificationPaths: CertificationPath[] = ["zhengyi", "quanzhen", "other_international"];
 const validCertificationLevels: CertificationLevel[] = ["refuge_entry", "transmission_or_crowning", "register_or_precept", "senior_taoist", "special_lineage"];
 const validCertificateBusinessStatuses = ["pending", "valid", "pending_renewal", "renewal_in_progress", "renewed", "suspended", "revoked"];
+const reviewBackflowStatuses: CertificationStatus[] = ["submitted", "under_review", "need_more_info", "rejected"];
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
@@ -92,6 +93,10 @@ function mapCertificateBusinessStatus(status: string): { certificateStatus: "pen
   return { certificateStatus: "valid", certificateReviewStatus: "none" };
 }
 
+function isDateOnly(value: string) {
+  return !value || /^\d{4}-\d{2}-\d{2}$/.test(value);
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
   const adminCookie = getAdminCookie(request);
   if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
@@ -129,9 +134,19 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       }
 
       const mapped = mapCertificateBusinessStatus(businessStatus);
+      const validFrom = asString(payload.validFrom);
+      const validUntil = asString(payload.validUntil);
+      if (!isDateOnly(validFrom) || !isDateOnly(validUntil)) {
+        return NextResponse.json({ success: false, message: "证书有效期日期格式不正确。" }, { status: 400 });
+      }
+      if (validFrom && validUntil && validUntil < validFrom) {
+        return NextResponse.json({ success: false, message: "证书有效期截止日期不能早于开始日期。" }, { status: 400 });
+      }
       const actor = getAdminSession(adminCookie) || undefined;
       const certificate = await updateCertificateBusinessStatus(params.id, {
         ...mapped,
+        validFrom: validFrom || null,
+        validUntil: validUntil || null,
         certificateStatusNote: asString(payload.certificateStatusNote),
         actorEmail: actor?.email || "",
         actorName: actor?.displayName || "",
@@ -145,6 +160,10 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     if (action === "update_material_review") {
+      const existing = await findCertificateByApplicationId(params.id);
+      if (existing || certificateIssuedStatuses.includes(application.status)) {
+        return NextResponse.json({ success: false, message: "证书已生成，审核流程已锁定；后续问题请使用证书状态维护。" }, { status: 400 });
+      }
       if (!materialReview) return NextResponse.json({ success: false, message: "材料审核状态不正确。" }, { status: 400 });
       const updated = await updateCertificationReview(params.id, {
         status: application.status,
@@ -293,6 +312,13 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const status = asString(payload.status) as CertificationStatus;
     if (!status || !validStatuses.includes(status)) return NextResponse.json({ success: false, message: "审核状态不正确。" }, { status: 400 });
     if (certificateIssuedStatuses.includes(status)) return NextResponse.json({ success: false, message: "请使用对应操作按钮生成证书或标记下发。" }, { status: 400 });
+    const existing = await findCertificateByApplicationId(params.id);
+    if ((existing || certificateIssuedStatuses.includes(application.status)) && reviewBackflowStatuses.includes(status)) {
+      return NextResponse.json({ success: false, message: "证书已生成，审核状态不能倒流；资料虚假请将证书业务状态改为已撤销，存在争议请改为已暂停。" }, { status: 400 });
+    }
+    if (existing || certificateIssuedStatuses.includes(application.status)) {
+      return NextResponse.json({ success: false, message: "证书已生成，审核流程已锁定；后续问题请使用证书状态维护。" }, { status: 400 });
+    }
     if (status === "need_more_info" && !applicantFeedback && !application.applicantFeedback) {
       return NextResponse.json({ success: false, message: "请填写需要申请人补充或修正的资料说明。" }, { status: 400 });
     }
