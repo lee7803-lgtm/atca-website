@@ -8,7 +8,6 @@ import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/au
 import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
 import { isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatApplicationStatus } from "@/lib/status-labels";
-import { formatExpiryHint } from "@/lib/validity";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -35,10 +34,10 @@ const statusOptions: Array<{ value: "" | ApplicationStatus; label: string }> = [
 
 const validityOptions = [
   { value: "", label: "全部会员状态" },
+  { value: "validity_not_set", label: "有效期未设置" },
   { value: "active", label: "有效" },
   { value: "expiring_soon", label: "即将到期" },
   { value: "expired", label: "已过期" },
-  { value: "pending_renewal", label: "待续期" },
   { value: "ended", label: "已终止 / 已撤销" }
 ];
 
@@ -57,7 +56,7 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
-const csvHeaders = ["申请编号", "会员编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "会员有效期截止", "会员动态状态", "提交时间", "更新时间"];
+const csvHeaders = ["申请编号", "会员编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "会员有效期", "提交时间", "更新时间"];
 
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; validity?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
@@ -96,8 +95,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     item.email || "",
     item.phone || "",
     formatApplicationStatus(item),
-    item.memberValidUntil || "",
-    item.memberEffectiveStatusLabel || "",
+    formatMemberValidity(item),
     item.createdAt || "",
     item.updatedAt || ""
   ]);
@@ -155,10 +153,10 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 shadow-aureate">
         <div className="overflow-x-auto">
-          <table className="min-w-[980px] w-full border-collapse text-left text-sm">
+          <table className="min-w-[1080px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["申请编号", "会员编号", "类型", "名称", "邮箱", "电话", "状态", "会员有效期截止", "会员动态状态", "到期提示", "提交时间", "操作"].map((item) => (
+                {["申请编号", "会员编号", "类型", "名称", "邮箱", "电话", "审核状态", "会员有效期", "提交时间", "操作"].map((item) => (
                   <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
                 ))}
               </tr>
@@ -173,9 +171,12 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
                   <td className="px-4 py-4 text-[#5f5b52]">{item.email}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.phone}</td>
                   <td className="px-4 py-4 text-[#8a6b3e]">{formatApplicationStatus(item)}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.memberValidUntil || "有效期未设置"}</td>
-                  <td className="px-4 py-4 text-[#8a6b3e]">{item.memberEffectiveStatusLabel || "有效期未设置"}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{formatExpiryHint(item.daysUntilExpiry)}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">
+                    <div className="min-w-44 whitespace-normal leading-7">
+                      <div>{formatMemberValidityRange(item)}</div>
+                      <div className="font-medium text-[#8a6b3e]">{formatMemberValidityStatus(item)}</div>
+                    </div>
+                  </td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
                   <td className="px-4 py-4">
                     <Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/applications/${item.id}`}>查看详情</Link>
@@ -184,7 +185,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
               ))}
               {applications.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={12}>暂无符合条件的申请记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无符合条件的申请记录。</td>
                 </tr>
               ) : null}
             </tbody>
@@ -193,6 +194,34 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
       </div>
     </section>
   );
+}
+
+function formatMemberValidity(item: ApplicationAdminRecord) {
+  const range = formatMemberValidityRange(item);
+  const status = formatMemberValidityStatus(item);
+  return range === "有效期未设置" ? range : `${range}\n${status}`;
+}
+
+function formatMemberValidityRange(item: ApplicationAdminRecord) {
+  if (!item.memberValidFrom && !item.memberValidUntil) return "有效期未设置";
+  if (item.memberValidFrom && item.memberValidUntil) return `${formatDateOnly(item.memberValidFrom)} - ${formatDateOnly(item.memberValidUntil)}`;
+  return `${item.memberValidFrom ? formatDateOnly(item.memberValidFrom) : "未设置"} - ${item.memberValidUntil ? formatDateOnly(item.memberValidUntil) : "未设置"}`;
+}
+
+function formatMemberValidityStatus(item: ApplicationAdminRecord) {
+  if (item.status === "archived") return "已建档";
+  if (!item.memberValidFrom && !item.memberValidUntil) return "";
+  if (item.memberEffectiveStatus === "expiring_soon" && typeof item.daysUntilExpiry === "number") {
+    return `即将到期 · 剩余 ${Math.max(item.daysUntilExpiry, 0)} 天`;
+  }
+
+  return item.memberEffectiveStatusLabel || "有效期未设置";
+}
+
+function formatDateOnly(value: string) {
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return value;
+  return `${match[1]}/${match[2]}/${match[3]}`;
 }
 
 function formatDateTime(value: string) {

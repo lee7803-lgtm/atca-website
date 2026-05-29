@@ -69,8 +69,6 @@ public sealed class MemberQueries(SupabaseDb database)
             effective.EffectiveStatusLabel,
             memberValidFrom,
             memberValidUntil,
-            memberStatus,
-            memberRenewalStatus,
             effective.EffectiveStatus,
             effective.EffectiveStatusLabel,
             effective.DaysUntilExpiry,

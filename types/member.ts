@@ -6,8 +6,6 @@ export type MemberQueryResult = {
   statusLabel: string;
   memberValidFrom?: string | null;
   memberValidUntil?: string | null;
-  memberStatus?: string;
-  memberRenewalStatus?: string;
   effectiveStatus?: string;
   effectiveStatusLabel?: string;
   daysUntilExpiry?: number | null;

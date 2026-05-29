@@ -8,8 +8,6 @@ public sealed record MemberPublicDto(
     string StatusLabel,
     string? MemberValidFrom,
     string? MemberValidUntil,
-    string MemberStatus,
-    string MemberRenewalStatus,
     string EffectiveStatus,
     string EffectiveStatusLabel,
     int? DaysUntilExpiry,

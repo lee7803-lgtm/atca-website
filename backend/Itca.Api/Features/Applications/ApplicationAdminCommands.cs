@@ -57,6 +57,13 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         var issuedBy = string.IsNullOrWhiteSpace(actor.Email)
             ? string.IsNullOrWhiteSpace(actor.Name) ? "admin" : actor.Name
             : actor.Email;
+        var approvalDate = DateOnly.FromDateTime(updatedAt.UtcDateTime);
+        var defaultMemberValidFrom = status == "approved" && string.IsNullOrWhiteSpace(before.MemberValidFrom)
+            ? approvalDate
+            : (DateOnly?)null;
+        var defaultMemberValidUntil = status == "approved" && string.IsNullOrWhiteSpace(before.MemberValidUntil)
+            ? approvalDate.AddYears(1).AddDays(-1)
+            : (DateOnly?)null;
         var memberNo = status == "approved" && string.IsNullOrWhiteSpace(before.MemberNo)
             ? await NumberingGenerator.GenerateUniquePublicNumberAsync(
                 connection,
@@ -84,6 +91,14 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
                 when @status = 'approved' and member_no is null and @memberNo <> '' then @issuedBy
                 else member_no_issued_by
               end,
+              member_valid_from = case
+                when @status = 'approved' and member_valid_from is null and @defaultMemberValidFrom is not null then @defaultMemberValidFrom
+                else member_valid_from
+              end,
+              member_valid_until = case
+                when @status = 'approved' and member_valid_until is null and @defaultMemberValidUntil is not null then @defaultMemberValidUntil
+                else member_valid_until
+              end,
               updated_at = @updatedAt
             where id = @id
               and application_type in ('personal_member', 'organization_member')
@@ -94,6 +109,8 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
               application_type,
               status,
               admin_note,
+              member_valid_from,
+              member_valid_until,
               updated_at;
             """;
         command.Parameters.AddWithValue("id", id);
@@ -102,6 +119,8 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         command.Parameters.AddWithValue("updatedAt", updatedAt);
         command.Parameters.AddWithValue("issuedBy", issuedBy);
         command.Parameters.AddWithValue("memberNo", memberNo);
+        AddNullableDateParameter(command, "defaultMemberValidFrom", defaultMemberValidFrom);
+        AddNullableDateParameter(command, "defaultMemberValidUntil", defaultMemberValidUntil);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken))
@@ -116,7 +135,18 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
             reader.GetString(3),
             reader.GetString(4),
             reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-            reader.GetFieldValue<DateTime>(6).ToString("O")
+            reader.GetFieldValue<DateTime>(8).ToString("O")
+        );
+        var after = new ApplicationReviewAuditSnapshot(
+            updated.Id,
+            updated.ApplicationNo,
+            updated.MemberNo,
+            updated.ApplicationType,
+            updated.Status,
+            updated.AdminNote,
+            GetDateStringOrNull(reader, 6),
+            GetDateStringOrNull(reader, 7),
+            updated.UpdatedAt
         );
 
         await reader.DisposeAsync();
@@ -133,15 +163,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
                 updated.Id.ToString(),
                 updated.ApplicationNo,
                 before,
-                new ApplicationReviewAuditSnapshot(
-                    updated.Id,
-                    updated.ApplicationNo,
-                    updated.MemberNo,
-                    updated.ApplicationType,
-                    updated.Status,
-                    updated.AdminNote,
-                    updated.UpdatedAt
-                ),
+                after,
                 $"会员申请 {updated.ApplicationNo} 审核状态更新为 {updated.Status}。",
                 actor.IpAddress,
                 actor.UserAgent
@@ -307,6 +329,8 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
               application_type,
               status,
               admin_note,
+              member_valid_from,
+              member_valid_until,
               updated_at
             from applications
             where id = @id
@@ -328,7 +352,9 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
             reader.GetString(3),
             reader.GetString(4),
             reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
-            reader.GetFieldValue<DateTime>(6).ToString("O")
+            GetDateStringOrNull(reader, 6),
+            GetDateStringOrNull(reader, 7),
+            reader.GetFieldValue<DateTime>(8).ToString("O")
         );
     }
 
@@ -449,6 +475,8 @@ public sealed record ApplicationReviewAuditSnapshot(
     string ApplicationType,
     string Status,
     string AdminNote,
+    string? MemberValidFrom,
+    string? MemberValidUntil,
     string UpdatedAt
 );
 

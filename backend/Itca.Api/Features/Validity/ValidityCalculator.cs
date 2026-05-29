@@ -20,8 +20,7 @@ public static class ValidityCalculator
     {
         if (Is(memberStatus, "revoked")) return Build("revoked", "已撤销", validUntil, today);
         if (Is(memberStatus, "terminated")) return Build("terminated", "已终止", validUntil, today);
-        if (Is(memberStatus, "suspended")) return Build("suspended", "已暂停", validUntil, today);
-        if (Is(renewalStatus, "pending_renewal")) return Build("pending_renewal", "待续期", validUntil, today);
+        if (Is(memberStatus, "suspended")) return Build("terminated", "已终止", validUntil, today);
         if (!validUntil.HasValue) return Build("validity_not_set", "有效期未设置", validUntil, today);
 
         var days = validUntil.Value.DayNumber - today.DayNumber;

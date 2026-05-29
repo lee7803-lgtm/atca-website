@@ -14,14 +14,12 @@ export function getMemberEffectiveValidity(params: {
   today?: Date;
 }): EffectiveValidity {
   const memberStatus = normalize(params.memberStatus);
-  const renewalStatus = normalize(params.memberRenewalStatus);
   const validUntil = parseDateOnly(params.memberValidUntil);
   const today = toDateOnly(params.today || new Date());
 
   if (memberStatus === "revoked") return build("revoked", "已撤销", validUntil, today);
   if (memberStatus === "terminated") return build("terminated", "已终止", validUntil, today);
-  if (memberStatus === "suspended") return build("suspended", "已暂停", validUntil, today);
-  if (renewalStatus === "pending_renewal") return build("pending_renewal", "待续期", validUntil, today);
+  if (memberStatus === "suspended") return build("terminated", "已终止", validUntil, today);
   if (!validUntil) return build("validity_not_set", "有效期未设置", validUntil, today);
 
   const days = diffDays(validUntil, today);

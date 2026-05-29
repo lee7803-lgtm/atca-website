@@ -250,14 +250,26 @@ export async function updateAdminApplicationReview(id: string, values: UpdateAdm
     return updateApplicationReview(id, {
       status: values.status,
       adminNote: values.adminNote,
-      issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback"
+      issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback",
+      actorEmail: values.actor?.email || "",
+      actorName: values.actor?.displayName || "",
+      actorRole: values.actor?.role || "",
+      actorType: values.actor?.actorType || "legacy_admin",
+      ipAddress: values.ipAddress,
+      userAgent: values.userAgent
     });
   }
 
   return updateApplicationReview(id, {
     status: values.status,
     adminNote: values.adminNote,
-    issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback"
+    issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback",
+    actorEmail: values.actor?.email || "",
+    actorName: values.actor?.displayName || "",
+    actorRole: values.actor?.role || "",
+    actorType: values.actor?.actorType || "legacy_admin",
+    ipAddress: values.ipAddress,
+    userAgent: values.userAgent
   });
 }
 

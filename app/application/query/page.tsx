@@ -200,7 +200,7 @@ function ApplicationQueryContent() {
                     <StatusRow label="会员编号" value={selectedApplication.memberNo || "审核通过后生成"} />
                     {selectedApplication.memberNo ? (
                       <>
-                        <StatusRow label="会员有效期" value={`${formatDate(selectedApplication.memberValidFrom)} 至 ${formatDate(selectedApplication.memberValidUntil)}`} />
+                        <StatusRow label="会员有效期" value={`${formatMemberValidityDate(selectedApplication.memberValidFrom)} 至 ${formatMemberValidityDate(selectedApplication.memberValidUntil)}`} />
                         <StatusRow label="会员状态" value={selectedApplication.memberEffectiveStatusLabel || "有效期未设置"} />
                       </>
                     ) : null}
@@ -340,6 +340,11 @@ function formatDate(value?: string | null) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toLocaleDateString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit" });
+}
+
+function formatMemberValidityDate(value?: string | null) {
+  if (!value) return "有效期未设置";
+  return formatDate(value);
 }
 
 function SupplementForm({ application, contact, onSuccess }: { application: ApplicationQueryResult; contact: string; onSuccess: (files: string[]) => void }) {

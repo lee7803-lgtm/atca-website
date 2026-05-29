@@ -1048,15 +1048,37 @@ export async function getApplicationById(id: string) {
   return row ? toApplicationAdminRecord(row) : null;
 }
 
-export async function updateApplicationReview(id: string, values: { status: ApplicationStatus; adminNote: string; issuedBy?: string }) {
+export async function updateApplicationReview(
+  id: string,
+  values: {
+    status: ApplicationStatus;
+    adminNote: string;
+    issuedBy?: string;
+    actorEmail?: string;
+    actorName?: string;
+    actorRole?: string;
+    actorType?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }
+) {
+  const before = await getApplicationById(id);
+  if (!before) return null;
+
   const config = getSupabaseConfig();
+  const now = new Date();
+  const defaultValidity =
+    values.status === "approved"
+      ? getDefaultMemberValidity(now, before.memberValidFrom, before.memberValidUntil)
+      : {};
   const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
     method: "PATCH",
     headers: getHeaders(config, "return=representation"),
     body: JSON.stringify({
       status: values.status,
       admin_note: values.adminNote,
-      updated_at: new Date().toISOString()
+      ...defaultValidity,
+      updated_at: now.toISOString()
     })
   });
 
@@ -1068,7 +1090,6 @@ export async function updateApplicationReview(id: string, values: { status: Appl
   let row = rows[0];
 
   if (row && values.status === "approved" && !row.member_no && (row.application_type === "personal_member" || row.application_type === "organization_member")) {
-    const now = new Date();
     const year = now.getFullYear();
     const isOrganization = row.application_type === "organization_member";
     const memberNo = await generateItcaNumber({
@@ -1095,7 +1116,62 @@ export async function updateApplicationReview(id: string, values: { status: Appl
     row = issuedRows[0] ?? row;
   }
 
-  return row ? toApplicationAdminRecord(row) : null;
+  const updated = row ? toApplicationAdminRecord(row) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "member_application.review_update",
+      resourceType: "application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: {
+        id: before.id,
+        applicationNo: before.applicationNo,
+        memberNo: before.memberNo,
+        applicationType: before.applicationType,
+        status: before.status,
+        adminNote: before.adminNote,
+        memberValidFrom: before.memberValidFrom,
+        memberValidUntil: before.memberValidUntil,
+        updatedAt: before.updatedAt
+      },
+      afterData: {
+        id: updated.id,
+        applicationNo: updated.applicationNo,
+        memberNo: updated.memberNo,
+        applicationType: updated.applicationType,
+        status: updated.status,
+        adminNote: updated.adminNote,
+        memberValidFrom: updated.memberValidFrom,
+        memberValidUntil: updated.memberValidUntil,
+        updatedAt: updated.updatedAt
+      },
+      summary: `会员申请 ${updated.applicationNo} 审核状态更新为 ${updated.status}。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
+}
+
+function getDefaultMemberValidity(now: Date, memberValidFrom?: string | null, memberValidUntil?: string | null) {
+  const approvedDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
+  const validUntilDate = new Date(approvedDate);
+  validUntilDate.setUTCFullYear(validUntilDate.getUTCFullYear() + 1);
+  validUntilDate.setUTCDate(validUntilDate.getUTCDate() - 1);
+
+  return {
+    ...(!memberValidFrom ? { member_valid_from: toDateOnlyString(approvedDate) } : {}),
+    ...(!memberValidUntil ? { member_valid_until: toDateOnlyString(validUntilDate) } : {})
+  };
+}
+
+function toDateOnlyString(value: Date) {
+  return value.toISOString().slice(0, 10);
 }
 
 export async function updateApplicationMemberValidity(

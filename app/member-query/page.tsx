@@ -120,8 +120,8 @@ export default function MemberQueryPage() {
                 <ResultRow label="会员编号" value={member.memberNo} />
                 <ResultRow label="姓名 / 机构名称" value={member.holderName} />
                 <ResultRow label="会员类型" value={member.memberType} />
-                <ResultRow label="有效期开始" value={formatDate(member.memberValidFrom || "")} />
-                <ResultRow label="有效期截止" value={formatDate(member.memberValidUntil || "")} />
+                <ResultRow label="有效期开始" value={formatMemberDate(member.memberValidFrom)} />
+                <ResultRow label="有效期截止" value={formatMemberDate(member.memberValidUntil)} />
                 <ResultRow label="当前状态" value={member.effectiveStatusLabel || member.statusLabel} />
                 <ResultRow label="登记机构" value={member.issuer} />
                 <ResultRow label="登记日期" value={formatDate(member.registeredAt)} />
@@ -162,4 +162,9 @@ function formatDate(value: string) {
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
   return date.toISOString().slice(0, 10);
+}
+
+function formatMemberDate(value?: string | null) {
+  if (!value) return "有效期未设置";
+  return formatDate(value);
 }
