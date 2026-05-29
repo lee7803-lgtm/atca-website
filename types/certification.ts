@@ -11,6 +11,7 @@ export type CertificationStatus =
   | "revoked";
 
 export type CertificateStatus = "pending" | "valid" | "revoked" | "expired";
+export type CertificateReviewStatus = "none" | "pending_review" | "reviewed";
 
 export type CertificationType = "taoist_priest";
 
@@ -187,6 +188,9 @@ export type CertificateRecord = {
   validFrom: string;
   validUntil: string;
   status: CertificateStatus;
+  certificateReviewStatus?: CertificateReviewStatus | string;
+  certificateStatusNote?: string;
+  lastReviewedAt?: string | null;
   publicQueryEnabled: boolean;
   createdAt: string;
   updatedAt: string;
@@ -203,6 +207,11 @@ export type CertificateQueryResult = {
   validFrom: string;
   validUntil: string;
   status: CertificateStatus;
+  certificateReviewStatus?: CertificateReviewStatus | string;
+  effectiveStatus?: string;
+  effectiveStatusLabel?: string;
+  daysUntilExpiry?: number | null;
+  expiryBucket?: string;
   detailUrl: string;
 };
 

@@ -1,4 +1,5 @@
 using Itca.Api.Data;
+using Itca.Api.Features.Validity;
 using Npgsql;
 
 namespace Itca.Api.Features.Certificates;
@@ -24,12 +25,12 @@ public sealed class CertificateQueries(SupabaseDb database)
               issued_date,
               valid_from,
               valid_until,
-              status
+              status,
+              certificate_review_status
             from certificates
             where certificate_no = @certificateNo
               and holder_name = @holderName
               and public_query_enabled = true
-              and status = 'valid'
             limit 1;
             """;
         command.Parameters.AddWithValue("certificateNo", certificateNo);
@@ -62,11 +63,11 @@ public sealed class CertificateQueries(SupabaseDb database)
               issued_date,
               valid_from,
               valid_until,
-              status
+              status,
+              certificate_review_status
             from certificates
             where certificate_no = @certificateNo
               and public_query_enabled = true
-              and status = 'valid'
             limit 1;
             """;
         command.Parameters.AddWithValue("certificateNo", certificateNo);
@@ -83,6 +84,14 @@ public sealed class CertificateQueries(SupabaseDb database)
     private static CertificatePublicDto ReadPublicCertificate(NpgsqlDataReader reader)
     {
         var publicCertificateNo = reader.GetString(0);
+        var status = reader.GetString(8);
+        var reviewStatus = GetNullableString(reader, 9, "none");
+        var effective = ValidityCalculator.ForCertificate(
+            status,
+            reviewStatus,
+            GetDateOnlyOrNull(reader, 7),
+            DateOnly.FromDateTime(DateTime.UtcNow)
+        );
 
         return new CertificatePublicDto(
             publicCertificateNo,
@@ -94,7 +103,12 @@ public sealed class CertificateQueries(SupabaseDb database)
             GetDateString(reader, 5),
             GetDateString(reader, 6),
             GetDateString(reader, 7),
-            reader.GetString(8),
+            status,
+            reviewStatus,
+            effective.EffectiveStatus,
+            effective.EffectiveStatusLabel,
+            effective.DaysUntilExpiry,
+            effective.ExpiryBucket,
             $"/certificates/{Uri.EscapeDataString(publicCertificateNo)}"
         );
     }
@@ -112,6 +126,11 @@ public sealed class CertificateQueries(SupabaseDb database)
         }
 
         return reader.GetFieldValue<DateOnly>(ordinal).ToString("yyyy-MM-dd");
+    }
+
+    private static DateOnly? GetDateOnlyOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateOnly>(ordinal);
     }
 
     private static string FormatCertificationLevel(string level, string fallback)

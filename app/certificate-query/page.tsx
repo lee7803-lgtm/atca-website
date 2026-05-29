@@ -13,7 +13,10 @@ const statusText: Record<string, string> = {
   pending: "待确认",
   valid: "有效",
   expired: "已过期",
-  revoked: "已撤销"
+  revoked: "已撤销",
+  expiring_soon: "即将到期",
+  pending_review: "待复审",
+  validity_not_set: "有效期未设置"
 };
 
 export default function CertificateQueryPage() {
@@ -124,8 +127,9 @@ export default function CertificateQueryPage() {
                 <ResultRow label="认证等级" value={certificate.certificationLevel} />
                 <ResultRow label="签发机构" value={certificate.issuer} />
                 <ResultRow label="签发日期" value={certificate.issuedDate} />
-                <ResultRow label="有效期" value={`${certificate.validFrom || "未记录"} 至 ${certificate.validUntil || "未记录"}`} />
-                <ResultRow label="证书状态" value={statusText[certificate.status]} />
+                <ResultRow label="有效期开始" value={certificate.validFrom || "有效期未设置"} />
+                <ResultRow label="有效期截止" value={certificate.validUntil || "有效期未设置"} />
+                <ResultRow label="当前状态" value={certificate.effectiveStatusLabel || statusText[certificate.effectiveStatus || certificate.status] || certificate.status} />
                 <ResultRow label="核验说明" value="本页面用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。公开核验信息不等同于证书原件。" />
                 {certificateDetailHref ? (
                   <Link className="mt-2 inline-flex justify-center rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={certificateDetailHref}>

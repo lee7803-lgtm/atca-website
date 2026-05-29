@@ -185,6 +185,43 @@ app.MapPatch(
     }
 );
 
+app.MapPatch(
+    "/api/admin/applications/{id:guid}/member-validity",
+    async (
+        HttpRequest httpRequest,
+        Guid id,
+        ApplicationMemberValidityRequest? request,
+        ApplicationAdminCommands commands,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(httpRequest);
+
+            var application = await commands.UpdateMemberValidityAsync(id, request, GetAdminActorContext(httpRequest), cancellationToken);
+            if (application is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未找到申请记录。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                application
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
 app.MapGet(
     "/api/applications/query",
     async (

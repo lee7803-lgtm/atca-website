@@ -1,6 +1,7 @@
 using Itca.Api.Data;
 using Itca.Api.Features.Admin;
 using Npgsql;
+using NpgsqlTypes;
 
 namespace Itca.Api.Features.Applications;
 
@@ -16,6 +17,8 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         "rejected",
         "archived"
     ];
+    private static readonly HashSet<string> ValidMemberStatuses = ["active", "suspended", "revoked", "terminated"];
+    private static readonly HashSet<string> ValidMemberRenewalStatuses = ["none", "pending_renewal", "renewed", "pending_review"];
 
     public async Task<ApplicationAdminReviewSummaryDto?> UpdateReviewAsync(
         Guid id,
@@ -149,6 +152,146 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         return updated;
     }
 
+    public async Task<ApplicationAdminDto?> UpdateMemberValidityAsync(
+        Guid id,
+        ApplicationMemberValidityRequest? request,
+        AdminActorContext actor,
+        CancellationToken cancellationToken
+    )
+    {
+        if (request is null)
+        {
+            throw new ApplicationAdminReviewValidationException("更新资料格式不正确。");
+        }
+
+        var memberStatus = NormalizeOrDefault(request.MemberStatus, "active");
+        var renewalStatus = NormalizeOrDefault(request.MemberRenewalStatus, "none");
+        if (!ValidMemberStatuses.Contains(memberStatus))
+        {
+            throw new ApplicationAdminReviewValidationException("请选择有效的会员状态。");
+        }
+
+        if (!ValidMemberRenewalStatuses.Contains(renewalStatus))
+        {
+            throw new ApplicationAdminReviewValidationException("请选择有效的续期状态。");
+        }
+
+        var validFrom = ParseDateOrNull(request.MemberValidFrom, "会员有效期开始日期格式不正确。");
+        var validUntil = ParseDateOrNull(request.MemberValidUntil, "会员有效期截止日期格式不正确。");
+        if (validFrom.HasValue && validUntil.HasValue && validUntil.Value < validFrom.Value)
+        {
+            throw new ApplicationAdminReviewValidationException("会员有效期截止日期不能早于开始日期。");
+        }
+
+        var lastRenewedAt = ParseDateTimeOrNull(request.LastRenewedAt, "最近续期时间格式不正确。");
+        var note = request.MemberStatusNote?.Trim() ?? string.Empty;
+        var updatedAt = DateTimeOffset.UtcNow;
+
+        await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        var before = await GetMemberValiditySnapshotAsync(connection, id, cancellationToken);
+        if (before is null)
+        {
+            return null;
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            update applications
+            set
+              member_valid_from = @memberValidFrom,
+              member_valid_until = @memberValidUntil,
+              member_status = @memberStatus,
+              member_renewal_status = @memberRenewalStatus,
+              last_renewed_at = @lastRenewedAt,
+              member_status_note = @memberStatusNote,
+              updated_at = @updatedAt
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            returning
+              id,
+              application_no,
+              member_no,
+              member_no_issued_at,
+              member_no_issued_by,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status,
+              last_renewed_at,
+              member_status_note,
+              application_no_scheme,
+              application_type,
+              status,
+              name,
+              contact_name,
+              phone,
+              email,
+              country,
+              organization_type,
+              profile,
+              purpose,
+              receive_notice,
+              truth_confirmed,
+              terms_accepted,
+              privacy_accepted,
+              confirmed_at,
+              admin_note,
+              supplemental_submissions,
+              supplement_submitted_at,
+              created_at,
+              updated_at;
+            """;
+        command.Parameters.AddWithValue("id", id);
+        AddNullableDateParameter(command, "memberValidFrom", validFrom);
+        AddNullableDateParameter(command, "memberValidUntil", validUntil);
+        command.Parameters.AddWithValue("memberStatus", memberStatus);
+        command.Parameters.AddWithValue("memberRenewalStatus", renewalStatus);
+        AddNullableTimestampParameter(command, "lastRenewedAt", lastRenewedAt);
+        AddNullableTextParameter(command, "memberStatusNote", note);
+        command.Parameters.AddWithValue("updatedAt", updatedAt);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var updated = ApplicationAdminQueries.ReadApplicationForCommand(reader);
+        await reader.DisposeAsync();
+
+        await auditLogs.WriteAsync(
+            new AuditLogEntry(
+                actor.AdminId,
+                actor.Email,
+                actor.Name,
+                actor.Role,
+                string.IsNullOrWhiteSpace(actor.ActorType) ? "legacy_admin" : actor.ActorType,
+                "member_application.validity_update",
+                "application",
+                updated.Id.ToString(),
+                updated.ApplicationNo,
+                before,
+                new ApplicationMemberValidityAuditSnapshot(
+                    updated.Id,
+                    updated.ApplicationNo,
+                    updated.MemberNo,
+                    updated.MemberValidFrom,
+                    updated.MemberValidUntil,
+                    updated.MemberStatus,
+                    updated.MemberRenewalStatus,
+                    updated.LastRenewedAt,
+                    updated.MemberStatusNote
+                ),
+                $"会员申请 {updated.ApplicationNo} 有效期资料已更新。",
+                actor.IpAddress,
+                actor.UserAgent
+            ),
+            cancellationToken
+        );
+
+        return updated;
+    }
+
     private static async Task<ApplicationReviewAuditSnapshot?> GetReviewSnapshotAsync(
         NpgsqlConnection connection,
         Guid id,
@@ -188,6 +331,113 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
             reader.GetFieldValue<DateTime>(6).ToString("O")
         );
     }
+
+    private static async Task<ApplicationMemberValidityAuditSnapshot?> GetMemberValiditySnapshotAsync(
+        NpgsqlConnection connection,
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            select
+              id,
+              application_no,
+              member_no,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status,
+              last_renewed_at,
+              member_status_note
+            from applications
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            limit 1;
+            """;
+        command.Parameters.AddWithValue("id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ApplicationMemberValidityAuditSnapshot(
+            reader.GetGuid(0),
+            reader.GetString(1),
+            reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+            GetDateStringOrNull(reader, 3),
+            GetDateStringOrNull(reader, 4),
+            reader.IsDBNull(5) ? "active" : reader.GetString(5),
+            reader.IsDBNull(6) ? "none" : reader.GetString(6),
+            GetTimestampStringOrNull(reader, 7),
+            reader.IsDBNull(8) ? string.Empty : reader.GetString(8)
+        );
+    }
+
+    private static string NormalizeOrDefault(string? value, string fallback)
+    {
+        return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+    }
+
+    private static DateOnly? ParseDateOrNull(string? value, string errorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (DateOnly.TryParse(value.Trim(), out var parsed))
+        {
+            return parsed;
+        }
+
+        throw new ApplicationAdminReviewValidationException(errorMessage);
+    }
+
+    private static DateTimeOffset? ParseDateTimeOrNull(string? value, string errorMessage)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (DateTimeOffset.TryParse(value.Trim(), out var parsed))
+        {
+            return parsed;
+        }
+
+        throw new ApplicationAdminReviewValidationException(errorMessage);
+    }
+
+    private static void AddNullableDateParameter(NpgsqlCommand command, string name, DateOnly? value)
+    {
+        var parameter = command.Parameters.Add(name, NpgsqlDbType.Date);
+        parameter.Value = value.HasValue ? value.Value : DBNull.Value;
+    }
+
+    private static void AddNullableTimestampParameter(NpgsqlCommand command, string name, DateTimeOffset? value)
+    {
+        var parameter = command.Parameters.Add(name, NpgsqlDbType.TimestampTz);
+        parameter.Value = value.HasValue ? value.Value : DBNull.Value;
+    }
+
+    private static void AddNullableTextParameter(NpgsqlCommand command, string name, string value)
+    {
+        var parameter = command.Parameters.Add(name, NpgsqlDbType.Text);
+        parameter.Value = string.IsNullOrWhiteSpace(value) ? DBNull.Value : value;
+    }
+
+    private static string? GetDateStringOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateOnly>(ordinal).ToString("yyyy-MM-dd");
+    }
+
+    private static string? GetTimestampStringOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateTime>(ordinal).ToString("O");
+    }
 }
 
 public sealed class ApplicationAdminReviewValidationException(string message) : Exception(message);
@@ -200,4 +450,16 @@ public sealed record ApplicationReviewAuditSnapshot(
     string Status,
     string AdminNote,
     string UpdatedAt
+);
+
+public sealed record ApplicationMemberValidityAuditSnapshot(
+    Guid Id,
+    string ApplicationNo,
+    string MemberNo,
+    string? MemberValidFrom,
+    string? MemberValidUntil,
+    string MemberStatus,
+    string MemberRenewalStatus,
+    string? LastRenewedAt,
+    string MemberStatusNote
 );

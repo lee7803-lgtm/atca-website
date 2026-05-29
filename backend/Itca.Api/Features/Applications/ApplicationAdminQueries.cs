@@ -1,5 +1,6 @@
 using System.Text.Json;
 using Itca.Api.Data;
+using Itca.Api.Features.Validity;
 using Npgsql;
 
 namespace Itca.Api.Features.Applications;
@@ -61,6 +62,12 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
               member_no,
               member_no_issued_at,
               member_no_issued_by,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status,
+              last_renewed_at,
+              member_status_note,
               application_no_scheme,
               application_type,
               status,
@@ -92,7 +99,7 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         while (await reader.ReadAsync(cancellationToken))
         {
-            applications.Add(ReadApplication(reader));
+            applications.Add(ReadApplicationForCommand(reader));
         }
 
         return applications;
@@ -113,6 +120,12 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
               member_no,
               member_no_issued_at,
               member_no_issued_by,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status,
+              last_renewed_at,
+              member_status_note,
               application_no_scheme,
               application_type,
               status,
@@ -141,44 +154,66 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
         command.Parameters.AddWithValue("id", id);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
-        return await reader.ReadAsync(cancellationToken) ? ReadApplication(reader) : null;
+        return await reader.ReadAsync(cancellationToken) ? ReadApplicationForCommand(reader) : null;
     }
 
-    private static ApplicationAdminDto ReadApplication(NpgsqlDataReader reader)
+    internal static ApplicationAdminDto ReadApplicationForCommand(NpgsqlDataReader reader)
     {
+        var effective = ValidityCalculator.ForMember(
+            GetNullableString(reader, 7, "active"),
+            GetNullableString(reader, 8, "none"),
+            GetDateOnlyOrNull(reader, 6),
+            DateOnly.FromDateTime(DateTime.UtcNow)
+        );
+
         return new ApplicationAdminDto(
             reader.GetGuid(0),
             reader.GetString(1),
             GetNullableString(reader, 2),
             GetTimestampStringOrNull(reader, 3),
             GetNullableString(reader, 4),
-            GetNullableString(reader, 5),
-            reader.GetString(6),
-            reader.GetString(7),
-            reader.GetString(8),
-            reader.GetString(9),
+            GetDateStringOrNull(reader, 5),
+            GetDateStringOrNull(reader, 6),
+            GetNullableString(reader, 7, "active"),
+            GetNullableString(reader, 8, "none"),
+            GetTimestampStringOrNull(reader, 9),
             GetNullableString(reader, 10),
-            reader.GetString(11),
+            effective.EffectiveStatus,
+            effective.EffectiveStatusLabel,
+            effective.DaysUntilExpiry,
+            effective.ExpiryBucket,
+            GetNullableString(reader, 11),
             reader.GetString(12),
-            GetNullableStringOrNull(reader, 13),
-            GetNullableString(reader, 14),
-            GetNullableString(reader, 15),
-            GetNullableBool(reader, 16),
-            GetNullableBool(reader, 17),
-            GetNullableBool(reader, 18),
-            GetNullableBool(reader, 19),
-            GetTimestampString(reader, 20),
+            reader.GetString(13),
+            reader.GetString(14),
+            reader.GetString(15),
+            GetNullableString(reader, 16),
+            reader.GetString(17),
+            reader.GetString(18),
+            GetNullableStringOrNull(reader, 19),
+            GetNullableString(reader, 20),
             GetNullableString(reader, 21),
-            GetJsonArray(reader, 22),
-            GetTimestampStringOrNull(reader, 23),
-            GetTimestampString(reader, 24),
-            GetTimestampString(reader, 25)
+            GetNullableBool(reader, 22),
+            GetNullableBool(reader, 23),
+            GetNullableBool(reader, 24),
+            GetNullableBool(reader, 25),
+            GetTimestampString(reader, 26),
+            GetNullableString(reader, 27),
+            GetJsonArray(reader, 28),
+            GetTimestampStringOrNull(reader, 29),
+            GetTimestampString(reader, 30),
+            GetTimestampString(reader, 31)
         );
     }
 
     private static string GetNullableString(NpgsqlDataReader reader, int ordinal)
     {
         return reader.IsDBNull(ordinal) ? string.Empty : reader.GetString(ordinal);
+    }
+
+    private static string GetNullableString(NpgsqlDataReader reader, int ordinal, string fallback)
+    {
+        return reader.IsDBNull(ordinal) ? fallback : reader.GetString(ordinal);
     }
 
     private static string? GetNullableStringOrNull(NpgsqlDataReader reader, int ordinal)
@@ -204,6 +239,16 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
         }
 
         return reader.GetFieldValue<DateTime>(ordinal).ToString("O");
+    }
+
+    private static DateOnly? GetDateOnlyOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateOnly>(ordinal);
+    }
+
+    private static string? GetDateStringOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return GetDateOnlyOrNull(reader, ordinal)?.ToString("yyyy-MM-dd");
     }
 
     private static JsonElement[] GetJsonArray(NpgsqlDataReader reader, int ordinal)

@@ -1,4 +1,5 @@
 using Itca.Api.Data;
+using Itca.Api.Features.Validity;
 using Npgsql;
 
 namespace Itca.Api.Features.Members;
@@ -22,7 +23,11 @@ public sealed class MemberQueries(SupabaseDb database)
               status,
               created_at,
               updated_at,
-              member_no_issued_at
+              member_no_issued_at,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status
             from applications
             where member_no = @memberNo
               and name = @holderName
@@ -44,14 +49,32 @@ public sealed class MemberQueries(SupabaseDb database)
     private static MemberPublicDto ReadPublicMember(NpgsqlDataReader reader)
     {
         var status = reader.GetString(3);
-        var approvedAt = status == "approved" ? GetTimestampString(reader, 6, GetTimestampString(reader, 5)) : string.Empty;
+        var memberValidFrom = GetDateStringOrNull(reader, 7);
+        var memberValidUntil = GetDateStringOrNull(reader, 8);
+        var memberStatus = GetNullableString(reader, 9, "active");
+        var memberRenewalStatus = GetNullableString(reader, 10, "none");
+        var effective = ValidityCalculator.ForMember(
+            memberStatus,
+            memberRenewalStatus,
+            GetDateOnlyOrNull(reader, 8),
+            DateOnly.FromDateTime(DateTime.UtcNow)
+        );
+        var approvedAt = status == "approved" || status == "archived" ? GetTimestampString(reader, 6, GetTimestampString(reader, 5)) : string.Empty;
 
         return new MemberPublicDto(
             reader.GetString(0),
             reader.GetString(1),
             FormatMemberType(reader.GetString(2)),
             status,
-            FormatStatusLabel(status),
+            effective.EffectiveStatusLabel,
+            memberValidFrom,
+            memberValidUntil,
+            memberStatus,
+            memberRenewalStatus,
+            effective.EffectiveStatus,
+            effective.EffectiveStatusLabel,
+            effective.DaysUntilExpiry,
+            effective.ExpiryBucket,
             GetTimestampString(reader, 4),
             approvedAt,
             "ITCA / 国际道教与文化协会",
@@ -92,5 +115,20 @@ public sealed class MemberQueries(SupabaseDb database)
         }
 
         return reader.GetFieldValue<DateTime>(ordinal).ToString("O");
+    }
+
+    private static string GetNullableString(NpgsqlDataReader reader, int ordinal, string fallback = "")
+    {
+        return reader.IsDBNull(ordinal) ? fallback : reader.GetString(ordinal);
+    }
+
+    private static DateOnly? GetDateOnlyOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateOnly>(ordinal);
+    }
+
+    private static string? GetDateStringOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return GetDateOnlyOrNull(reader, ordinal)?.ToString("yyyy-MM-dd");
     }
 }

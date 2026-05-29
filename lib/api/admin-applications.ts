@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getApplicationById, listApplications, updateApplicationReview } from "@/lib/supabase/server";
+import { getApplicationById, listApplications, updateApplicationMemberValidity, updateApplicationReview } from "@/lib/supabase/server";
 import type { AdminSession } from "@/lib/admin/auth";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
@@ -59,6 +59,18 @@ type AdminApplicationReviewResponse =
 type UpdateAdminApplicationReviewValues = {
   status: ApplicationStatus;
   adminNote: string;
+  actor?: AdminSession;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
+export type UpdateAdminMemberValidityValues = {
+  memberValidFrom?: string | null;
+  memberValidUntil?: string | null;
+  memberStatus: string;
+  memberRenewalStatus: string;
+  lastRenewedAt?: string | null;
+  memberStatusNote?: string;
   actor?: AdminSession;
   ipAddress?: string;
   userAgent?: string;
@@ -246,5 +258,80 @@ export async function updateAdminApplicationReview(id: string, values: UpdateAdm
     status: values.status,
     adminNote: values.adminNote,
     issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback"
+  });
+}
+
+export async function updateAdminMemberValidity(id: string, values: UpdateAdminMemberValidityValues) {
+  try {
+    const response = await fetch(`${getItcaApiBaseUrl()}/api/admin/applications/${encodeURIComponent(id)}/member-validity`, {
+      method: "PATCH",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAdminApiHeaders(),
+        ...getAdminActorHeaders(values.actor, values.ipAddress, values.userAgent)
+      },
+      body: JSON.stringify({
+        memberValidFrom: values.memberValidFrom || null,
+        memberValidUntil: values.memberValidUntil || null,
+        memberStatus: values.memberStatus,
+        memberRenewalStatus: values.memberRenewalStatus,
+        lastRenewedAt: values.lastRenewedAt || null,
+        memberStatusNote: values.memberStatusNote || ""
+      })
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      throw new AdminApiUnauthorizedError();
+    }
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (response.status === 400) {
+      const result = (await response.json().catch(() => null)) as AdminApplicationDetailResponse | null;
+      throw new AdminApiRequestError(400, result && !result.success ? result.message : "会员有效期资料不正确。");
+    }
+
+    if (response.ok) {
+      const result = (await response.json()) as AdminApplicationDetailResponse;
+      if (result.success) return result.application;
+      throw new AdminApiRequestError(response.status, result.message || "会员有效期资料未能保存。");
+    }
+  } catch (error) {
+    if (error instanceof AdminApiUnauthorizedError || error instanceof AdminApiRequestError) {
+      throw error;
+    }
+
+    return updateApplicationMemberValidity(id, {
+      memberValidFrom: values.memberValidFrom,
+      memberValidUntil: values.memberValidUntil,
+      memberStatus: values.memberStatus,
+      memberRenewalStatus: values.memberRenewalStatus,
+      lastRenewedAt: values.lastRenewedAt,
+      memberStatusNote: values.memberStatusNote,
+      actorEmail: values.actor?.email || "",
+      actorName: values.actor?.displayName || "",
+      actorRole: values.actor?.role || "",
+      actorType: values.actor?.actorType || "legacy_admin",
+      ipAddress: values.ipAddress,
+      userAgent: values.userAgent
+    });
+  }
+
+  return updateApplicationMemberValidity(id, {
+    memberValidFrom: values.memberValidFrom,
+    memberValidUntil: values.memberValidUntil,
+    memberStatus: values.memberStatus,
+    memberRenewalStatus: values.memberRenewalStatus,
+    lastRenewedAt: values.lastRenewedAt,
+    memberStatusNote: values.memberStatusNote,
+    actorEmail: values.actor?.email || "",
+    actorName: values.actor?.displayName || "",
+    actorRole: values.actor?.role || "",
+    actorType: values.actor?.actorType || "legacy_admin",
+    ipAddress: values.ipAddress,
+    userAgent: values.userAgent
   });
 }

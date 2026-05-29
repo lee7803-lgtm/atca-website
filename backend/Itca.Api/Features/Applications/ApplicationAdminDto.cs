@@ -8,6 +8,16 @@ public sealed record ApplicationAdminDto(
     string MemberNo,
     string? MemberNoIssuedAt,
     string MemberNoIssuedBy,
+    string? MemberValidFrom,
+    string? MemberValidUntil,
+    string MemberStatus,
+    string MemberRenewalStatus,
+    string? LastRenewedAt,
+    string MemberStatusNote,
+    string MemberEffectiveStatus,
+    string MemberEffectiveStatusLabel,
+    int? DaysUntilExpiry,
+    string ExpiryBucket,
     string ApplicationNoScheme,
     string ApplicationType,
     string Status,
@@ -44,4 +54,13 @@ public sealed record ApplicationAdminReviewSummaryDto(
     string Status,
     string AdminNote,
     string UpdatedAt
+);
+
+public sealed record ApplicationMemberValidityRequest(
+    string? MemberValidFrom,
+    string? MemberValidUntil,
+    string? MemberStatus,
+    string? MemberRenewalStatus,
+    string? LastRenewedAt,
+    string? MemberStatusNote
 );

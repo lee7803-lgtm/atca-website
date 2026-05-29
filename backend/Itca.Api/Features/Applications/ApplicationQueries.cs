@@ -1,4 +1,5 @@
 using Itca.Api.Data;
+using Itca.Api.Features.Validity;
 using Npgsql;
 
 namespace Itca.Api.Features.Applications;
@@ -48,7 +49,11 @@ public sealed class ApplicationQueries(SupabaseDb database)
               coalesce(jsonb_array_length(supplemental_submissions), 0) as supplemental_submission_count,
               supplement_submitted_at,
               created_at,
-              updated_at
+              updated_at,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status
             from applications
             where application_no = @applicationNo
               and (email = @contact or phone = @contact)
@@ -122,6 +127,7 @@ public sealed class ApplicationQueries(SupabaseDb database)
               c.valid_from,
               c.valid_until,
               c.status,
+              c.certificate_review_status,
               c.certificate_photo_path
             from certification_applications ca
             left join certificates c on c.application_id = ca.id
@@ -145,6 +151,12 @@ public sealed class ApplicationQueries(SupabaseDb database)
     private static ApplicationProgressDto ReadMemberApplication(NpgsqlDataReader reader)
     {
         var status = reader.GetString(4);
+        var memberEffective = ValidityCalculator.ForMember(
+            GetNullableString(reader, 19, "active"),
+            GetNullableString(reader, 20, "none"),
+            GetDateOnlyOrNull(reader, 18),
+            DateOnly.FromDateTime(DateTime.UtcNow)
+        );
 
         return new ApplicationProgressDto(
             reader.GetString(0),
@@ -153,6 +165,13 @@ public sealed class ApplicationQueries(SupabaseDb database)
             reader.GetString(3),
             status,
             GetNullableString(reader, 5),
+            GetDateStringOrNull(reader, 17),
+            GetDateStringOrNull(reader, 18),
+            memberEffective.EffectiveStatus,
+            memberEffective.EffectiveStatusLabel,
+            null,
+            null,
+            null,
             null,
             null,
             null,
@@ -193,7 +212,15 @@ public sealed class ApplicationQueries(SupabaseDb database)
         var status = reader.GetString(3);
         var certificateNo = GetNullableString(reader, 34);
         var applicationPhotoPath = GetNullableString(reader, 33);
-        var certificatePhotoPath = GetNullableString(reader, 46);
+        var certificatePhotoPath = GetNullableString(reader, 47);
+        var certificateEffective = string.IsNullOrWhiteSpace(certificateNo)
+            ? null
+            : ValidityCalculator.ForCertificate(
+                GetNullableString(reader, 45),
+                GetNullableString(reader, 46, "none"),
+                GetDateOnlyOrNull(reader, 44),
+                DateOnly.FromDateTime(DateTime.UtcNow)
+            );
 
         return new ApplicationProgressDto(
             reader.GetString(1),
@@ -202,9 +229,16 @@ public sealed class ApplicationQueries(SupabaseDb database)
             reader.GetString(2),
             status,
             GetNullableString(reader, 5, GetNullableString(reader, 4)),
+            null,
+            null,
+            null,
+            null,
             string.IsNullOrWhiteSpace(certificateNo) ? null : certificateNo,
             string.IsNullOrWhiteSpace(certificateNo) ? null : $"/certificates/{Uri.EscapeDataString(certificateNo)}",
             GetNullableStringOrNull(reader, 45),
+            GetNullableStringOrNull(reader, 46),
+            certificateEffective?.EffectiveStatus,
+            certificateEffective?.EffectiveStatusLabel,
             GetNullableStringOrNull(reader, 35),
             GetNullableStringOrNull(reader, 36),
             GetNullableStringOrNull(reader, 38),
@@ -291,6 +325,11 @@ public sealed class ApplicationQueries(SupabaseDb database)
         }
 
         return reader.GetFieldValue<DateOnly>(ordinal).ToString("yyyy-MM-dd");
+    }
+
+    private static DateOnly? GetDateOnlyOrNull(NpgsqlDataReader reader, int ordinal)
+    {
+        return reader.IsDBNull(ordinal) ? null : reader.GetFieldValue<DateOnly>(ordinal);
     }
 
     private static string GetTimestampString(NpgsqlDataReader reader, int ordinal)

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { ReviewForm } from "./ReviewForm";
+import { MemberValidityForm, ReviewForm } from "./ReviewForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
 import { formatApplicationStatus } from "@/lib/status-labels";
@@ -74,16 +74,40 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
             <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
             <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
+            <DetailItem label="会员有效期开始" value={application.memberValidFrom || "有效期未设置"} />
+            <DetailItem label="会员有效期截止" value={application.memberValidUntil || "有效期未设置"} />
+            <DetailItem label="会员动态状态" value={application.memberEffectiveStatusLabel || "有效期未设置"} />
+            <DetailItem label="会员状态" value={memberStatusText[application.memberStatus] || application.memberStatus || "有效"} />
+            <DetailItem label="续期状态" value={renewalStatusText[application.memberRenewalStatus] || application.memberRenewalStatus || "无"} />
+            <DetailItem label="最近续期时间" value={application.lastRenewedAt ? formatDateTime(application.lastRenewedAt) : "未记录"} />
+            <DetailItem className="md:col-span-2" label="后台会员状态备注" value={application.memberStatusNote || "暂无备注"} />
             <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />
             <DetailItem className="md:col-span-2" label="申请理由 / 合作意向" value={application.purpose} />
             <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />
           </div>
         </section>
-        <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
+        <div className="grid gap-6">
+          <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
+          <MemberValidityForm application={application} />
+        </div>
       </div>
     </section>
   );
 }
+
+const memberStatusText: Record<string, string> = {
+  active: "有效",
+  suspended: "已暂停",
+  revoked: "已撤销",
+  terminated: "已终止"
+};
+
+const renewalStatusText: Record<string, string> = {
+  none: "无",
+  pending_renewal: "待续期",
+  renewed: "已续期",
+  pending_review: "待复审"
+};
 
 function DetailItem({ className = "", label, value }: { className?: string; label: string; value: string }) {
   return (

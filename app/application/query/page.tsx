@@ -22,7 +22,10 @@ const certificateStatusText: Record<string, string> = {
   pending: "待确认",
   valid: "有效",
   revoked: "已撤销",
-  expired: "已过期"
+  expired: "已过期",
+  expiring_soon: "即将到期",
+  pending_review: "待复审",
+  validity_not_set: "有效期未设置"
 };
 
 const typeText: Record<string, string> = {
@@ -193,7 +196,15 @@ function ApplicationQueryContent() {
                 <StatusRow label="申请人 / 机构名称" value={maskName(selectedApplication.name)} />
                 <StatusRow label="当前状态" value={currentStatusText(selectedApplication)} />
                 {selectedApplication.applicationType !== "taoist_certification" ? (
-                  <StatusRow label="会员编号" value={selectedApplication.memberNo || "审核通过后生成"} />
+                  <>
+                    <StatusRow label="会员编号" value={selectedApplication.memberNo || "审核通过后生成"} />
+                    {selectedApplication.memberNo ? (
+                      <>
+                        <StatusRow label="会员有效期" value={`${formatDate(selectedApplication.memberValidFrom)} 至 ${formatDate(selectedApplication.memberValidUntil)}`} />
+                        <StatusRow label="会员状态" value={selectedApplication.memberEffectiveStatusLabel || "有效期未设置"} />
+                      </>
+                    ) : null}
+                  </>
                 ) : null}
                 <StatusRow label="提交时间" value={formatDateTime(selectedApplication.createdAt)} />
                 <StatusRow label={selectedApplication.applicationType === "taoist_certification" ? "对申请人的反馈" : "审核反馈"} value={selectedApplication.adminNote || "暂无反馈"} />
@@ -201,6 +212,12 @@ function ApplicationQueryContent() {
                   <>
                     <StatusRow label="是否需要补充材料" value={selectedApplication.status === "need_more_info" ? "是，请查看反馈说明" : "否"} />
                     <StatusRow label="证书是否已生成" value={selectedApplication.certificateNo ? "是" : "否"} />
+                    {selectedApplication.certificateNo ? (
+                      <>
+                        <StatusRow label="证书有效期" value={`${formatDate(selectedApplication.certificateValidFrom)} 至 ${formatDate(selectedApplication.certificateValidUntil)}`} />
+                        <StatusRow label="证书状态" value={selectedApplication.certificateEffectiveStatusLabel || certificateStatusText[selectedApplication.certificateStatus || "pending"] || "待确认"} />
+                      </>
+                    ) : null}
                     <StatusRow label="证书下发状态" value={deliveryStatusText[selectedApplication.deliveryStatus || "not_delivered"]} />
                     <StatusRow label="下发时间" value={selectedApplication.deliveredAt ? formatDateTime(selectedApplication.deliveredAt) : "尚未下发"} />
                     {selectedApplication.certificateNo ? (
@@ -318,7 +335,7 @@ function formatDateTime(value: string) {
   return date.toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
 }
 
-function formatDate(value?: string) {
+function formatDate(value?: string | null) {
   if (!value) return "未记录";
   const date = new Date(value);
   if (Number.isNaN(date.getTime())) return value;
@@ -556,7 +573,7 @@ function ApplicantCertificatePrint({ application }: { application: ApplicationQu
               <CertificateField label="签发机构" value={application.certificateIssuer || "ITCA / 国际道教与文化协会"} />
               <CertificateField label="签发日期" value={formatDate(application.certificateIssuedDate)} />
               <CertificateField label="有效期" value={`${formatDate(application.certificateValidFrom)} 至 ${formatDate(application.certificateValidUntil)}`} />
-              <CertificateField label="证书状态" value={certificateStatusText[application.certificateStatus || "pending"] || "待确认"} />
+              <CertificateField label="证书状态" value={application.certificateEffectiveStatusLabel || certificateStatusText[application.certificateStatus || "pending"] || "待确认"} />
             </div>
           </div>
         </div>

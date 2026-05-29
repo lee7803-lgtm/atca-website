@@ -1,5 +1,6 @@
 import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType } from "@/types/application";
 import { certificationLevelLabels } from "@/types/certification";
+import { getCertificateEffectiveValidity, getMemberEffectiveValidity } from "@/lib/validity";
 import type {
   CertificateQueryResult,
   CertificateRecord,
@@ -30,6 +31,12 @@ type SupabaseApplicationRow = {
   member_no: string | null;
   member_no_issued_at: string | null;
   member_no_issued_by: string | null;
+  member_valid_from: string | null;
+  member_valid_until: string | null;
+  member_status: string | null;
+  member_renewal_status: string | null;
+  last_renewed_at: string | null;
+  member_status_note: string | null;
   application_no_scheme: string | null;
   application_type: string;
   status: string;
@@ -126,6 +133,9 @@ type SupabaseCertificateRow = {
   valid_from: string;
   valid_until: string;
   status: string;
+  certificate_review_status: string | null;
+  last_reviewed_at: string | null;
+  certificate_status_note: string | null;
   public_query_enabled: boolean | null;
   created_at: string;
   updated_at: string;
@@ -261,6 +271,47 @@ function getHeaders(config: SupabaseConfig, prefer?: string) {
   };
 }
 
+async function writeAuditLog(entry: {
+  action: string;
+  resourceType: string;
+  resourceId: string;
+  resourceNo: string;
+  actorEmail: string;
+  actorName: string;
+  actorRole: string;
+  actorType: string;
+  beforeData: unknown;
+  afterData: unknown;
+  summary: string;
+  ipAddress: string;
+  userAgent: string;
+}) {
+  try {
+    const config = getSupabaseConfig();
+    await fetch(`${config.url}/rest/v1/audit_logs`, {
+      method: "POST",
+      headers: getHeaders(config),
+      body: JSON.stringify({
+        actor_email: entry.actorEmail || null,
+        actor_name: entry.actorName || null,
+        actor_role: entry.actorRole || null,
+        actor_type: entry.actorType || "legacy_admin",
+        action: entry.action,
+        resource_type: entry.resourceType,
+        resource_id: entry.resourceId,
+        resource_no: entry.resourceNo,
+        before_data: entry.beforeData,
+        after_data: entry.afterData,
+        summary: entry.summary,
+        ip_address: entry.ipAddress || null,
+        user_agent: entry.userAgent || null
+      })
+    });
+  } catch {
+    // Audit logging is best effort in the Next.js fallback path.
+  }
+}
+
 function toSupabaseRow(application: ApplicationRecord) {
   return {
     application_no: application.applicationNo,
@@ -294,9 +345,15 @@ function toSupabaseRow(application: ApplicationRecord) {
 function toApplicationQueryResult(
   row: Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at"> &
     Partial<Pick<SupabaseApplicationRow, "member_no">> &
+    Partial<Pick<SupabaseApplicationRow, "member_valid_from" | "member_valid_until" | "member_status" | "member_renewal_status">> &
     Partial<Pick<SupabaseApplicationRow, "contact_name" | "phone" | "email" | "country" | "profile" | "purpose" | "organization_type" | "supplement_submitted_at" | "supplemental_submissions">>
 ): ApplicationQueryResult {
   const supplementalSubmissions = normalizeSupplementalSubmissions(row.supplemental_submissions);
+  const memberEffective = getMemberEffectiveValidity({
+    memberStatus: row.member_status,
+    memberRenewalStatus: row.member_renewal_status,
+    memberValidUntil: row.member_valid_until
+  });
   return {
     applicationNo: row.application_no,
     memberNo: row.member_no ?? null,
@@ -304,6 +361,10 @@ function toApplicationQueryResult(
     name: row.name,
     status: row.status as ApplicationQueryResult["status"],
     adminNote: row.admin_note ?? "",
+    memberValidFrom: row.member_valid_from ?? null,
+    memberValidUntil: row.member_valid_until ?? null,
+    memberEffectiveStatus: memberEffective.effectiveStatus,
+    memberEffectiveStatusLabel: memberEffective.effectiveStatusLabel,
     supplementSubmittedAt: row.supplement_submitted_at ?? null,
     hasSupplementalSubmission: supplementalSubmissions.length > 0,
     editableData:
@@ -387,12 +448,28 @@ function toCertificationQueryResult(
 }
 
 function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdminRecord {
+  const memberEffective = getMemberEffectiveValidity({
+    memberStatus: row.member_status,
+    memberRenewalStatus: row.member_renewal_status,
+    memberValidUntil: row.member_valid_until
+  });
+
   return {
     id: row.id,
     applicationNo: row.application_no,
     memberNo: row.member_no ?? "",
     memberNoIssuedAt: row.member_no_issued_at,
     memberNoIssuedBy: row.member_no_issued_by ?? "",
+    memberValidFrom: row.member_valid_from ?? null,
+    memberValidUntil: row.member_valid_until ?? null,
+    memberStatus: row.member_status || "active",
+    memberRenewalStatus: row.member_renewal_status || "none",
+    lastRenewedAt: row.last_renewed_at,
+    memberStatusNote: row.member_status_note || "",
+    memberEffectiveStatus: memberEffective.effectiveStatus,
+    memberEffectiveStatusLabel: memberEffective.effectiveStatusLabel,
+    daysUntilExpiry: memberEffective.daysUntilExpiry,
+    expiryBucket: memberEffective.expiryBucket,
     applicationNoScheme: row.application_no_scheme ?? "",
     applicationType: row.application_type as ApplicationType,
     status: row.status as ApplicationStatus,
@@ -651,6 +728,12 @@ function toCertificateRow(certificate: CertificateRecord) {
 }
 
 function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQueryResult {
+  const effective = getCertificateEffectiveValidity({
+    status: row.status,
+    certificateReviewStatus: row.certificate_review_status,
+    validUntil: row.valid_until
+  });
+
   return {
     certificateNo: row.certificate_no,
     holderName: row.holder_name,
@@ -662,12 +745,23 @@ function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQuery
     validFrom: row.valid_from,
     validUntil: row.valid_until,
     status: row.status as CertificateQueryResult["status"],
+    certificateReviewStatus: row.certificate_review_status || "none",
+    effectiveStatus: effective.effectiveStatus,
+    effectiveStatusLabel: effective.effectiveStatusLabel,
+    daysUntilExpiry: effective.daysUntilExpiry,
+    expiryBucket: effective.expiryBucket,
     detailUrl: `/certificates/${encodeURIComponent(row.certificate_no)}`
   };
 }
 
 async function toApplicantCertificateFields(row: SupabaseCertificateRow) {
   let certificatePhotoUrl = "";
+  const certificateEffective = getCertificateEffectiveValidity({
+    status: row.status,
+    certificateReviewStatus: row.certificate_review_status,
+    validUntil: row.valid_until
+  });
+
   if (row.certificate_photo_path) {
     try {
       certificatePhotoUrl = await createCertificationAttachmentSignedUrl(row.certificate_photo_path, 3600);
@@ -678,6 +772,9 @@ async function toApplicantCertificateFields(row: SupabaseCertificateRow) {
 
   return {
     certificateStatus: row.status as ApplicationQueryResult["certificateStatus"],
+    certificateReviewStatus: row.certificate_review_status || "none",
+    certificateEffectiveStatus: certificateEffective.effectiveStatus,
+    certificateEffectiveStatusLabel: certificateEffective.effectiveStatusLabel,
     certificateHolderName: row.holder_name,
     certificateTaoistName: row.taoist_name ?? "",
     certificationPath: (row.certification_path || "") as ApplicationQueryResult["certificationPath"],
@@ -740,7 +837,7 @@ export async function findApplicationByNoAndContact(applicationNo: string, conta
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "application_no,member_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -769,7 +866,7 @@ export async function findApplicationsByIdentity(filters: {
     application_type: `eq.${filters.applicationType}`,
     name: `eq.${filters.name}`,
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "application_no,member_no,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "10"
   });
@@ -796,7 +893,7 @@ export async function findOpenApplicationByContact(filters: { applicationType: A
     application_type: `eq.${filters.applicationType}`,
     status: "in.(submitted,pending_review,under_review,need_more_info,approved)",
     or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
-    select: "application_no,member_no,application_type,name,status,admin_note,created_at,updated_at",
+    select: "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,created_at,updated_at",
     order: "created_at.desc",
     limit: "1"
   });
@@ -905,7 +1002,7 @@ export async function listApplications(filters: { applicationType?: ApplicationT
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     select:
-      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc"
   });
 
@@ -932,7 +1029,7 @@ export async function getApplicationById(id: string) {
   const params = new URLSearchParams({
     id: `eq.${id}`,
     select:
-      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -999,6 +1096,90 @@ export async function updateApplicationReview(id: string, values: { status: Appl
   }
 
   return row ? toApplicationAdminRecord(row) : null;
+}
+
+export async function updateApplicationMemberValidity(
+  id: string,
+  values: {
+    memberValidFrom?: string | null;
+    memberValidUntil?: string | null;
+    memberStatus: string;
+    memberRenewalStatus: string;
+    lastRenewedAt?: string | null;
+    memberStatusNote?: string;
+    actorEmail?: string;
+    actorName?: string;
+    actorRole?: string;
+    actorType?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }
+) {
+  const before = await getApplicationById(id);
+  if (!before) return null;
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      member_valid_from: values.memberValidFrom || null,
+      member_valid_until: values.memberValidUntil || null,
+      member_status: values.memberStatus,
+      member_renewal_status: values.memberRenewalStatus,
+      last_renewed_at: values.lastRenewedAt || null,
+      member_status_note: values.memberStatusNote || null,
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+  const row = rows[0];
+  const updated = row ? toApplicationAdminRecord(row) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "member_application.validity_update",
+      resourceType: "application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: {
+        id: before.id,
+        applicationNo: before.applicationNo,
+        memberNo: before.memberNo,
+        memberValidFrom: before.memberValidFrom,
+        memberValidUntil: before.memberValidUntil,
+        memberStatus: before.memberStatus,
+        memberRenewalStatus: before.memberRenewalStatus,
+        lastRenewedAt: before.lastRenewedAt,
+        memberStatusNote: before.memberStatusNote
+      },
+      afterData: {
+        id: updated.id,
+        applicationNo: updated.applicationNo,
+        memberNo: updated.memberNo,
+        memberValidFrom: updated.memberValidFrom,
+        memberValidUntil: updated.memberValidUntil,
+        memberStatus: updated.memberStatus,
+        memberRenewalStatus: updated.memberRenewalStatus,
+        lastRenewedAt: updated.lastRenewedAt,
+        memberStatusNote: updated.memberStatusNote
+      },
+      summary: `会员申请 ${updated.applicationNo} 有效期资料已更新。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
 }
 
 export async function insertCertificationApplication(application: CertificationApplicationRecord) {
@@ -1150,7 +1331,7 @@ export async function findApplicationSupplementTarget(applicationNo: string, con
     application_no: `eq.${applicationNo}`,
     or: `(email.eq.${contact},phone.eq.${contact})`,
     select:
-      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {

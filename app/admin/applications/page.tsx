@@ -8,6 +8,7 @@ import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/au
 import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
 import { isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatApplicationStatus } from "@/lib/status-labels";
+import { formatExpiryHint } from "@/lib/validity";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -32,6 +33,15 @@ const statusOptions: Array<{ value: "" | ApplicationStatus; label: string }> = [
   { value: "archived", label: "已建档" }
 ];
 
+const validityOptions = [
+  { value: "", label: "全部会员状态" },
+  { value: "active", label: "有效" },
+  { value: "expiring_soon", label: "即将到期" },
+  { value: "expired", label: "已过期" },
+  { value: "pending_renewal", label: "待续期" },
+  { value: "ended", label: "已终止 / 已撤销" }
+];
+
 const typeText: Record<ApplicationType, string> = {
   personal_member: "个人会员",
   organization_member: "机构会员"
@@ -47,13 +57,14 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
-const csvHeaders = ["申请编号", "会员编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "提交时间", "更新时间"];
+const csvHeaders = ["申请编号", "会员编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "会员有效期截止", "会员动态状态", "提交时间", "更新时间"];
 
-export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus } }) {
+export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; validity?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   const applicationType = typeOptions.some((item) => item.value === searchParams?.applicationType) ? searchParams?.applicationType : undefined;
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
+  const validity = validityOptions.some((item) => item.value === searchParams?.validity) ? searchParams?.validity || "" : "";
   let applications: ApplicationAdminRecord[] = [];
   let databaseMessage = "";
 
@@ -71,6 +82,12 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     }
   }
 
+  applications = applications.filter((item) => {
+    if (!validity) return true;
+    if (validity === "ended") return item.memberEffectiveStatus === "terminated" || item.memberEffectiveStatus === "revoked";
+    return item.memberEffectiveStatus === validity;
+  });
+
   const csvRows = applications.map((item) => [
     item.applicationNo || "",
     item.memberNo || "",
@@ -79,6 +96,8 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     item.email || "",
     item.phone || "",
     formatApplicationStatus(item),
+    item.memberValidUntil || "",
+    item.memberEffectiveStatusLabel || "",
     item.createdAt || "",
     item.updatedAt || ""
   ]);
@@ -110,7 +129,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
         </div>
       ) : null}
 
-      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_auto] md:items-end">
+      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">申请类型</span>
           <select className="form-input" defaultValue={applicationType || ""} name="applicationType">
@@ -123,6 +142,12 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
             {statusOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
           </select>
         </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">会员有效期状态</span>
+          <select className="form-input" defaultValue={validity} name="validity">
+            {validityOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
+          </select>
+        </label>
         <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
           筛选
         </button>
@@ -133,7 +158,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <table className="min-w-[980px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["申请编号", "会员编号", "类型", "名称", "邮箱", "电话", "国家 / 地区", "状态", "提交时间", "操作"].map((item) => (
+                {["申请编号", "会员编号", "类型", "名称", "邮箱", "电话", "状态", "会员有效期截止", "会员动态状态", "到期提示", "提交时间", "操作"].map((item) => (
                   <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
                 ))}
               </tr>
@@ -147,8 +172,10 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
                   <td className="px-4 py-4 text-porcelain">{item.name}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.email}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.phone}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.country}</td>
                   <td className="px-4 py-4 text-[#8a6b3e]">{formatApplicationStatus(item)}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">{item.memberValidUntil || "有效期未设置"}</td>
+                  <td className="px-4 py-4 text-[#8a6b3e]">{item.memberEffectiveStatusLabel || "有效期未设置"}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">{formatExpiryHint(item.daysUntilExpiry)}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
                   <td className="px-4 py-4">
                     <Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/applications/${item.id}`}>查看详情</Link>
@@ -157,7 +184,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
               ))}
               {applications.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无符合条件的申请记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={12}>暂无符合条件的申请记录。</td>
                 </tr>
               ) : null}
             </tbody>

@@ -120,7 +120,9 @@ export default function MemberQueryPage() {
                 <ResultRow label="会员编号" value={member.memberNo} />
                 <ResultRow label="姓名 / 机构名称" value={member.holderName} />
                 <ResultRow label="会员类型" value={member.memberType} />
-                <ResultRow label="会员状态" value={member.statusLabel} />
+                <ResultRow label="有效期开始" value={formatDate(member.memberValidFrom || "")} />
+                <ResultRow label="有效期截止" value={formatDate(member.memberValidUntil || "")} />
+                <ResultRow label="当前状态" value={member.effectiveStatusLabel || member.statusLabel} />
                 <ResultRow label="登记机构" value={member.issuer} />
                 <ResultRow label="登记日期" value={formatDate(member.registeredAt)} />
                 {member.approvedAt ? <ResultRow label="通过日期" value={formatDate(member.approvedAt)} /> : null}
@@ -143,7 +145,7 @@ export default function MemberQueryPage() {
 }
 
 function isApplicationNo(value: string) {
-  return /^ARID-ITCA-(M|ORG)-\d{4}-\d{6}$/i.test(value.trim());
+  return /^ARID-ITCA-(M|ORG)-\d{4}-[A-Z0-9]{6}$/i.test(value.trim());
 }
 
 function ResultRow({ label, value }: { label: string; value: string }) {

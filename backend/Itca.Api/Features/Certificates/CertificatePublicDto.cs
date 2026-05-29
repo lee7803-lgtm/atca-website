@@ -11,5 +11,10 @@ public sealed record CertificatePublicDto(
     string ValidFrom,
     string ValidUntil,
     string Status,
+    string CertificateReviewStatus,
+    string EffectiveStatus,
+    string EffectiveStatusLabel,
+    int? DaysUntilExpiry,
+    string ExpiryBucket,
     string DetailUrl
 );

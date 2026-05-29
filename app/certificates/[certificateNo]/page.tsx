@@ -22,7 +22,10 @@ const statusText: Record<string, string> = {
   pending: "待确认",
   valid: "有效",
   expired: "已过期",
-  revoked: "已撤销"
+  revoked: "已撤销",
+  expiring_soon: "即将到期",
+  pending_review: "待复审",
+  validity_not_set: "有效期未设置"
 };
 
 export default async function CertificateDetailPage({ params, searchParams }: CertificateDetailPageProps) {
@@ -50,8 +53,9 @@ export default async function CertificateDetailPage({ params, searchParams }: Ce
           <DetailRow label="认证路径 / 等级" value={formatPathAndLevel(detail.certificate)} />
           <DetailRow label="签发机构" value={detail.certificate.issuer} />
           <DetailRow label="签发日期" value={detail.certificate.issuedDate || "未记录"} />
-          <DetailRow label="有效期" value={`${detail.certificate.validFrom || "未记录"} 至 ${detail.certificate.validUntil || "未记录"}`} />
-          <DetailRow label="证书状态" value={statusText[detail.certificate.status] || detail.certificate.status} />
+          <DetailRow label="有效期开始" value={detail.certificate.validFrom || "有效期未设置"} />
+          <DetailRow label="有效期截止" value={detail.certificate.validUntil || "有效期未设置"} />
+          <DetailRow label="当前状态" value={detail.certificate.effectiveStatusLabel || statusText[detail.certificate.effectiveStatus || detail.certificate.status] || detail.certificate.status} />
           <DetailRow label="核验说明" value="该短期核验链接由证书编号与持证人姓名完成核验后生成，有效期内可查看公开证书详情。" />
         </div>
 
