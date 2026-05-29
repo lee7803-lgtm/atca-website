@@ -14,6 +14,7 @@ const statusText: Record<string, string> = {
   valid: "有效",
   expired: "已过期",
   revoked: "已撤销",
+  suspended: "已暂停",
   expiring_soon: "即将到期",
   pending_renewal: "待续期",
   renewal_in_progress: "续期中",

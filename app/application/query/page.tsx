@@ -22,6 +22,7 @@ const certificateStatusText: Record<string, string> = {
   pending: "待确认",
   valid: "有效",
   revoked: "已撤销",
+  suspended: "已暂停",
   expired: "已过期",
   expiring_soon: "即将到期",
   pending_renewal: "待续期",

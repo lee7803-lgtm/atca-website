@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateCertificateNo } from "@/lib/application-number";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import {
   deleteCertificateByNo,
   findCertificateByApplicationId,
@@ -10,6 +10,7 @@ import {
   normalizeMaterialReview,
   SupabaseConfigError,
   SupabaseRequestError,
+  updateCertificateBusinessStatus,
   updateCertificationReview
 } from "@/lib/supabase/server";
 import { certificationLevelLabels, type CertificateRecord, type CertificationLevel, type CertificationPath, type CertificationStatus, type MaterialReview } from "@/types/certification";
@@ -18,6 +19,7 @@ const validStatuses: CertificationStatus[] = ["submitted", "under_review", "need
 const certificateIssuedStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered"];
 const validCertificationPaths: CertificationPath[] = ["zhengyi", "quanzhen", "other_international"];
 const validCertificationLevels: CertificationLevel[] = ["refuge_entry", "transmission_or_crowning", "register_or_precept", "senior_taoist", "special_lineage"];
+const validCertificateBusinessStatuses = ["pending", "valid", "pending_renewal", "renewal_in_progress", "renewed", "suspended", "revoked"];
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
@@ -25,6 +27,10 @@ function getAdminCookie(request: Request) {
 
 function unauthorized() {
   return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
+}
+
+function getRequestIp(request: Request) {
+  return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -76,8 +82,19 @@ function buildLineageOrTemple(application: Awaited<ReturnType<typeof getCertific
   return [application.sect, application.lineage, application.templeOrOrganization].filter(Boolean).join(" / ");
 }
 
+function mapCertificateBusinessStatus(status: string): { certificateStatus: "pending" | "valid" | "revoked"; certificateReviewStatus: string } {
+  if (status === "pending") return { certificateStatus: "pending", certificateReviewStatus: "none" };
+  if (status === "revoked") return { certificateStatus: "revoked", certificateReviewStatus: "none" };
+  if (status === "pending_renewal" || status === "renewal_in_progress" || status === "renewed" || status === "suspended") {
+    return { certificateStatus: "valid", certificateReviewStatus: status };
+  }
+
+  return { certificateStatus: "valid", certificateReviewStatus: "none" };
+}
+
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
+  const adminCookie = getAdminCookie(request);
+  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let payload: unknown;
 
@@ -101,6 +118,31 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     const materialReview = asMaterialReview(payload.materialReview ?? payload.material_review);
     const committeeReviewNote = asString(payload.committeeReviewNote) || asString(payload.committee_review_note);
     const reviewer = asString(payload.reviewer) || "admin";
+
+    if (action === "update_certificate_status") {
+      const existing = await findCertificateByApplicationId(params.id);
+      if (!existing) return NextResponse.json({ success: false, message: "请先生成证书记录后再维护证书状态。" }, { status: 400 });
+
+      const businessStatus = asString(payload.certificateBusinessStatus);
+      if (!validCertificateBusinessStatuses.includes(businessStatus)) {
+        return NextResponse.json({ success: false, message: "请选择有效的证书状态。" }, { status: 400 });
+      }
+
+      const mapped = mapCertificateBusinessStatus(businessStatus);
+      const actor = getAdminSession(adminCookie) || undefined;
+      const certificate = await updateCertificateBusinessStatus(params.id, {
+        ...mapped,
+        certificateStatusNote: asString(payload.certificateStatusNote),
+        actorEmail: actor?.email || "",
+        actorName: actor?.displayName || "",
+        actorRole: actor?.role || "",
+        actorType: actor?.actorType || "legacy_admin",
+        ipAddress: getRequestIp(request),
+        userAgent: request.headers.get("user-agent") || ""
+      });
+
+      return NextResponse.json({ success: true, certificate });
+    }
 
     if (action === "update_material_review") {
       if (!materialReview) return NextResponse.json({ success: false, message: "材料审核状态不正确。" }, { status: 400 });

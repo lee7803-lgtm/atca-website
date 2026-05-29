@@ -20,15 +20,15 @@ export function getMemberEffectiveValidity(params: {
 
   if (memberStatus === "revoked") return build("revoked", "已撤销", validUntil, today);
   if (memberStatus === "terminated") return build("terminated", "已终止", validUntil, today);
-  if (memberStatus === "suspended") return build("terminated", "已终止", validUntil, today);
+  if (memberStatus === "suspended") return build("suspended", "已暂停", validUntil, today);
+  if (renewalStatus === "pending_renewal") return build("pending_renewal", "待续期", validUntil, today);
+  if (renewalStatus === "renewal_in_progress" || renewalStatus === "pending_review") return build("renewal_in_progress", "续期中", validUntil, today);
+  if (renewalStatus === "renewed") return build("renewed", "已续期", validUntil, today);
   if (!validUntil) return build("validity_not_set", "有效期未设置", validUntil, today);
 
   const days = diffDays(validUntil, today);
   if (days < 0) return build("expired", "已过期", validUntil, today);
   if (days <= expiringSoonDays) return build("expiring_soon", "即将到期", validUntil, today);
-  if (renewalStatus === "pending_renewal") return build("pending_renewal", "待续期", validUntil, today);
-  if (renewalStatus === "pending_review") return build("renewal_in_progress", "续期中", validUntil, today);
-  if (renewalStatus === "renewed") return build("renewed", "已续期", validUntil, today);
   return build("active", "有效", validUntil, today);
 }
 
@@ -45,14 +45,16 @@ export function getCertificateEffectiveValidity(params: {
 
   if (status === "revoked") return build("revoked", "已撤销", validUntil, today);
   if (status === "pending") return build("pending", "待签发", validUntil, today);
+  if (status === "expired") return build("expired", "已过期", validUntil, today);
+  if (reviewStatus === "suspended") return build("suspended", "已暂停", validUntil, today);
+  if (reviewStatus === "pending_renewal") return build("pending_renewal", "待续期", validUntil, today);
+  if (reviewStatus === "renewal_in_progress" || reviewStatus === "pending_review") return build("renewal_in_progress", "续期中", validUntil, today);
+  if (reviewStatus === "reviewed" || reviewStatus === "renewed") return build("renewed", "已续期", validUntil, today);
   if (!validUntil) return build("validity_not_set", "有效期未设置", validUntil, today);
 
   const days = diffDays(validUntil, today);
   if (days < 0) return build("expired", "已过期", validUntil, today);
   if (days <= expiringSoonDays) return build("expiring_soon", "即将到期", validUntil, today);
-  if (reviewStatus === "pending_renewal") return build("pending_renewal", "待续期", validUntil, today);
-  if (reviewStatus === "pending_review") return build("renewal_in_progress", "续期中", validUntil, today);
-  if (reviewStatus === "reviewed" || reviewStatus === "renewed") return build("renewed", "已续期", validUntil, today);
   return build("valid", "有效", validUntil, today);
 }
 

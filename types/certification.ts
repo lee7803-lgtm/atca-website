@@ -11,7 +11,7 @@ export type CertificationStatus =
   | "revoked";
 
 export type CertificateStatus = "pending" | "valid" | "revoked" | "expired";
-export type CertificateReviewStatus = "none" | "pending_renewal" | "pending_review" | "reviewed" | "renewed";
+export type CertificateReviewStatus = "none" | "pending_renewal" | "renewal_in_progress" | "pending_review" | "reviewed" | "renewed" | "suspended";
 
 export type CertificationType = "taoist_priest";
 

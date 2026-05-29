@@ -232,6 +232,7 @@ function formatMemberValidityStatus(item: ApplicationAdminRecord) {
 function formatBusinessStatus(item: ApplicationAdminRecord) {
   if (item.memberEffectiveStatus === "revoked") return "已撤销";
   if (item.memberEffectiveStatus === "terminated") return "已终止";
+  if (item.memberEffectiveStatus === "suspended") return "已暂停";
   if (["expired", "expiring_soon", "pending_renewal", "renewal_in_progress", "renewed"].includes(item.memberEffectiveStatus)) {
     return item.memberEffectiveStatusLabel;
   }

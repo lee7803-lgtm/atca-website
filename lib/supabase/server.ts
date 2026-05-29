@@ -15,6 +15,15 @@ import type {
   SupplementalSubmission
 } from "@/types/certification";
 
+type AuditActorValues = {
+  actorEmail?: string;
+  actorName?: string;
+  actorRole?: string;
+  actorType?: string;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
 type SupabaseConfig = {
   url: string;
   anonKey: string;
@@ -1571,6 +1580,72 @@ export async function insertCertificate(certificate: CertificateRecord) {
   }
 
   return certificate;
+}
+
+export async function updateCertificateBusinessStatus(
+  applicationId: string,
+  values: {
+    certificateStatus: "pending" | "valid" | "revoked";
+    certificateReviewStatus: string;
+    certificateStatusNote?: string;
+  } & AuditActorValues
+) {
+  const before = await findCertificateByApplicationId(applicationId);
+  if (!before) return null;
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(`${config.url}/rest/v1/certificates?application_id=eq.${encodeURIComponent(applicationId)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      status: values.certificateStatus,
+      certificate_review_status: values.certificateReviewStatus || "none",
+      certificate_status_note: values.certificateStatusNote || null,
+      last_reviewed_at: now,
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const updated = rows[0] ? toCertificateQueryResult(rows[0]) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "certificate.status_update",
+      resourceType: "certificate",
+      resourceId: applicationId,
+      resourceNo: updated.certificateNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: {
+        certificateNo: before.certificateNo,
+        status: before.status,
+        certificateReviewStatus: before.certificateReviewStatus,
+        effectiveStatus: before.effectiveStatus,
+        validFrom: before.validFrom,
+        validUntil: before.validUntil
+      },
+      afterData: {
+        certificateNo: updated.certificateNo,
+        status: updated.status,
+        certificateReviewStatus: updated.certificateReviewStatus,
+        effectiveStatus: updated.effectiveStatus,
+        validFrom: updated.validFrom,
+        validUntil: updated.validUntil
+      },
+      summary: `证书 ${updated.certificateNo} 状态更新为 ${updated.effectiveStatusLabel || updated.status}。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
 }
 
 export async function findCertificateByApplicationId(applicationId: string) {

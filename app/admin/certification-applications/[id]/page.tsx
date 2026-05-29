@@ -2,7 +2,7 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { CertificationReviewForm } from "../ReviewForm";
+import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
 import { MaterialReviewField } from "./MaterialReviewField";
 import { CopyButton } from "@/components/CopyButton";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
@@ -25,6 +25,7 @@ const certificateStatusText: Record<string, string> = {
   pending: "待确认",
   valid: "有效",
   revoked: "已撤销",
+  suspended: "已暂停",
   expired: "已过期",
   expiring_soon: "即将到期",
   pending_renewal: "待续期",
@@ -272,6 +273,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             initialStatus={application.status}
             supportingMaterials={supportingMaterialsPanel}
           />
+          {certificate ? <CertificateStatusForm applicationId={application.id} certificate={certificate} /> : null}
         </div>
       </div>
     </section>

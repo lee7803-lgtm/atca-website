@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { ReviewForm } from "./ReviewForm";
+import { MemberStatusForm, ReviewForm } from "./ReviewForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
 import { formatApplicationStatus } from "@/lib/status-labels";
@@ -85,6 +85,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
         <div className="grid gap-6">
           <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
           <MemberValidityPanel application={application} />
+          <MemberStatusForm application={application} />
         </div>
       </div>
     </section>
