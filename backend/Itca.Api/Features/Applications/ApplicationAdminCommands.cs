@@ -54,6 +54,15 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         var issuedBy = string.IsNullOrWhiteSpace(actor.Email)
             ? string.IsNullOrWhiteSpace(actor.Name) ? "admin" : actor.Name
             : actor.Email;
+        var memberNo = status == "approved" && string.IsNullOrWhiteSpace(before.MemberNo)
+            ? await NumberingGenerator.GenerateUniquePublicNumberAsync(
+                connection,
+                NumberingGenerator.GetMemberPrefix(before.ApplicationType),
+                sequenceYear,
+                NumberingGenerator.PublicNumberTarget.MemberNo,
+                cancellationToken
+            )
+            : string.Empty;
 
         command.CommandText = """
             update applications
@@ -61,15 +70,15 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
               status = @status,
               admin_note = @adminNote,
               member_no = case
-                when @status = 'approved' and member_no is null then public.generate_itca_number(@memberSequenceKey, @memberPrefix, @sequenceYear)
+                when @status = 'approved' and member_no is null and @memberNo <> '' then @memberNo
                 else member_no
               end,
               member_no_issued_at = case
-                when @status = 'approved' and member_no is null then @updatedAt
+                when @status = 'approved' and member_no is null and @memberNo <> '' then @updatedAt
                 else member_no_issued_at
               end,
               member_no_issued_by = case
-                when @status = 'approved' and member_no is null then @issuedBy
+                when @status = 'approved' and member_no is null and @memberNo <> '' then @issuedBy
                 else member_no_issued_by
               end,
               updated_at = @updatedAt
@@ -89,9 +98,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         command.Parameters.AddWithValue("adminNote", adminNote);
         command.Parameters.AddWithValue("updatedAt", updatedAt);
         command.Parameters.AddWithValue("issuedBy", issuedBy);
-        command.Parameters.AddWithValue("sequenceYear", sequenceYear);
-        command.Parameters.AddWithValue("memberSequenceKey", NumberingGenerator.GetMemberSequenceKey(before.ApplicationType, sequenceYear));
-        command.Parameters.AddWithValue("memberPrefix", NumberingGenerator.GetMemberPrefix(before.ApplicationType));
+        command.Parameters.AddWithValue("memberNo", memberNo);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken);
         if (!await reader.ReadAsync(cancellationToken))

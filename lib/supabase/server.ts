@@ -20,6 +20,10 @@ type SupabaseConfig = {
   serviceRoleKey: string;
 };
 
+const publicNumberSuffixAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+const publicNumberSuffixLength = 6;
+const publicNumberMaxAttempts = 10;
+
 type SupabaseApplicationRow = {
   id: string;
   application_no: string;
@@ -199,24 +203,32 @@ export function isSupabaseSchemaError(error: unknown) {
   );
 }
 
-export async function generateItcaNumber(params: { sequenceKey: string; prefix: string; year: number }) {
+export async function generateItcaNumber(params: { prefix: string; year: number }) {
   const config = getSupabaseConfig();
-  const response = await fetch(`${config.url}/rest/v1/rpc/generate_itca_number`, {
-    method: "POST",
-    headers: getHeaders(config),
-    body: JSON.stringify({
-      p_sequence_key: params.sequenceKey,
-      p_prefix: params.prefix,
-      p_year: params.year
-    })
-  });
+  const columnName = params.prefix.startsWith("ARID-") ? "application_no" : "member_no";
 
-  if (!response.ok) {
-    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  for (let attempt = 0; attempt < publicNumberMaxAttempts; attempt += 1) {
+    const candidate = `${params.prefix}-${params.year}-${generatePublicNumberSuffix()}`;
+    const response = await fetch(`${config.url}/rest/v1/applications?select=${columnName}&${columnName}=eq.${encodeURIComponent(candidate)}&limit=1`, {
+      headers: getHeaders(config)
+    });
+
+    if (!response.ok) {
+      throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+    }
+
+    const rows = (await response.json()) as Array<Record<string, string>>;
+    if (rows.length === 0) return candidate;
   }
 
-  const value = await response.json();
-  return String(value || "").trim();
+  throw new SupabaseRequestError("Unable to generate a unique public ITCA number.", 500);
+}
+
+function generatePublicNumberSuffix() {
+  const values = new Uint32Array(publicNumberSuffixLength);
+  globalThis.crypto.getRandomValues(values);
+
+  return Array.from(values, (value) => publicNumberSuffixAlphabet[value % publicNumberSuffixAlphabet.length]).join("");
 }
 
 function getSupabaseConfig(): SupabaseConfig {
@@ -963,7 +975,6 @@ export async function updateApplicationReview(id: string, values: { status: Appl
     const year = now.getFullYear();
     const isOrganization = row.application_type === "organization_member";
     const memberNo = await generateItcaNumber({
-      sequenceKey: `${isOrganization ? "member_organization" : "member_personal"}_${year}`,
       prefix: isOrganization ? "ITCA-ORG" : "ITCA-M",
       year
     });

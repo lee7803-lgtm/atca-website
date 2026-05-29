@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { applicationSequenceKey, generateApplicationNo } from "@/lib/application-number";
+import { generateApplicationNo } from "@/lib/application-number";
 import { findOpenApplicationByContact, generateItcaNumber, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
@@ -131,7 +131,6 @@ export async function POST(request: Request) {
     const nowDate = new Date();
     const now = nowDate.toISOString();
     let applicationNo = await generateItcaNumber({
-      sequenceKey: `${applicationSequenceKey[values.applicationType]}_${nowDate.getFullYear()}`,
       prefix: values.applicationType === "organization_member" ? "ARID-ITCA-ORG" : "ARID-ITCA-M",
       year: nowDate.getFullYear()
     });

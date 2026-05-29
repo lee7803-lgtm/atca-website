@@ -61,11 +61,11 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
         }
 
         var now = DateTimeOffset.UtcNow;
-        var applicationNo = await NumberingGenerator.GenerateAsync(
+        var applicationNo = await NumberingGenerator.GenerateUniquePublicNumberAsync(
             connection,
-            NumberingGenerator.GetApplicationSequenceKey(values.ApplicationType, now.Year),
             NumberingGenerator.GetApplicationPrefix(values.ApplicationType),
             now.Year,
+            NumberingGenerator.PublicNumberTarget.ApplicationNo,
             cancellationToken
         );
 
