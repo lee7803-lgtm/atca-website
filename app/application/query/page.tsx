@@ -272,7 +272,7 @@ function ApplicationQueryContent() {
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">状态说明</h2>
             <div className="mt-5 flex flex-wrap gap-2">
-              {["已提交", "审核中", "已补充，待复核", "需补充资料", "审核通过", "审核未通过", "已生成证书", "已下发", "已归档", "已撤销"].map((item) => (
+              {["已提交", "待审核", "审核中", "已补充，待复核", "需补充资料", "已通过", "已驳回", "已生成证书", "已下发", "已建档", "已撤销"].map((item) => (
                 <span className="rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>{item}</span>
               ))}
             </div>

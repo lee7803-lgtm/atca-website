@@ -16,12 +16,12 @@ const baseCertificationStatusText: Record<CertificationStatus, string> = {
 
 const baseApplicationStatusText: Record<ApplicationStatus, string> = {
   submitted: "已提交",
-  pending_review: "审核中",
+  pending_review: "待审核",
   under_review: "审核中",
   need_more_info: "需补充资料",
-  approved: "审核通过",
-  rejected: "审核未通过",
-  archived: "已归档"
+  approved: "已通过",
+  rejected: "已驳回",
+  archived: "已建档"
 };
 
 export function hasSupplementRecord(value: { supplementSubmittedAt?: string | null; supplementalSubmissions?: SupplementalSubmission[]; hasSupplementalSubmission?: boolean }) {
@@ -48,15 +48,15 @@ export function formatQueryStatus(application: ApplicationQueryResult) {
 export function formatSupplementStatusChange(previousStatus: string, nextStatus: string) {
   const labelMap: Record<string, string> = {
     submitted: "已提交",
-    pending_review: "审核中",
+    pending_review: "待审核",
     under_review: "审核中",
     need_more_info: "需补充资料",
-    approved: "审核通过",
-    rejected: "审核未通过",
+    approved: "已通过",
+    rejected: "已驳回",
     certificate_issued: "已生成证书",
     cert_issued: "已生成证书",
     delivered: "已下发",
-    archived: "已归档",
+    archived: "已建档",
     revoked: "已撤销"
   };
   const previous = labelMap[previousStatus] || previousStatus;

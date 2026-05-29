@@ -73,13 +73,13 @@ public sealed class MemberQueries(SupabaseDb database)
     {
         return status switch
         {
-            "submitted" => "待审核",
-            "pending_review" => "审核中",
+            "submitted" => "已提交",
+            "pending_review" => "待审核",
             "under_review" => "审核中",
             "need_more_info" => "需补充资料",
             "approved" => "有效",
             "rejected" => "已驳回",
-            "archived" => "已终止",
+            "archived" => "有效",
             _ => "状态待确认"
         };
     }

@@ -24,7 +24,7 @@ const typeOptions: Array<{ value: "" | ApplicationType; label: string }> = [
 const statusOptions: Array<{ value: "" | ApplicationStatus; label: string }> = [
   { value: "", label: "全部状态" },
   { value: "submitted", label: "已提交" },
-  { value: "pending_review", label: "审核中" },
+  { value: "pending_review", label: "待审核" },
   { value: "under_review", label: "审核中" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
@@ -39,7 +39,7 @@ const typeText: Record<ApplicationType, string> = {
 
 const statusText: Record<ApplicationStatus, string> = {
   submitted: "已提交",
-  pending_review: "审核中",
+  pending_review: "待审核",
   under_review: "审核中",
   need_more_info: "需补充资料",
   approved: "已通过",
