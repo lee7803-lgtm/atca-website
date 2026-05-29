@@ -15,8 +15,8 @@ import {
 const statusOptions: Array<{ value: CertificationStatus; label: string }> = [
   { value: "under_review", label: "设为审核中" },
   { value: "need_more_info", label: "要求补充材料" },
-  { value: "approved", label: "审核通过" },
-  { value: "rejected", label: "审核驳回" }
+  { value: "approved", label: "设为已通过" },
+  { value: "rejected", label: "设为已驳回" }
 ];
 
 const certificationPathOptions: Array<{ value: "" | CertificationPath; label: string }> = [
@@ -40,7 +40,7 @@ const committeeReviewTemplates = [
 
 const internalReviewTemplates = [
   { label: "已核对", text: "已核对基本身份资料、师承 / 传承信息、推荐人资料及上传材料，待进一步审核确认。" },
-  { label: "待复核", text: "该申请仍需人工复核材料真实性、传承信息与资质证明。" },
+  { label: "需继续审核", text: "该申请仍需人工核验材料真实性、传承信息与资质证明。" },
   { label: "已要求补充", text: "已要求申请人补充资料，待申请人在线补充 / 修改后再继续复核。" },
   { label: "发证前复查", text: "发证前需确认申请状态为审核通过、核定信息完整，且所有材料审核项均已通过。" }
 ];
@@ -130,8 +130,8 @@ export function CertificationReviewForm({
         text: `您好，您的 ITCA 道士资格认证证书已完成下发。证书编号为：${currentCertificateNo}。您可通过官网证书核验入口进行公开核验。请妥善保存证书编号。`
       },
       {
-        label: "已补充待复核通知",
-        text: `您好，您补充提交的资料已收到。您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已进入复核阶段，请等待后续审核结果。`
+        label: "已补充审核中通知",
+        text: `您好，您补充提交的资料已收到。您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已进入审核阶段，请等待后续审核结果。`
       }
     ];
   }, [applicationNo, certificateNo]);
@@ -143,7 +143,7 @@ export function CertificationReviewForm({
     if (initialStatus === "approved") return "当前申请已审核通过。请确认核定传承体系、核定认证等级和各资料板块材料审核状态后生成证书。";
     if (initialStatus === "certificate_issued" || initialStatus === "cert_issued") return "证书记录已生成，不能重复生成证书；可在证书完成交付后标记已下发。";
     if (initialStatus === "delivered") return "证书已下发，不能重复生成证书；如后续处理完成，可归档申请。";
-    if (initialStatus === "archived") return "申请已归档，原则上仅作记录查看，不再进行发证操作。";
+    if (initialStatus === "archived") return "申请已建档，原则上仅作记录查看，不再进行发证操作。";
     return "请根据申请资料和审核记录选择下一步操作。";
   }, [initialStatus]);
 
@@ -216,7 +216,7 @@ export function CertificationReviewForm({
   };
   const markDelivered = () => request({ action: "mark_delivered" }, "证书已标记为已下发。");
   const correctNotDelivered = () => request({ action: "correct_not_delivered" }, "证书下发状态已更正为未下发。");
-  const archive = () => request({ action: "archive" }, "申请已归档。");
+  const archive = () => request({ action: "archive" }, "申请已建档。");
 
   return (
     <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">

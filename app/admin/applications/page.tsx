@@ -7,7 +7,6 @@ import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
 import { isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
-import { formatApplicationStatus } from "@/lib/status-labels";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -38,6 +37,9 @@ const validityOptions = [
   { value: "active", label: "有效" },
   { value: "expiring_soon", label: "即将到期" },
   { value: "expired", label: "已过期" },
+  { value: "pending_renewal", label: "待续期" },
+  { value: "renewal_in_progress", label: "续期中" },
+  { value: "renewed", label: "已续期" },
   { value: "ended", label: "已终止 / 已撤销" }
 ];
 
@@ -56,7 +58,7 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
-const csvHeaders = ["申请编号", "会员编号", "申请类型", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "当前状态", "会员有效期", "提交时间", "更新时间"];
+const csvHeaders = ["申请编号", "会员编号", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "申请类型", "统一状态", "会员有效期", "提交时间", "更新时间"];
 
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; validity?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
@@ -90,11 +92,11 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
   const csvRows = applications.map((item) => [
     item.applicationNo || "",
     item.memberNo || "",
-    typeText[item.applicationType] || item.applicationType || "",
     item.name || "",
     item.email || "",
     item.phone || "",
-    formatApplicationStatus(item),
+    typeText[item.applicationType] || item.applicationType || "",
+    formatBusinessStatus(item),
     formatMemberValidity(item),
     item.createdAt || "",
     item.updatedAt || ""
@@ -153,39 +155,49 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 shadow-aureate">
         <div className="overflow-x-auto">
-          <table className="min-w-[1080px] w-full border-collapse text-left text-sm">
+          <table className="min-w-[1200px] w-full table-fixed border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["申请编号", "会员编号", "类型", "名称", "邮箱", "电话", "审核状态", "会员有效期", "提交时间", "操作"].map((item) => (
-                  <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
-                ))}
+                <th className="w-[250px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请 / 编号</th>
+                <th className="w-[280px] border-b border-[#e4ded0] px-4 py-3 font-medium">名称 / 联系方式</th>
+                <th className="w-[110px] border-b border-[#e4ded0] px-4 py-3 font-medium">类型</th>
+                <th className="w-[150px] border-b border-[#e4ded0] px-4 py-3 font-medium">统一状态</th>
+                <th className="w-[210px] border-b border-[#e4ded0] px-4 py-3 font-medium">有效期</th>
+                <th className="w-[150px] border-b border-[#e4ded0] px-4 py-3 font-medium">提交时间</th>
+                <th className="w-[100px] border-b border-[#e4ded0] px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
             <tbody>
               {applications.map((item) => (
                 <tr className="border-b border-[#eee7da] last:border-b-0" key={item.id}>
-                  <td className="px-4 py-4 font-medium text-[#7F1D1D]">{item.applicationNo}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.memberNo || "审核通过后生成"}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{typeText[item.applicationType]}</td>
-                  <td className="px-4 py-4 text-porcelain">{item.name}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.email}</td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{item.phone}</td>
-                  <td className="px-4 py-4 text-[#8a6b3e]">{formatApplicationStatus(item)}</td>
+                  <td className="px-4 py-4 align-top">
+                    <p className="break-all font-medium leading-6 text-[#7F1D1D]">{item.applicationNo}</p>
+                    <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{item.memberNo || "审核通过后生成"}</p>
+                  </td>
+                  <td className="px-4 py-4 align-top">
+                    <p className="font-medium leading-6 text-porcelain">{item.name}</p>
+                    <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{item.email}</p>
+                    <p className="mt-1 whitespace-nowrap text-xs leading-5 text-[#5f5b52]">{item.phone}</p>
+                  </td>
+                  <td className="whitespace-nowrap px-4 py-4 align-top text-[#5f5b52]">{typeText[item.applicationType]}</td>
+                  <td className="px-4 py-4 align-top">
+                    <span className="inline-flex whitespace-nowrap rounded-full bg-[#fbf8ef] px-3 py-1.5 text-xs font-semibold text-[#8a6b3e]">{formatBusinessStatus(item)}</span>
+                  </td>
                   <td className="px-4 py-4 text-[#5f5b52]">
-                    <div className="min-w-44 whitespace-normal leading-7">
+                    <div className="whitespace-nowrap leading-7">
                       <div>{formatMemberValidityRange(item)}</div>
                       <div className="font-medium text-[#8a6b3e]">{formatMemberValidityStatus(item)}</div>
                     </div>
                   </td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
-                  <td className="px-4 py-4">
+                  <td className="whitespace-nowrap px-4 py-4 align-top text-[#5f5b52]">{formatDateTime(item.createdAt)}</td>
+                  <td className="whitespace-nowrap px-4 py-4 align-top">
                     <Link className="font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/applications/${item.id}`}>查看详情</Link>
                   </td>
                 </tr>
               ))}
               {applications.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无符合条件的申请记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={7}>暂无符合条件的申请记录。</td>
                 </tr>
               ) : null}
             </tbody>
@@ -209,13 +221,25 @@ function formatMemberValidityRange(item: ApplicationAdminRecord) {
 }
 
 function formatMemberValidityStatus(item: ApplicationAdminRecord) {
-  if (item.status === "archived") return "已建档";
   if (!item.memberValidFrom && !item.memberValidUntil) return "";
   if (item.memberEffectiveStatus === "expiring_soon" && typeof item.daysUntilExpiry === "number") {
     return `即将到期 · 剩余 ${Math.max(item.daysUntilExpiry, 0)} 天`;
   }
 
   return item.memberEffectiveStatusLabel || "有效期未设置";
+}
+
+function formatBusinessStatus(item: ApplicationAdminRecord) {
+  if (item.memberEffectiveStatus === "revoked") return "已撤销";
+  if (item.memberEffectiveStatus === "terminated") return "已终止";
+  if (["expired", "expiring_soon", "pending_renewal", "renewal_in_progress", "renewed"].includes(item.memberEffectiveStatus)) {
+    return item.memberEffectiveStatusLabel;
+  }
+  if ((item.status === "approved" || item.status === "archived") && item.memberEffectiveStatus === "active") {
+    return `${statusText[item.status]} · 有效`;
+  }
+
+  return statusText[item.status] || "状态待确认";
 }
 
 function formatDateOnly(value: string) {

@@ -41,6 +41,12 @@ function addYears(date: Date, years: number) {
   return next;
 }
 
+function defaultValidUntil(date: Date) {
+  const next = addYears(date, 1);
+  next.setDate(next.getDate() - 1);
+  return next;
+}
+
 function formatDate(date: Date) {
   return date.toISOString().slice(0, 10);
 }
@@ -149,7 +155,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         certificatePhotoPath: application.certificatePhotoPath,
         issuedDate: formatDate(today),
         validFrom: formatDate(today),
-        validUntil: formatDate(addYears(today, 3)),
+        validUntil: formatDate(defaultValidUntil(today)),
         status: "valid",
         publicQueryEnabled: true,
         createdAt: now,

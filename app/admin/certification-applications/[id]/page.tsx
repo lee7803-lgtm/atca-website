@@ -25,7 +25,12 @@ const certificateStatusText: Record<string, string> = {
   pending: "待确认",
   valid: "有效",
   revoked: "已撤销",
-  expired: "已过期"
+  expired: "已过期",
+  expiring_soon: "即将到期",
+  pending_renewal: "待续期",
+  renewal_in_progress: "续期中",
+  renewed: "已续期",
+  validity_not_set: "有效期未设置"
 };
 
 export default async function AdminCertificationApplicationDetailPage({ params }: { params: { id: string } }) {
@@ -159,7 +164,8 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           <SummaryItem label="核定传承体系" value={formatCertificationPath(application.approvedPath)} />
           <SummaryItem label="核定认证等级" value={formatCertificationLevel(application.approvedLevel)} />
           <SummaryItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
-          <SummaryItem label="证书状态" value={certificate ? certificateStatusText[certificate.status] : "尚未生成"} />
+          <SummaryItem label="统一证书状态" value={certificate ? formatCertificateStatus(certificate) : "尚未生成"} />
+          <SummaryItem label="证书有效期" value={certificate ? formatCertificateValidity(certificate) : "有效期未设置"} />
           <SummaryItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
           <SummaryItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />
         </div>
@@ -231,6 +237,10 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
               <p className="text-sm font-medium text-porcelain">证书记录已生成</p>
               <p className="mt-2 break-all font-serif text-2xl text-[#7F1D1D]">{certificate.certificateNo}</p>
+              <div className="mt-4 grid gap-3 text-sm leading-7 text-[#5f5b52] sm:grid-cols-2">
+                <p>有效期：{formatCertificateValidity(certificate)}</p>
+                <p>统一状态：{formatCertificateStatus(certificate)}</p>
+              </div>
               <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
                 <CopyButton label="复制证书编号" text={certificate.certificateNo} />
                 <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href={`/certificate-query?certificateNo=${encodeURIComponent(certificate.certificateNo)}&holderName=${encodeURIComponent(certificate.holderName)}`}>
@@ -297,6 +307,22 @@ function formatCertificationPath(value: CertificationPath | "") {
 
 function formatCertificationLevel(value: CertificationLevel | "") {
   return value ? certificationLevelLabels[value] : "未填写";
+}
+
+function formatCertificateValidity(certificate: CertificateQueryResult) {
+  if (!certificate.validFrom && !certificate.validUntil) return "有效期未设置";
+  return `${formatDateOnly(certificate.validFrom)} - ${formatDateOnly(certificate.validUntil)}`;
+}
+
+function formatCertificateStatus(certificate: CertificateQueryResult) {
+  return certificate.effectiveStatusLabel || certificateStatusText[certificate.effectiveStatus || certificate.status] || certificate.status;
+}
+
+function formatDateOnly(value?: string | null) {
+  if (!value) return "有效期未设置";
+  const match = value.match(/^(\d{4})-(\d{2})-(\d{2})/);
+  if (!match) return value;
+  return `${match[1]}/${match[2]}/${match[3]}`;
 }
 
 async function attachSignedUrls(attachments: CertificationAttachment[]) {

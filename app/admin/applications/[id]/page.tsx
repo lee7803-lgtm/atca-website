@@ -75,7 +75,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
             <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
             <DetailItem label="会员有效期" value={formatMemberValidityRange(application)} />
-            <DetailItem label="会员状态" value={formatMemberValidityStatus(application)} />
+            <DetailItem label="统一状态" value={formatMemberValidityStatus(application)} />
             <DetailItem label="最近续期时间" value={application.lastRenewedAt ? formatDateTime(application.lastRenewedAt) : "未记录"} />
             <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />
             <DetailItem className="md:col-span-2" label="申请理由 / 合作意向" value={application.purpose} />
@@ -107,7 +107,7 @@ function MemberValidityPanel({ application }: { application: ApplicationAdminRec
       <h2 className="mt-3 font-serif text-3xl text-porcelain">会员有效期</h2>
       <div className="mt-6 grid gap-4">
         <DetailItem label="有效期" value={formatMemberValidityRange(application)} />
-        <DetailItem label="会员状态" value={formatMemberValidityStatus(application)} />
+        <DetailItem label="统一状态" value={formatMemberValidityStatus(application)} />
       </div>
     </section>
   );
@@ -123,7 +123,6 @@ function formatMemberValidityRange(application: ApplicationAdminRecord) {
 }
 
 function formatMemberValidityStatus(application: ApplicationAdminRecord) {
-  if (application.status === "archived") return "已建档";
   if (!application.memberValidFrom && !application.memberValidUntil) return "有效期未设置";
   if (application.memberEffectiveStatus === "expiring_soon") return "即将到期";
   return application.memberEffectiveStatusLabel || "有效期未设置";

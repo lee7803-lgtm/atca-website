@@ -20,14 +20,14 @@ const statusOptions: Array<{ value: StatusFilter; label: string }> = [
   { value: "", label: "全部状态" },
   { value: "submitted", label: "已提交" },
   { value: "under_review", label: "审核中" },
-  { value: "supplement_review", label: "已补充，待复核" },
+  { value: "supplement_review", label: "已补充，审核中" },
   { value: "need_more_info", label: "需补充资料" },
   { value: "approved", label: "已通过" },
   { value: "rejected", label: "已驳回" },
   { value: "certificate_issued", label: "已生成证书" },
   { value: "cert_issued", label: "已生成证书" },
   { value: "delivered", label: "已下发" },
-  { value: "archived", label: "已归档" },
+  { value: "archived", label: "已建档" },
   { value: "revoked", label: "已撤销" }
 ];
 

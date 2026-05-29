@@ -24,7 +24,9 @@ const certificateStatusText: Record<string, string> = {
   revoked: "已撤销",
   expired: "已过期",
   expiring_soon: "即将到期",
-  pending_review: "待复审",
+  pending_renewal: "待续期",
+  renewal_in_progress: "续期中",
+  renewed: "已续期",
   validity_not_set: "有效期未设置"
 };
 
@@ -201,7 +203,7 @@ function ApplicationQueryContent() {
                     {selectedApplication.memberNo ? (
                       <>
                         <StatusRow label="会员有效期" value={`${formatMemberValidityDate(selectedApplication.memberValidFrom)} 至 ${formatMemberValidityDate(selectedApplication.memberValidUntil)}`} />
-                        <StatusRow label="会员状态" value={selectedApplication.memberEffectiveStatusLabel || "有效期未设置"} />
+                        <StatusRow label="统一会员状态" value={selectedApplication.memberEffectiveStatusLabel || "有效期未设置"} />
                       </>
                     ) : null}
                   </>
@@ -215,7 +217,7 @@ function ApplicationQueryContent() {
                     {selectedApplication.certificateNo ? (
                       <>
                         <StatusRow label="证书有效期" value={`${formatDate(selectedApplication.certificateValidFrom)} 至 ${formatDate(selectedApplication.certificateValidUntil)}`} />
-                        <StatusRow label="证书状态" value={selectedApplication.certificateEffectiveStatusLabel || certificateStatusText[selectedApplication.certificateStatus || "pending"] || "待确认"} />
+                        <StatusRow label="统一证书状态" value={selectedApplication.certificateEffectiveStatusLabel || certificateStatusText[selectedApplication.certificateEffectiveStatus || selectedApplication.certificateStatus || "pending"] || "待确认"} />
                       </>
                     ) : null}
                     <StatusRow label="证书下发状态" value={deliveryStatusText[selectedApplication.deliveryStatus || "not_delivered"]} />
@@ -289,7 +291,7 @@ function ApplicationQueryContent() {
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
             <h2 className="mt-3 font-serif text-2xl text-porcelain">状态说明</h2>
             <div className="mt-5 flex flex-wrap gap-2">
-              {["已提交", "待审核", "审核中", "已补充，待复核", "需补充资料", "已通过", "已驳回", "已生成证书", "已下发", "已建档", "已撤销"].map((item) => (
+              {["已提交", "待审核", "审核中", "已补充，审核中", "需补充资料", "已通过", "已驳回", "已生成证书", "已下发", "已建档", "已撤销", "即将到期", "已过期", "待续期", "续期中", "已续期"].map((item) => (
                 <span className="rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>{item}</span>
               ))}
             </div>
@@ -311,18 +313,18 @@ function nextStepText(application: ApplicationQueryResult) {
   if (status === "pending_review") return "您的申请已进入待审核队列，请等待秘书处处理。";
   if (status === "under_review" && (application.supplementSubmittedAt || application.hasSupplementalSubmission)) return "补充资料已提交，协会将基于最新资料进行复核。";
   if (status === "under_review") return "申请正在审核中，请等待秘书处审核。";
-  if (status === "need_more_info") return "请根据反馈内容在线补充或修正资料，提交后申请将转为“已补充，待复核”。";
+  if (status === "need_more_info") return "请根据反馈内容在线补充或修正资料，提交后申请将转为“已补充，审核中”。";
   if (status === "approved") return "申请已通过，等待生成证书或完成发证流程。";
   if (status === "certificate_issued" || status === "cert_issued") return "证书已生成，可查看证书编号、证书状态、证书查看与打印区和公开核验入口。";
   if (status === "delivered") return "证书已下发，仍可查看证书信息和公开核验入口。";
   if (status === "rejected") return "您的申请未通过审核，请查看反馈说明。";
-  if (status === "archived") return "申请已归档，如需进一步核验请联系协会秘书处。";
+  if (status === "archived") return "申请已建档，如需进一步核验请联系协会秘书处。";
   if (status === "revoked") return "该记录已撤销，如需核对请联系协会秘书处。";
   return "请等待秘书处审核；如联系方式变更，请主动联系更新。";
 }
 
 function currentStatusText(application: ApplicationQueryResult) {
-  if (application.status === "under_review" && (application.supplementSubmittedAt || application.hasSupplementalSubmission)) return "已补充，待复核";
+  if (application.status === "under_review" && (application.supplementSubmittedAt || application.hasSupplementalSubmission)) return "已补充，审核中";
   if (application.applicationType === "taoist_certification" && application.status === "approved" && !application.certificateNo) return "已通过，待生成证书";
   if (application.applicationType === "taoist_certification" && (application.status === "certificate_issued" || application.status === "cert_issued") && application.certificateNo) return "审核已通过，证书记录已生成";
   if (application.applicationType === "taoist_certification" && application.status === "delivered" && application.certificateNo) return "证书记录已生成并已下发";
@@ -454,7 +456,7 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
             </label>
           ) : null}
         </SupplementGroup>
-        <p className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">提交后申请状态将转为“已补充，待复核”，协会将基于更新后的资料继续审核。</p>
+        <p className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">提交后申请状态将转为“已补充，审核中”，协会将基于更新后的资料继续审核。</p>
         {message ? <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]">{message}</div> : null}
         <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
           {isSubmitting ? "正在提交..." : "提交补充 / 修改资料"}
@@ -495,7 +497,7 @@ function SupplementSuccess({ files, onReset }: { files: string[]; onReset: () =>
   return (
     <section className="mt-5 rounded-2xl border border-[#d8d0bf] bg-[#fffdf8] p-5 shadow-aureate sm:p-6">
       <h3 className="font-serif text-2xl text-porcelain">补充资料已提交</h3>
-      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">补充资料已提交，当前申请资料已更新，状态已转为“已补充，待复核”。协会将基于最新资料继续审核，请稍后通过申请编号和登记联系方式查询处理进度。</p>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">补充资料已提交，当前申请资料已更新，状态已转为“已补充，审核中”。协会将基于最新资料继续审核，请稍后通过申请编号和登记联系方式查询处理进度。</p>
       {files.length > 0 ? <p className="mt-3 text-sm leading-7 text-[#5f5b52]">已上传文件：{files.join("、")}</p> : null}
       <button className="mt-5 rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" onClick={onReset} type="button">
         重新查询申请状态
@@ -578,7 +580,7 @@ function ApplicantCertificatePrint({ application }: { application: ApplicationQu
               <CertificateField label="签发机构" value={application.certificateIssuer || "ITCA / 国际道教与文化协会"} />
               <CertificateField label="签发日期" value={formatDate(application.certificateIssuedDate)} />
               <CertificateField label="有效期" value={`${formatDate(application.certificateValidFrom)} 至 ${formatDate(application.certificateValidUntil)}`} />
-              <CertificateField label="证书状态" value={application.certificateEffectiveStatusLabel || certificateStatusText[application.certificateStatus || "pending"] || "待确认"} />
+              <CertificateField label="统一证书状态" value={application.certificateEffectiveStatusLabel || certificateStatusText[application.certificateEffectiveStatus || application.certificateStatus || "pending"] || "待确认"} />
             </div>
           </div>
         </div>
