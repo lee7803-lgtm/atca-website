@@ -27,6 +27,12 @@ export default function MemberQueryPage() {
     event.preventDefault();
     if (isQuerying) return;
 
+    if (isApplicationNo(memberNo)) {
+      setMember(null);
+      setMessage("请使用正式会员编号进行公开核验；申请编号请前往申请进度查询。");
+      return;
+    }
+
     setIsQuerying(true);
     setMessage("");
     setMember(null);
@@ -38,7 +44,11 @@ export default function MemberQueryPage() {
         if (response.status === 400) {
           setMessage("请填写完整的会员编号和姓名 / 机构名称。");
         } else if (response.status === 404) {
-          setMessage("未查询到匹配会员记录。请确认会员编号和姓名 / 机构名称是否准确。");
+          setMessage(
+            isApplicationNo(memberNo)
+              ? "请使用正式会员编号进行公开核验；申请编号请前往申请进度查询。"
+              : "未查询到匹配会员记录。请确认会员编号和姓名 / 机构名称是否准确。"
+          );
         } else {
           setMessage("会员核验服务暂时不可用，请稍后重试或联系协会秘书处。");
         }
@@ -130,6 +140,10 @@ export default function MemberQueryPage() {
       </Section>
     </>
   );
+}
+
+function isApplicationNo(value: string) {
+  return /^ARID-ITCA-(M|ORG)-\d{4}-\d{6}$/i.test(value.trim());
 }
 
 function ResultRow({ label, value }: { label: string; value: string }) {

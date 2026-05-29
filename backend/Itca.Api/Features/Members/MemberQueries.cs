@@ -16,7 +16,7 @@ public sealed class MemberQueries(SupabaseDb database)
 
         command.CommandText = """
             select
-              coalesce(member_no, application_no) as member_no,
+              member_no,
               name,
               application_type,
               status,
@@ -24,7 +24,7 @@ public sealed class MemberQueries(SupabaseDb database)
               updated_at,
               member_no_issued_at
             from applications
-            where (member_no = @memberNo or application_no = @memberNo)
+            where member_no = @memberNo
               and name = @holderName
               and application_type in ('personal_member', 'organization_member')
             limit 1;
