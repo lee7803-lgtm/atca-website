@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { createCertificationAttachmentSignedUrl, getCertificationApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 
+export const runtime = "nodejs";
+
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
 }

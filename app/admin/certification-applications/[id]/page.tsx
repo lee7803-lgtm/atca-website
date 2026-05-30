@@ -345,7 +345,14 @@ function FormalCertificatePreview({
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Formal Certificate Preview</p>
           <h2 className="mt-2 font-serif text-3xl text-porcelain">正式证书预览</h2>
         </div>
-        <p className="max-w-xl text-sm leading-7 text-[#5f5b52]">本预览使用已生成证书记录渲染，仅用于后台核对正式版式；本轮不生成 PDF、不上传 Storage、不开放下载。</p>
+        <div className="grid gap-3 sm:justify-items-end">
+          <form action={`/api/admin/certification-applications/${application.id}/certificate-pdf`} method="post" target="_blank">
+            <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
+              生成 / 预览 PDF
+            </button>
+          </form>
+          <p className="max-w-xl text-sm leading-7 text-[#5f5b52]">本预览使用已生成证书记录渲染，用于后台核对正式版式；PDF 本轮仅实时生成响应，不上传 Storage、不开放公众下载。</p>
+        </div>
       </div>
 
       <div className="border border-[#cdbf9f] bg-[#f7f0df] p-3 shadow-[0_22px_70px_rgba(39,51,49,0.13)] sm:p-5">
