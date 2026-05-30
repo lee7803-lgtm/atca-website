@@ -26,6 +26,7 @@ const allowedUploadFields = new Set([
   "organizationLetter",
   "crossCulturePlan"
 ]);
+const certificationApplicationNoPattern = /^ARID-ITCA-TAO-\d{4}-\d{6}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -196,6 +197,13 @@ export async function POST(request: Request) {
 
     const now = new Date().toISOString();
     const applicationNo = generateCertificationApplicationNo();
+    if (!certificationApplicationNoPattern.test(applicationNo)) {
+      const response: CertificationSubmitResponse = {
+        success: false,
+        message: "认证申请编号生成配置异常，请联系网站管理员处理。"
+      };
+      return NextResponse.json(response, { status: 500 });
+    }
     const existingCertificates: CertificationAttachment[] = [];
     const supportingDocuments: CertificationAttachment[] = [];
 

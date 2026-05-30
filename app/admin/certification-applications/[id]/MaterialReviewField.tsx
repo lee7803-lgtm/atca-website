@@ -60,7 +60,7 @@ export function MaterialReviewField({
   };
 
   return (
-    <label className="grid gap-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 md:col-span-2">
+    <label className="scroll-mt-6 grid gap-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 md:col-span-2" id={`material-review-${itemKey}`}>
       <span className="flex flex-col gap-2 text-sm font-medium text-porcelain sm:flex-row sm:items-center sm:justify-between">
         <span>{label || materialReviewItemLabels[itemKey]}审核状态</span>
         {targetHref ? <a className="text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D]" href={targetHref}>查看资料</a> : null}

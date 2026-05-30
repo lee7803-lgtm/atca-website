@@ -6,11 +6,14 @@ import { useMemo, useState } from "react";
 import {
   certificationLevelLabels,
   certificationPathLabels,
+  materialReviewItemLabels,
+  materialReviewStatusLabels,
   type CertificateQueryResult,
   type CertificationLevel,
   type CertificationPath,
   type CertificationStatus,
-  type MaterialReview
+  type MaterialReview,
+  type MaterialReviewStatus
 } from "@/types/certification";
 
 const statusOptions: Array<{ value: CertificationStatus; label: string }> = [
@@ -31,6 +34,7 @@ const certificationLevelOptions: Array<{ value: "" | CertificationLevel; label: 
 ];
 
 const lockedReviewStatuses: CertificationStatus[] = ["certificate_issued", "cert_issued", "delivered", "archived", "revoked"];
+const materialReviewOrder: Array<keyof MaterialReview> = ["identity", "ethics", "lineage", "recommendation", "practice", "international", "credential", "photo", "completeness"];
 
 const committeeReviewTemplates = [
   { label: "资料完整", text: "申请资料完整，师承 / 传承信息、资质文件、推荐资料及实践经历说明基本符合审核要求，建议审核通过。" },
@@ -59,6 +63,33 @@ function buildReviewNote(reviewNote: string, taoistRank: string) {
   const cleaned = reviewNote.replace(/\n?证书等级 \/ 项目：.*$/m, "").trim();
   const rankLine = `证书等级 / 项目：${taoistRank || "道士资格认证"}`;
   return cleaned ? `${cleaned}\n${rankLine}` : rankLine;
+}
+
+function buildMaterialReviewBlockers(materialReview: MaterialReview) {
+  return materialReviewOrder.flatMap((key, index) => {
+    const currentStatus = materialReview[key];
+    if (currentStatus === "passed") return [];
+
+    const previousKey = index > 0 ? materialReviewOrder[index - 1] : null;
+    const previousStatus = previousKey ? materialReview[previousKey] : null;
+    const reasons: string[] = [];
+
+    if (currentStatus === "pending") reasons.push("该项仍未审核。");
+    if (currentStatus === "need_more_info") reasons.push("该项仍标记为需补充资料；申请人补充后可在材料审核区继续复核并改为通过。");
+    if (currentStatus === "questionable") reasons.push("该项当前为不通过，不能保存最终审核通过。");
+    if (currentStatus === "not_applicable") reasons.push("当前发证规则要求所有材料项均为通过，请复核后改为通过。");
+    if (previousKey && previousStatus !== "passed") {
+      reasons.push(`顺序审核锁定：请先完成上一项“${materialReviewItemLabels[previousKey]}”（当前：${materialReviewStatusLabels[previousStatus as MaterialReviewStatus]}）。`);
+    }
+
+    return [{
+      href: `#material-review-${key}`,
+      key,
+      label: materialReviewItemLabels[key],
+      reason: reasons.join(" "),
+      status: materialReviewStatusLabels[currentStatus]
+    }];
+  });
 }
 
 type CertificationReviewFormProps = {
@@ -133,6 +164,7 @@ export function CertificationReviewForm({
   const materialReviewHasIncomplete = Object.values(initialMaterialReview).some((item) => item !== "passed");
   const hasMaterialNeedMoreInfo = Object.values(initialMaterialReview).some((item) => item === "need_more_info");
   const hasMaterialRejected = Object.values(initialMaterialReview).some((item) => item === "questionable");
+  const materialReviewBlockers = useMemo(() => buildMaterialReviewBlockers(initialMaterialReview), [initialMaterialReview]);
   const isReadonlyStatus = hasCertificate || lockedReviewStatuses.includes(initialStatus);
   const canSaveReview = !isReadonlyStatus;
   const canGenerateCertificate = initialStatus === "approved" && !hasCertificate && Boolean(approvedPath) && Boolean(approvedLevel) && materialReviewReady;
@@ -230,7 +262,7 @@ export function CertificationReviewForm({
   const saveStatus = () => {
     if (status === "approved" && !materialReviewReady) {
       setMessageTone("error");
-      setMessage("所有资料审核项通过后，才能保存最终审核通过。");
+      setMessage(`所有资料审核项通过后，才能保存最终审核通过。当前阻断项：${materialReviewBlockers.map((item) => `${item.label}（${item.status}）`).join("、") || "请刷新后重试"}`);
       return;
     }
     if ((status === "need_more_info" || status === "rejected") && !applicantFeedback.trim()) {
@@ -322,9 +354,27 @@ export function CertificationReviewForm({
         <div className="rounded-2xl border border-[#e4ded0] bg-white p-5" id="final-review">
           <h3 className="font-serif text-2xl text-porcelain">最终审核意见</h3>
           {hasMaterialNeedMoreInfo || hasMaterialRejected || materialReviewHasIncomplete ? (
-            <p className="mt-3 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-3 text-sm leading-7 text-[#7F1D1D]">
-              {hasMaterialRejected ? "存在资料不通过项，最终结果可选择建议不通过或驳回。" : hasMaterialNeedMoreInfo ? "存在需补充资料项，最终结果建议选择需补充资料。" : "仍有资料未审核，暂不能保存最终审核通过。"}
-            </p>
+            <div className="mt-3 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+              <p className="font-medium text-[#7F1D1D]">
+                {hasMaterialRejected ? "存在资料不通过项，最终结果可选择建议不通过或驳回。" : hasMaterialNeedMoreInfo ? "存在需补充资料项，最终结果建议选择需补充资料。" : "仍有资料未审核，暂不能保存最终审核通过。"}
+              </p>
+              {materialReviewBlockers.length > 0 ? (
+                <div className="mt-3 grid gap-3">
+                  {materialReviewBlockers.map((item) => (
+                    <div className="rounded-xl border border-[#e4ded0] bg-white p-3" key={item.key}>
+                      <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
+                        <div>
+                          <p className="font-medium text-porcelain">{item.label}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">当前审核状态：{item.status}</p>
+                        </div>
+                        <a className="text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D]" href={item.href}>定位到审核项</a>
+                      </div>
+                      <p className="mt-2 text-[#7F1D1D]">{item.reason}</p>
+                    </div>
+                  ))}
+                </div>
+              ) : null}
+            </div>
           ) : null}
           <div className="mt-5 grid gap-5">
             <label className="grid gap-3">
