@@ -1,8 +1,9 @@
 import fs from "node:fs";
+import path from "node:path";
 import PDFDocument from "pdfkit/js/pdfkit.standalone";
 import QRCode from "qrcode";
 import { getCertificateVerificationUrl } from "@/lib/site-url";
-import { certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord, type CertificationAttachment } from "@/types/certification";
+import { certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord } from "@/types/certification";
 
 type CertificatePdfPhoto = {
   data: Buffer;
@@ -15,14 +16,71 @@ export type CertificatePdfInput = {
   photo: CertificatePdfPhoto;
 };
 
-const cjkFontCandidates = [
-  process.env.ITCA_CERTIFICATE_PDF_FONT_PATH || "",
+const projectCjkFontCandidates = [
+  "public/fonts/NotoSansCJKsc-Regular.otf",
+  "public/fonts/NotoSansSC-Regular.otf",
+  "public/fonts/NotoSansTC-Regular.otf",
+  "public/fonts/SourceHanSansSC-Regular.otf",
+  "public/fonts/SourceHanSerifSC-Regular.otf",
+  "assets/fonts/NotoSansCJKsc-Regular.otf",
+  "assets/fonts/NotoSansSC-Regular.otf",
+  "assets/fonts/NotoSansTC-Regular.otf",
+  "assets/fonts/SourceHanSansSC-Regular.otf",
+  "assets/fonts/SourceHanSerifSC-Regular.otf"
+];
+
+const localMacCjkFontCandidates = [
   "/System/Library/Fonts/Supplemental/Arial Unicode.ttf",
-  "/Library/Fonts/Arial Unicode.ttf"
-].filter(Boolean);
+  "/Library/Fonts/Arial Unicode.ttf",
+  "/System/Library/Fonts/PingFang.ttc",
+  "/System/Library/Fonts/STHeiti Medium.ttc",
+  "/System/Library/Fonts/Supplemental/Songti.ttc"
+];
+
+export class CertificatePdfFontError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "CertificatePdfFontError";
+  }
+}
+
+function resolvePath(candidate: string) {
+  return path.isAbsolute(candidate) ? candidate : path.join(process.cwd(), candidate);
+}
+
+function isVercelOrProduction() {
+  return Boolean(process.env.VERCEL || process.env.VERCEL_ENV || process.env.NODE_ENV === "production");
+}
+
+function findExistingFile(candidates: string[]) {
+  return candidates.map(resolvePath).find((candidate) => {
+    try {
+      return fs.statSync(candidate).isFile();
+    } catch {
+      return false;
+    }
+  }) || "";
+}
 
 function findCjkFontPath() {
-  return cjkFontCandidates.find((path) => fs.existsSync(path)) || "";
+  const configuredFontPath = process.env.ITCA_CERTIFICATE_PDF_FONT_PATH?.trim();
+  if (configuredFontPath) {
+    const resolvedConfiguredFontPath = resolvePath(configuredFontPath);
+    if (findExistingFile([resolvedConfiguredFontPath])) return resolvedConfiguredFontPath;
+    throw new CertificatePdfFontError(`证书 PDF 字体文件不存在：${configuredFontPath}。请提供可用的 CJK 字体文件，并将 ITCA_CERTIFICATE_PDF_FONT_PATH 指向该文件。`);
+  }
+
+  const projectFontPath = findExistingFile(projectCjkFontCandidates);
+  if (projectFontPath) return projectFontPath;
+
+  if (!isVercelOrProduction()) {
+    const localFontPath = findExistingFile(localMacCjkFontCandidates);
+    if (localFontPath) return localFontPath;
+  }
+
+  throw new CertificatePdfFontError(
+    "证书 PDF 缺少可用的 CJK 字体，已停止生成以避免中文乱码。请将合法授权的 CJK 字体放入 public/fonts/NotoSansCJKsc-Regular.otf，或设置 ITCA_CERTIFICATE_PDF_FONT_PATH 指向字体文件。"
+  );
 }
 
 function formatDateOnly(value?: string | null) {
@@ -105,12 +163,8 @@ export async function generateCertificatePdf({ application, certificate, photo }
   });
 
   const cjkFontPath = findCjkFontPath();
-  if (cjkFontPath) {
-    doc.registerFont("ITCA-CJK", fs.readFileSync(cjkFontPath));
-    doc.font("ITCA-CJK");
-  } else {
-    doc.font("Helvetica");
-  }
+  doc.registerFont("ITCA-CJK", fs.readFileSync(cjkFontPath));
+  doc.font("ITCA-CJK");
 
   const pageWidth = doc.page.width;
   const pageHeight = doc.page.height;

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { generateCertificatePdf } from "@/lib/certificates/pdf";
+import { CertificatePdfFontError, generateCertificatePdf } from "@/lib/certificates/pdf";
 import {
   buildCertificatePdfStoragePath,
   createCertificationAttachmentSignedUrl,
@@ -87,6 +87,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
     if (error instanceof SupabaseConfigError) return NextResponse.json({ success: false, message: "证书 PDF 生成服务尚未完成系统配置。" }, { status: 500 });
     if (isSupabaseSchemaError(error)) return NextResponse.json({ success: false, message: "证书 PDF 存储字段尚未完成数据库配置，请先执行 PDF 存储 SQL。" }, { status: 500 });
     if (error instanceof SupabaseRequestError) return NextResponse.json({ success: false, message: "证书 PDF 生成服务暂时无法读取证书资料。" }, { status: 502 });
+    if (error instanceof CertificatePdfFontError) return NextResponse.json({ success: false, message: error.message }, { status: 500 });
     return NextResponse.json({ success: false, message: "证书 PDF 生成失败，请稍后重试。" }, { status: 500 });
   }
 }

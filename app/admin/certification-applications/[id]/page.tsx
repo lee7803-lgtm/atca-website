@@ -371,7 +371,7 @@ function FormalCertificatePreview({
         <div className="grid gap-3 sm:justify-items-end">
           <form action={`/api/admin/certification-applications/${application.id}/certificate-pdf`} method="post" target="_blank">
             <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
-              生成 / 预览 PDF
+              {certificatePdf?.hasPdf ? "重新生成正式证书 PDF" : "生成正式证书 PDF"}
             </button>
           </form>
           {certificatePdf?.hasPdf ? (
