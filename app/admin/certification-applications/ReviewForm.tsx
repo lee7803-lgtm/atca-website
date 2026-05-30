@@ -1,7 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import type { ReactNode } from "react";
+import type { ReactNode, SetStateAction } from "react";
 import { useMemo, useState } from "react";
 import {
   certificationLevelLabels,
@@ -39,6 +39,15 @@ const committeeReviewTemplates = [
   { label: "建议不通过", text: "当前资料暂不符合本项认证申请要求，建议不予通过。" }
 ];
 
+const certificateStatusNoteTemplates = [
+  { label: "有效", text: "证书状态确认有效，当前有效期内可正常用于公开核验。" },
+  { label: "待续期", text: "证书即将到期，请持证人联系协会办理续期。续期可能需要补充资料或复审。" },
+  { label: "续期中", text: "证书续期处理中，协会正在核对资料与有效期信息。" },
+  { label: "已续期", text: "证书已完成续期，新的有效期已更新。" },
+  { label: "已暂停", text: "证书状态暂时暂停，待相关情况核实后再恢复或进一步处理。" },
+  { label: "已撤销", text: "因资料不实、资格不符或其他严重问题，证书状态已撤销。撤销后不再作为有效认证凭证。" }
+];
+
 const internalReviewTemplates = [
   { label: "已核对", text: "已核对基本身份资料、师承 / 传承信息、推荐人资料及上传材料，待进一步审核确认。" },
   { label: "需继续审核", text: "该申请仍需人工核验材料真实性、传承信息与资质证明。" },
@@ -66,7 +75,7 @@ type CertificationReviewFormProps = {
   initialMaterialReview: MaterialReview;
   initialReviewNote: string;
   initialStatus: CertificationStatus;
-  supportingMaterials?: ReactNode;
+  materialReviewWorkflow?: ReactNode;
 };
 
 type CertificateBusinessStatus = "pending" | "valid" | "pending_renewal" | "renewal_in_progress" | "renewed" | "suspended" | "revoked";
@@ -95,7 +104,7 @@ export function CertificationReviewForm({
   initialMaterialReview,
   initialReviewNote,
   initialStatus,
-  supportingMaterials
+  materialReviewWorkflow
 }: CertificationReviewFormProps) {
   const router = useRouter();
   const [status, setStatus] = useState<CertificationStatus>(initialStatus === "submitted" ? "under_review" : initialStatus);
@@ -112,6 +121,8 @@ export function CertificationReviewForm({
   const hasCertificate = Boolean(certificateNo);
   const materialReviewReady = Object.values(initialMaterialReview).every((item) => item === "passed");
   const materialReviewHasIncomplete = Object.values(initialMaterialReview).some((item) => item !== "passed");
+  const hasMaterialNeedMoreInfo = Object.values(initialMaterialReview).some((item) => item === "need_more_info");
+  const hasMaterialRejected = Object.values(initialMaterialReview).some((item) => item === "questionable");
   const isReadonlyStatus = hasCertificate || lockedReviewStatuses.includes(initialStatus);
   const canSaveReview = !isReadonlyStatus;
   const canGenerateCertificate = initialStatus === "approved" && !hasCertificate && Boolean(approvedPath) && Boolean(approvedLevel) && materialReviewReady;
@@ -207,6 +218,11 @@ export function CertificationReviewForm({
   };
 
   const saveStatus = () => {
+    if (status === "approved" && !materialReviewReady) {
+      setMessageTone("error");
+      setMessage("所有资料审核项通过后，才能保存最终审核通过。");
+      return;
+    }
     if ((status === "need_more_info" || status === "rejected") && !applicantFeedback.trim()) {
       setMessageTone("error");
       setMessage(status === "need_more_info" ? "请填写需要申请人补充或修正的资料说明。" : "请填写对申请人反馈后再保存该审核状态。");
@@ -232,7 +248,7 @@ export function CertificationReviewForm({
   const archive = () => request({ action: "archive" }, "申请已建档。");
 
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="review-processing">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Review</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">审核处理</h2>
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
@@ -252,7 +268,7 @@ export function CertificationReviewForm({
         </ul>
       </div>
       <div className="mt-6 grid gap-5">
-        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5" id="approved-info">
           <h3 className="font-serif text-2xl text-porcelain">核定信息</h3>
           <div className="mt-5 grid gap-5 md:grid-cols-2">
             <label className="grid gap-3">
@@ -267,34 +283,48 @@ export function CertificationReviewForm({
                 {certificationLevelOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
               </select>
             </label>
-            <label className="grid gap-3 md:col-span-2">
-              <span className="text-sm font-medium text-porcelain">审核状态</span>
-              <select className="form-input" disabled={isReadonlyStatus} value={status} onChange={(event) => setStatus(event.target.value as CertificationStatus)}>
-                {statusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
-              </select>
-            </label>
           </div>
         </div>
-        {supportingMaterials ? <div>{supportingMaterials}</div> : null}
-        <div className="rounded-2xl border border-[#e4ded0] bg-white p-5">
-          <h3 className="font-serif text-2xl text-porcelain">审核意见</h3>
+        {materialReviewWorkflow ? <div id="material-review">{materialReviewWorkflow}</div> : null}
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5" id="supplement-request">
+          <h3 className="font-serif text-2xl text-porcelain">补交资料要求</h3>
+          <p className="mt-2 text-sm leading-7 text-[#5f5b52]">需要申请人补充或修改资料时，在这里填写对申请人可见的说明；不会自动发送邮件或 WhatsApp 通知。</p>
+          <label className="mt-5 grid gap-3">
+            <span className="text-sm font-medium text-porcelain">对申请人反馈 / 补交资料说明</span>
+            <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={applicantFeedback} onChange={(event) => setApplicantFeedback(event.target.value)} />
+          </label>
+          <div className="mt-4">
+            <TemplateButtons disabled={isReadonlyStatus} onSelect={setApplicantFeedback} templates={applicantFeedbackTemplates} />
+          </div>
+        </div>
+        <div className="rounded-2xl border border-[#e4ded0] bg-white p-5" id="final-review">
+          <h3 className="font-serif text-2xl text-porcelain">最终审核意见</h3>
+          {hasMaterialNeedMoreInfo || hasMaterialRejected || materialReviewHasIncomplete ? (
+            <p className="mt-3 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-3 text-sm leading-7 text-[#7F1D1D]">
+              {hasMaterialRejected ? "存在资料不通过项，最终结果可选择建议不通过或驳回。" : hasMaterialNeedMoreInfo ? "存在需补充资料项，最终结果建议选择需补充资料。" : "仍有资料未审核，暂不能保存最终审核通过。"}
+            </p>
+          ) : null}
           <div className="mt-5 grid gap-5">
             <label className="grid gap-3">
               <span className="text-sm font-medium text-porcelain">认证委员会审核意见</span>
               <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={committeeReviewNote} onChange={(event) => setCommitteeReviewNote(event.target.value)} />
             </label>
             <TemplateButtons disabled={isReadonlyStatus} onSelect={setCommitteeReviewNote} templates={committeeReviewTemplates} />
-            <label className="grid gap-3 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
-              <span className="text-sm font-medium text-porcelain">对申请人反馈</span>
-              <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={applicantFeedback} onChange={(event) => setApplicantFeedback(event.target.value)} />
-            </label>
-            <TemplateButtons disabled={isReadonlyStatus} onSelect={setApplicantFeedback} templates={applicantFeedbackTemplates} />
             <label className="grid gap-3 rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-4">
               <span className="text-sm font-medium text-porcelain">后台审核备注</span>
               <textarea className="form-input min-h-32 resize-y" disabled={isReadonlyStatus} value={internalReviewNote} onChange={(event) => setInternalReviewNote(event.target.value)} />
             </label>
             <TemplateButtons disabled={isReadonlyStatus} onSelect={setInternalReviewNote} templates={internalReviewTemplates} />
           </div>
+        </div>
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5" id="final-result">
+          <h3 className="font-serif text-2xl text-porcelain">最终审核结果</h3>
+          <label className="mt-5 grid gap-3">
+            <span className="text-sm font-medium text-porcelain">审核状态</span>
+            <select className="form-input" disabled={isReadonlyStatus} value={status} onChange={(event) => setStatus(event.target.value as CertificationStatus)}>
+              {statusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            </select>
+          </label>
         </div>
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
           <h3 className="font-serif text-2xl text-porcelain">证书记录</h3>
@@ -316,7 +346,7 @@ export function CertificationReviewForm({
           <p className="mt-1">不能再将审核状态倒流为待审核、审核中、需补充资料或已驳回；资料虚假请在证书状态维护中设为已撤销，存在争议请设为已暂停。</p>
         </div>
       ) : null}
-      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
+      <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]" id="delivery-status">
         <p className="font-medium text-porcelain">证书下发状态维护</p>
         <p className="mt-1">下发状态：{deliveryStatus === "delivered" ? "已下发" : "未下发"}</p>
         <p>下发时间：{deliveredAt ? new Date(deliveredAt).toLocaleString("zh-HK") : "未记录"}</p>
@@ -396,7 +426,7 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
   };
 
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="certificate-status">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Status</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">证书状态维护</h2>
       <div className="mt-6 grid gap-5">
@@ -425,6 +455,7 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
           <span className="text-sm font-medium text-porcelain">状态备注</span>
           <textarea className="form-input min-h-24 resize-y" value={certificateStatusNote} onChange={(event) => setCertificateStatusNote(event.target.value)} />
         </label>
+        <TemplateButtons disabled={false} onSelect={setCertificateStatusNote} templates={certificateStatusNoteTemplates} />
       </div>
       {message ? (
         <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>
@@ -460,7 +491,16 @@ function getInitialCertificateBusinessStatus(certificate: CertificateQueryResult
   return "valid";
 }
 
-function TemplateButtons({ disabled, onSelect, templates }: { disabled: boolean; onSelect: (value: string) => void; templates: Array<{ label: string; text: string }> }) {
+function TemplateButtons({ disabled, onSelect, templates }: { disabled: boolean; onSelect: (value: SetStateAction<string>) => void; templates: Array<{ label: string; text: string }> }) {
+  const applyTemplate = (text: string) => {
+    onSelect((current) => {
+      if (!current.trim()) return text;
+      if (current.includes(text)) return current;
+      if (window.confirm("当前备注已有内容，是否追加模板文案？")) return `${current.trim()}\n${text}`;
+      return current;
+    });
+  };
+
   return (
     <div className="-mt-2 flex flex-wrap gap-2">
       {templates.map((template) => (
@@ -468,7 +508,7 @@ function TemplateButtons({ disabled, onSelect, templates }: { disabled: boolean;
           className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D] disabled:cursor-not-allowed disabled:opacity-50"
           disabled={disabled}
           key={template.label}
-          onClick={() => onSelect(template.text)}
+          onClick={() => applyTemplate(template.text)}
           type="button"
         >
           {template.label}

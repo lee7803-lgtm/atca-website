@@ -160,10 +160,6 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
 
     if (action === "update_material_review") {
-      const existing = await findCertificateByApplicationId(params.id);
-      if (existing || certificateIssuedStatuses.includes(application.status)) {
-        return NextResponse.json({ success: false, message: "证书已生成，审核流程已锁定；后续问题请使用证书状态维护。" }, { status: 400 });
-      }
       if (!materialReview) return NextResponse.json({ success: false, message: "材料审核状态不正确。" }, { status: 400 });
       const updated = await updateCertificationReview(params.id, {
         status: application.status,
@@ -327,6 +323,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     }
     if (status === "approved" && (!(approvedPath || application.approvedPath) || !(approvedLevel || application.approvedLevel))) {
       return NextResponse.json({ success: false, message: "请先完成核定传承体系与核定认证等级后再保存审核通过状态。" }, { status: 400 });
+    }
+    if (status === "approved" && !isMaterialReviewReady(materialReview || application.materialReview)) {
+      return NextResponse.json({ success: false, message: "所有资料审核项通过后，才能保存最终审核通过。" }, { status: 400 });
     }
 
     const updatedApplication = await updateCertificationReview(params.id, {

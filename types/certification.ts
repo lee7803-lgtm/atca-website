@@ -53,10 +53,10 @@ export const certificationLevelLabels: Record<CertificationLevel, string> = {
 };
 
 export const materialReviewStatusLabels: Record<MaterialReviewStatus, string> = {
-  pending: "待审核",
+  pending: "未审核",
   passed: "通过",
   need_more_info: "需补充",
-  questionable: "存疑",
+  questionable: "不通过",
   not_applicable: "不适用"
 };
 
@@ -66,10 +66,10 @@ export const materialReviewItemLabels: Record<keyof MaterialReview, string> = {
   credential: "资质凭证",
   practice: "实践经历",
   recommendation: "推荐证明",
-  ethics: "伦理承诺",
+  ethics: "联系方式 / 声明",
   photo: "道装证件照",
   completeness: "材料完整性",
-  international: "国际申请材料"
+  international: "补充 / 修改请求"
 };
 
 export type CertificationAttachment = {

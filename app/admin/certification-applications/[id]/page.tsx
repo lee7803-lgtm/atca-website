@@ -16,7 +16,8 @@ import {
   type CertificationAttachment,
   type CertificationLevel,
   type CertificationPath,
-  type CertificationStatus
+  type CertificationStatus,
+  type MaterialReview
 } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
@@ -94,9 +95,45 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   const supportingDocumentsWithoutPhoto = sortLatestAttachments(supportingDocuments.filter((attachment) => attachment.fieldName !== "photo"));
   const existingCertificatesLatest = sortLatestAttachments(existingCertificates);
   const supplementalSubmissions = await attachSupplementalSubmissionUrls(application.supplementalSubmissions);
-  const materialReviewDisabled = ["certificate_issued", "cert_issued", "delivered", "archived", "revoked"].includes(application.status);
-  const supportingMaterialsPanel = (
+  const materialReviewSteps: Array<{ key: keyof MaterialReview; note: string }> = [
+    { key: "identity", note: "核对姓名、身份材料、道装证件照与申请人一致性。" },
+    { key: "ethics", note: "核对联系方式、声明确认、资料使用与公开核验确认。" },
+    { key: "lineage", note: "核对师父、道派、传承体系、宫观或机构资料。" },
+    { key: "recommendation", note: "核对推荐人信息、推荐关系和推荐说明。" },
+    { key: "practice", note: "核对实践年限、道教履历和申请理由。" },
+    { key: "international", note: "核对补充 / 修改记录，确认补交要求是否已处理。" },
+    { key: "credential", note: "核对既有证书、资质凭证和其他证明材料。" },
+    { key: "photo", note: "核对道装证件照是否可用于证书记录。" },
+    { key: "completeness", note: "最终确认上传材料完整性。" }
+  ];
+  const materialReviewWorkflow = (
     <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-6">
+      <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Material Review</p>
+      <h3 className="mt-3 font-serif text-2xl text-porcelain">资料逐项审核</h3>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">按顺序完成资料审核。上一项未审核时，下一项不可审核；证书生成或撤销后，资料审核状态仍可由后台维护。</p>
+      <div className="mt-5 grid gap-4">
+        {materialReviewSteps.map((step, index) => {
+          const previous = index > 0 ? materialReviewSteps[index - 1] : null;
+          const lockedByPrevious = previous ? application.materialReview[previous.key] === "pending" : false;
+          return (
+            <div className="rounded-2xl border border-[#e4ded0] bg-white p-4" key={step.key}>
+              <p className="mb-3 text-sm leading-7 text-[#5f5b52]">{step.note}</p>
+              <MaterialReviewField
+                applicationId={application.id}
+                disabled={lockedByPrevious}
+                disabledReason={lockedByPrevious ? "请先完成上一项资料审核" : undefined}
+                itemKey={step.key}
+                materialReview={application.materialReview}
+                step={index + 1}
+              />
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+  const supportingMaterialsPanel = (
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-6" id="supporting-materials-detail">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Documents</p>
       <h3 className="mt-3 font-serif text-2xl text-porcelain">上传材料 / 证明材料</h3>
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
@@ -107,21 +144,10 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         ) : (
           <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
         )}
-        <div className="mt-4">
-          <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="photo" materialReview={application.materialReview} />
-        </div>
       </div>
       <div className="mt-5 grid gap-5">
         <AttachmentGroup attachments={existingCertificatesLatest} title="资质说明 / 既有证书" />
         <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
-        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
-          <h3 className="font-medium text-porcelain">上传材料审核状态</h3>
-          <div className="mt-4 grid gap-4">
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="credential" materialReview={application.materialReview} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="completeness" materialReview={application.materialReview} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="international" materialReview={application.materialReview} />
-          </div>
-        </div>
       </div>
     </section>
   );
@@ -162,22 +188,23 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         <div className="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           <SummaryItem label="申请编号" value={application.applicationNo} />
           <SummaryItem label="申请人" value={application.applicantName} />
-          <SummaryItem label="当前审核状态" value={formatCertificationApplicationStatus(application)} />
-          <SummaryItem label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
-          <SummaryItem label="传承体系" value={formatCertificationPath(application.certificationPath)} />
-          <SummaryItem label="申报认证等级" value={formatCertificationLevel(application.requestedLevel)} />
-          <SummaryItem label="核定传承体系" value={formatCertificationPath(application.approvedPath)} />
-          <SummaryItem label="核定认证等级" value={formatCertificationLevel(application.approvedLevel)} />
-          <SummaryItem label="证书业务状态" value={certificate ? formatCertificateStatus(certificate) : "尚未生成"} />
-          <SummaryItem label="证书有效期" value={certificate ? formatCertificateValidity(certificate) : "有效期未设置"} />
-          <SummaryItem label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
+          <SummaryItem href="#review-processing" label="当前审核状态" value={formatCertificationApplicationStatus(application)} />
+          <SummaryItem href="#certificate-status" label="证书编号" value={certificate?.certificateNo || "尚未生成"} />
+          <SummaryItem href="#approved-info" label="传承体系" value={formatCertificationPath(application.certificationPath)} />
+          <SummaryItem href="#approved-info" label="申报认证等级" value={formatCertificationLevel(application.requestedLevel)} />
+          <SummaryItem href="#approved-info" label="核定传承体系" value={formatCertificationPath(application.approvedPath)} />
+          <SummaryItem href="#approved-info" label="核定认证等级" value={formatCertificationLevel(application.approvedLevel)} />
+          <SummaryItem href="#certificate-status" label="证书业务状态" value={certificate ? formatCertificateStatus(certificate) : "尚未生成"} />
+          <SummaryItem href="#certificate-status" label="证书有效期" value={certificate ? formatCertificateValidity(certificate) : "有效期未设置"} />
+          <SummaryItem href="#delivery-status" label="下发状态" value={application.deliveryStatus === "delivered" ? "已下发" : "未下发"} />
           <SummaryItem label="下发时间" value={application.deliveredAt ? formatDateTime(application.deliveredAt) : "未记录"} />
+          <SummaryItem href="#material-review" label="材料审核状态" value={formatMaterialReviewSummary(application.materialReview)} />
         </div>
       </section>
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[minmax(380px,0.92fr)_minmax(0,1.08fr)] lg:items-start">
         <div className="grid gap-6 lg:order-2">
-          <DetailSection title="基本身份资料">
+          <DetailSection id="identity-detail" title="基本身份资料">
             <DetailItem label="申请人中文姓名" value={application.applicantName} />
             <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
             <DetailItem label="道名 / 法名" value={application.taoistName || "未填写"} />
@@ -186,49 +213,45 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <DetailItem label="国籍" value={application.nationality || "未填写"} />
             <DetailItem label="现居地" value={application.residence || "未填写"} />
             <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="identity" materialReview={application.materialReview} />
           </DetailSection>
 
-          <DetailSection title="联系方式">
+          <DetailSection id="contact-detail" title="联系方式">
             <DetailItem label="手机 / WhatsApp" value={application.phone} />
             <DetailItem label="邮箱" value={application.email} />
             <DetailItem className="md:col-span-2" label="地址" value={application.address || "未填写"} />
           </DetailSection>
 
-          <DetailSection title="师承 / 传承信息">
+          <DetailSection id="lineage-detail" title="师承 / 传承信息">
             <DetailItem label="师父姓名" value={application.masterName || "未填写"} />
             <DetailItem label="师父道名" value={application.masterTaoistName || "未填写"} />
             <DetailItem label="传承信息" value={application.lineage || "未填写"} />
             <DetailItem label="所属道派" value={application.sect || "未填写"} />
             <DetailItem label="宫观 / 机构" value={application.templeOrOrganization || "未填写"} />
             <DetailItem label="实践年限" value={application.practiceYears || "未填写"} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="lineage" materialReview={application.materialReview} />
           </DetailSection>
 
-          <DetailSection title="推荐人信息">
+          <DetailSection id="recommendation-detail" title="推荐人信息">
             <DetailItem label="推荐人姓名" value={application.recommenderName || "未填写"} />
             <DetailItem label="推荐人联系方式" value={application.recommenderContact || "未填写"} />
             <DetailItem className="md:col-span-2" label="推荐关系 / 推荐说明" value={application.recommenderRelation || "未填写"} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="recommendation" materialReview={application.materialReview} />
           </DetailSection>
 
-          <DetailSection title="经历与申请理由">
+          <DetailSection id="practice-detail" title="经历与申请理由">
             <DetailItem className="md:col-span-2" label="道教履历说明" value={application.experienceSummary || "未填写"} />
             <DetailItem className="md:col-span-2" label="申请理由" value={application.applicationReason || "未填写"} />
             <DetailItem className="md:col-span-2" label="补充备注" value={application.additionalNote || "未填写"} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="practice" materialReview={application.materialReview} />
           </DetailSection>
 
-          <DetailSection title="声明与确认">
+          <DetailSection id="declaration-detail" title="声明与确认">
             <DetailItem label="资料真实性确认" value={application.declarationAccepted ? "已确认" : "未确认"} />
             <DetailItem label="资料使用确认" value={application.dataUseAccepted ? "已确认" : "未确认"} />
             <DetailItem label="证书核验信息公开确认" value={application.certificatePublicAccepted ? "已确认" : "未确认"} />
             <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
             <DetailItem label="隐私政策确认" value={application.privacyAccepted ? "已确认" : "未确认"} />
-            <MaterialReviewField applicationId={application.id} disabled={materialReviewDisabled} itemKey="ethics" materialReview={application.materialReview} />
           </DetailSection>
 
           <SupplementalRecords submissions={supplementalSubmissions} />
+          {supportingMaterialsPanel}
 
           <DetailSection title="审核记录">
             <DetailItem className="md:col-span-2" label="后台审核备注" value={application.internalReviewNote || "暂无后台审核备注"} />
@@ -274,7 +297,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             initialMaterialReview={application.materialReview}
             initialReviewNote={application.reviewNote}
             initialStatus={application.status}
-            supportingMaterials={supportingMaterialsPanel}
+            materialReviewWorkflow={materialReviewWorkflow}
           />
           {certificate ? <CertificateStatusForm applicationId={application.id} certificate={certificate} /> : null}
         </div>
@@ -394,20 +417,34 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
   );
 }
 
-function DetailSection({ children, title }: { children: ReactNode; title: string }) {
+function DetailSection({ children, id, title }: { children: ReactNode; id?: string; title: string }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7" id={id}>
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
     </section>
   );
 }
 
-function SummaryItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3">
+function SummaryItem({ href, label, value }: { href?: string; label: string; value: string }) {
+  const content = (
+    <>
       <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
       <p className="mt-2 break-all text-sm font-medium leading-6 text-porcelain">{value}</p>
+    </>
+  );
+
+  if (href) {
+    return (
+      <a className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 transition hover:border-[#8a6b3e] hover:bg-white" href={href}>
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3">
+      {content}
     </div>
   );
 }
@@ -463,7 +500,7 @@ async function attachSupplementalSubmissionUrls(submissions: CertificationApplic
 
 function SupplementalRecords({ submissions }: { submissions: Array<CertificationApplicationAdminRecord["supplementalSubmissions"][number]> }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7" id="supplement-detail">
       <h2 className="font-serif text-2xl text-porcelain">补充 / 修改记录</h2>
       {submissions.length === 0 ? <p className="mt-4 text-sm leading-7 text-[#666666]">暂无补充 / 修改记录。</p> : null}
       <div className="mt-5 grid gap-4">
@@ -512,4 +549,13 @@ function summarizeLongText(value: string) {
 
 function formatDateTime(value: string) {
   return new Date(value).toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function formatMaterialReviewSummary(materialReview: CertificationApplicationAdminRecord["materialReview"]) {
+  const values = Object.values(materialReview);
+  if (values.every((status) => status === "passed")) return "全部通过";
+  if (values.some((status) => status === "questionable")) return "存在不通过";
+  if (values.some((status) => status === "need_more_info")) return "需补充资料";
+  if (values.some((status) => status === "pending")) return "仍有未审核";
+  return "已逐项处理";
 }

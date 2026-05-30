@@ -7,13 +7,17 @@ import { materialReviewItemLabels, materialReviewStatusLabels, type MaterialRevi
 export function MaterialReviewField({
   applicationId,
   disabled,
+  disabledReason,
   itemKey,
-  materialReview
+  materialReview,
+  step
 }: {
   applicationId: string;
   disabled: boolean;
+  disabledReason?: string;
   itemKey: keyof MaterialReview;
   materialReview: MaterialReview;
+  step?: number;
 }) {
   const router = useRouter();
   const [value, setValue] = useState<MaterialReviewStatus>(materialReview[itemKey]);
@@ -55,7 +59,7 @@ export function MaterialReviewField({
 
   return (
     <label className="grid gap-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 md:col-span-2">
-      <span className="text-sm font-medium text-porcelain">{materialReviewItemLabels[itemKey]}审核状态</span>
+      <span className="text-sm font-medium text-porcelain">{step ? `${step}. ` : ""}{materialReviewItemLabels[itemKey]}审核状态</span>
       <select className="form-input" disabled={disabled || isSaving} value={value} onChange={(event) => updateValue(event.target.value as MaterialReviewStatus)}>
         {Object.entries(materialReviewStatusLabels).map(([status, label]) => (
           <option key={status} value={status}>
@@ -63,6 +67,7 @@ export function MaterialReviewField({
           </option>
         ))}
       </select>
+      {disabled && disabledReason ? <span className="text-xs text-[#7F1D1D]">{disabledReason}</span> : null}
       {message ? <span className={`text-xs ${message === "已保存" ? "text-[#8a6b3e]" : "text-[#7F1D1D]"}`}>{message}</span> : null}
     </label>
   );
