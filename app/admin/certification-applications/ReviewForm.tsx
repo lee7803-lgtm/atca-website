@@ -65,6 +65,7 @@ type CertificationReviewFormProps = {
   applicationId: string;
   applicationNo: string;
   certificateNo?: string;
+  currentStatusText: string;
   deliveryStatus: "not_delivered" | "delivered";
   deliveredAt: string | null;
   initialApprovedLevel: CertificationLevel | "";
@@ -76,7 +77,9 @@ type CertificationReviewFormProps = {
   initialReviewNote: string;
   initialStatus: CertificationStatus;
   auditRecords?: ReactNode;
+  certificateMessage?: string;
   certificateStatusPanel?: ReactNode;
+  certificateValidityText?: string;
   materialReviewWorkflow?: ReactNode;
 };
 
@@ -96,6 +99,7 @@ export function CertificationReviewForm({
   applicationId,
   applicationNo,
   certificateNo,
+  currentStatusText,
   deliveryStatus,
   deliveredAt,
   initialApprovedLevel,
@@ -107,7 +111,9 @@ export function CertificationReviewForm({
   initialReviewNote,
   initialStatus,
   auditRecords,
+  certificateMessage,
   certificateStatusPanel,
+  certificateValidityText,
   materialReviewWorkflow
 }: CertificationReviewFormProps) {
   const router = useRouter();
@@ -256,7 +262,7 @@ export function CertificationReviewForm({
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Review</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">审核处理</h2>
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
-        <p className="font-medium text-porcelain">下一步提示</p>
+        <p className="font-medium text-porcelain">当前审核状态：{currentStatusText}</p>
         <p className="mt-1">{statusGuide}</p>
         <p className="mt-2 text-[#7F1D1D]">材料审核状态请在各资料板块中逐项完成。</p>
         {materialReviewHasIncomplete && initialStatus === "approved" ? <p className="mt-2 text-[#7F1D1D]">仍有材料审核项未通过或未完成，暂不能生成证书。</p> : null}
@@ -287,6 +293,7 @@ export function CertificationReviewForm({
                 {certificationLevelOptions.map((item) => <option key={item.value || "empty"} value={item.value}>{item.label}</option>)}
               </select>
             </label>
+            {certificateValidityText ? <p className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3 text-sm leading-7 text-[#5f5b52] md:col-span-2">证书有效期：{certificateValidityText}</p> : null}
           </div>
         </div>
         {materialReviewWorkflow ? <div id="material-review">{materialReviewWorkflow}</div> : null}
@@ -350,6 +357,7 @@ export function CertificationReviewForm({
           <p className="mt-1">不能再将审核状态倒流为待审核、审核中、需补充资料或已驳回；资料虚假请在证书状态维护中设为已撤销，存在争议请设为已暂停。</p>
         </div>
       ) : null}
+      {certificateMessage ? <div className="mt-5 border-l-4 border-[#8a6b3e] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">{certificateMessage}</div> : null}
       {certificateStatusPanel ? <div className="mt-5">{certificateStatusPanel}</div> : null}
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]" id="delivery-status">
         <p className="font-medium text-porcelain">证书下发状态维护</p>
