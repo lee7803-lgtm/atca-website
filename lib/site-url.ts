@@ -20,6 +20,10 @@ export function getSiteBaseUrl() {
   const vercelUrl = normalizeBaseUrl(process.env.VERCEL_URL || "");
   if (vercelUrl) return vercelUrl;
 
+  if (process.env.NODE_ENV === "production" || process.env.VERCEL) {
+    throw new Error("Site URL is not configured. Set NEXT_PUBLIC_SITE_URL, or enable VERCEL_URL in Vercel.");
+  }
+
   return localhostBaseUrl;
 }
 

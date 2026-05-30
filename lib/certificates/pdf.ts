@@ -99,7 +99,7 @@ export async function generateCertificatePdf({ application, certificate, photo }
     info: {
       Title: `ITCA Certificate ${certificate.certificateNo}`,
       Author: "ITCA / 国际道教与文化协会",
-      Subject: "Formal certificate preview PDF"
+      Subject: "Formal certificate PDF"
     },
     compress: false
   });
