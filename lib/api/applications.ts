@@ -41,6 +41,16 @@ export async function queryApplicationProgress(applicationNo: string, contact: s
   const queryPath = buildApplicationQueryPath(applicationNo, contact);
 
   try {
+    const { response, result } = await queryNextApplicationApi(applicationNo, contact);
+
+    if (response.ok || response.status === 400 || response.status === 404) {
+      return { response, result };
+    }
+  } catch {
+    // Fall through to the API service fallback below.
+  }
+
+  try {
     const response = await fetch(`${getItcaApiBaseUrl()}${queryPath}`);
     const result = await readApplicationQueryResponse(response);
 
@@ -48,7 +58,7 @@ export async function queryApplicationProgress(applicationNo: string, contact: s
       return { response, result };
     }
   } catch {
-    return queryNextApplicationApi(applicationNo, contact);
+    // Fall through to the final same-origin retry below.
   }
 
   return queryNextApplicationApi(applicationNo, contact);
