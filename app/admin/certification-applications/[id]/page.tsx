@@ -2,11 +2,13 @@ import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
+import QRCode from "qrcode";
 import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
 import { MaterialReviewField } from "./MaterialReviewField";
 import { CopyButton } from "@/components/CopyButton";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { getCertificateVerificationUrl } from "@/lib/site-url";
 import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId, findCertificatePdfMetadataByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import {
   certificationLevelLabels,
@@ -106,6 +108,18 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   const credentialDocuments = sortLatestAttachments([...existingCertificates, ...supportingDocuments.filter((attachment) => credentialMaterialFieldNames.has(attachment.fieldName))]);
   const otherDocuments = sortLatestAttachments(supportingDocuments.filter((attachment) => !identityMaterialFieldNames.has(attachment.fieldName) && !photoMaterialFieldNames.has(attachment.fieldName) && !lineageMaterialFieldNames.has(attachment.fieldName) && !credentialMaterialFieldNames.has(attachment.fieldName)));
   const supplementalSubmissions = await attachSupplementalSubmissionUrls(application.supplementalSubmissions);
+  const certificateVerificationUrl = getCertificateVerificationUrl();
+  const certificateVerificationQrCode = certificate
+    ? await QRCode.toDataURL(certificateVerificationUrl, {
+        errorCorrectionLevel: "M",
+        margin: 1,
+        width: 320,
+        color: {
+          dark: "#273331",
+          light: "#fffdf7"
+        }
+      })
+    : "";
   const materialReviewSteps: Array<{ key: keyof MaterialReview; note: string; targetId: string }> = [
     { key: "identity", note: "核对姓名、身份材料、道装证件照与申请人一致性。", targetId: "identity-detail" },
     { key: "ethics", note: "核对联系方式、声明确认、资料使用与公开核验确认。", targetId: "contact-detail" },
@@ -278,7 +292,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       </div>
       {certificate ? (
         <div className="mt-8">
-          <FormalCertificatePreview application={application} certificate={certificate} certificatePdf={certificatePdf} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} />
+          <FormalCertificatePreview application={application} certificate={certificate} certificatePdf={certificatePdf} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} verificationQrCode={certificateVerificationQrCode} verificationUrl={certificateVerificationUrl} />
         </div>
       ) : null}
     </section>
@@ -329,12 +343,16 @@ function FormalCertificatePreview({
   application,
   certificate,
   certificatePdf,
-  hasCertificatePhoto
+  hasCertificatePhoto,
+  verificationQrCode,
+  verificationUrl
 }: {
   application: CertificationApplicationAdminRecord;
   certificate: CertificateQueryResult;
   certificatePdf: CertificatePdfMetadata | null;
   hasCertificatePhoto: boolean;
+  verificationQrCode: string;
+  verificationUrl: string;
 }) {
   const certificateHolderName = certificate.holderName || application.applicantName;
   const taoistName = certificate.taoistName || application.taoistName || "";
@@ -411,15 +429,19 @@ function FormalCertificatePreview({
               </div>
 
               <div className="mt-2 border-l-4 border-[#7F1D1D] bg-[#fbf8ef] px-4 py-3 text-sm leading-7 text-[#5f5b52]">
-                核验提示：本证书信息应以 ITCA 官网公开核验结果为准。公众核验需通过证书编号与持证人姓名共同验证；公众页面不提供 PDF 下载。
+                核验提示：请访问 ITCA 官网证书核验页面，使用证书编号与持证人姓名共同核验。本证书 PDF 仅供持证人与授权场景使用，公开核验以官网实时结果为准；公众页面不提供 PDF 下载。
               </div>
             </div>
           </div>
 
           <div className="relative z-10 mt-10 grid gap-6 sm:grid-cols-[11rem_1fr_1fr] sm:items-end">
-            <div className="grid aspect-square place-items-center border border-[#b08a45] bg-[#fbf8ef] p-3 text-center text-xs leading-6 text-[#8a6b3e]">
-              {/* Real certificate verification QR code is intentionally deferred to V1.3 8.5. */}
-              <span>二维码占位<br />8.5 接入核验链接</span>
+            <div className="grid gap-2 border border-[#b08a45] bg-[#fbf8ef] p-3 text-center text-xs leading-6 text-[#8a6b3e]">
+              {verificationQrCode ? (
+                // eslint-disable-next-line @next/next/no-img-element -- Server-generated data URL contains only the public certificate query URL.
+                <img alt="证书核验二维码" className="mx-auto h-28 w-28" src={verificationQrCode} />
+              ) : null}
+              <span>扫码进入官网核验</span>
+              <span className="break-all text-[10px] leading-4 text-[#5f5b52]">{verificationUrl}</span>
             </div>
             <div className="border-t border-[#8a6b3e] pt-3 text-center">
               <p className="font-serif text-lg text-[#273331]">签发人</p>

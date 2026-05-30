@@ -1,5 +1,7 @@
 import fs from "node:fs";
 import PDFDocument from "pdfkit/js/pdfkit.standalone";
+import QRCode from "qrcode";
+import { getCertificateVerificationUrl } from "@/lib/site-url";
 import { certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord, type CertificationAttachment } from "@/types/certification";
 
 type CertificatePdfPhoto = {
@@ -76,7 +78,21 @@ function drawField(doc: PDFKit.PDFDocument, label: string, value: string, x: num
   doc.fillColor("#273331").fontSize(13).text(value || "未记录", x, y + 15, { width, lineGap: 2 });
 }
 
+async function createVerificationQrCode() {
+  return QRCode.toDataURL(getCertificateVerificationUrl(), {
+    errorCorrectionLevel: "M",
+    margin: 1,
+    width: 320,
+    color: {
+      dark: "#273331",
+      light: "#fffdf7"
+    }
+  });
+}
+
 export async function generateCertificatePdf({ application, certificate, photo }: CertificatePdfInput) {
+  const verificationUrl = getCertificateVerificationUrl();
+  const verificationQrCode = await createVerificationQrCode();
   const doc = new PDFDocument({
     size: "A4",
     margin: 0,
@@ -149,14 +165,17 @@ export async function generateCertificatePdf({ application, certificate, photo }
   doc.rect(72, 560, pageWidth - 144, 64).fillAndStroke("#fbf8ef", "#e4ded0");
   doc.rect(72, 560, 4, 64).fill("#7F1D1D");
   doc.fillColor("#5f5b52").fontSize(10).text(
-    "核验提示：本证书信息应以 ITCA 官网公开核验结果为准。公众核验需通过证书编号与持证人姓名共同验证；公众页面不提供 PDF 下载。本 PDF 暂保留二维码占位，二维码核验链接将在 V1.3 第 8.5 阶段处理。",
+    "核验提示：请访问 ITCA 官网证书核验页面，使用证书编号与持证人姓名共同核验。本证书 PDF 仅供持证人与授权场景使用，公开核验以官网实时结果为准；公众页面不提供 PDF 下载。",
     88,
     574,
     { width: pageWidth - 176, lineGap: 4 }
   );
 
   doc.rect(72, 662, 92, 92).fillAndStroke("#fbf8ef", "#b08a45");
-  doc.fillColor("#8a6b3e").fontSize(9).text("二维码占位\n8.5 接入核验链接", 83, 696, { width: 70, align: "center", lineGap: 5 });
+  doc.image(verificationQrCode, 80, 670, { fit: [76, 76], align: "center", valign: "center" });
+  doc.fillColor("#8a6b3e").fontSize(7).text("扫码进入官网核验", 72, 758, { width: 92, align: "center" });
+  doc.fillColor("#5f5b52").fontSize(8).text(`核验入口：${verificationUrl}`, 180, 664, { width: 330, lineGap: 3 });
+  doc.fillColor("#5f5b52").fontSize(8).text(`请使用证书编号 ${certificate.certificateNo} 与持证人姓名进行核验。`, 180, 686, { width: 330, lineGap: 3 });
   doc.moveTo(240, 720).lineTo(380, 720).lineWidth(0.8).strokeColor("#8a6b3e").stroke();
   doc.fillColor("#273331").fontSize(14).text("签发人", 240, 732, { width: 140, align: "center" });
   doc.fillColor("#8a6b3e").fontSize(8).text("Authorized Signatory", 240, 754, { width: 140, align: "center", characterSpacing: 1 });
