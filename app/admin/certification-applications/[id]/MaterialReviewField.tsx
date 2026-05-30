@@ -10,7 +10,8 @@ export function MaterialReviewField({
   disabledReason,
   itemKey,
   materialReview,
-  step
+  step,
+  targetHref
 }: {
   applicationId: string;
   disabled: boolean;
@@ -18,6 +19,7 @@ export function MaterialReviewField({
   itemKey: keyof MaterialReview;
   materialReview: MaterialReview;
   step?: number;
+  targetHref?: string;
 }) {
   const router = useRouter();
   const [value, setValue] = useState<MaterialReviewStatus>(materialReview[itemKey]);
@@ -59,7 +61,10 @@ export function MaterialReviewField({
 
   return (
     <label className="grid gap-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 md:col-span-2">
-      <span className="text-sm font-medium text-porcelain">{step ? `${step}. ` : ""}{materialReviewItemLabels[itemKey]}审核状态</span>
+      <span className="flex flex-col gap-2 text-sm font-medium text-porcelain sm:flex-row sm:items-center sm:justify-between">
+        <span>{step ? `${step}. ` : ""}{materialReviewItemLabels[itemKey]}审核状态</span>
+        {targetHref ? <a className="text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D]" href={targetHref}>查看资料</a> : null}
+      </span>
       <select className="form-input" disabled={disabled || isSaving} value={value} onChange={(event) => updateValue(event.target.value as MaterialReviewStatus)}>
         {Object.entries(materialReviewStatusLabels).map(([status, label]) => (
           <option key={status} value={status}>

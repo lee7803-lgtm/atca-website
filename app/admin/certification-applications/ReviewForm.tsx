@@ -75,6 +75,8 @@ type CertificationReviewFormProps = {
   initialMaterialReview: MaterialReview;
   initialReviewNote: string;
   initialStatus: CertificationStatus;
+  auditRecords?: ReactNode;
+  certificateStatusPanel?: ReactNode;
   materialReviewWorkflow?: ReactNode;
 };
 
@@ -104,6 +106,8 @@ export function CertificationReviewForm({
   initialMaterialReview,
   initialReviewNote,
   initialStatus,
+  auditRecords,
+  certificateStatusPanel,
   materialReviewWorkflow
 }: CertificationReviewFormProps) {
   const router = useRouter();
@@ -346,6 +350,7 @@ export function CertificationReviewForm({
           <p className="mt-1">不能再将审核状态倒流为待审核、审核中、需补充资料或已驳回；资料虚假请在证书状态维护中设为已撤销，存在争议请设为已暂停。</p>
         </div>
       ) : null}
+      {certificateStatusPanel ? <div className="mt-5">{certificateStatusPanel}</div> : null}
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]" id="delivery-status">
         <p className="font-medium text-porcelain">证书下发状态维护</p>
         <p className="mt-1">下发状态：{deliveryStatus === "delivered" ? "已下发" : "未下发"}</p>
@@ -376,6 +381,7 @@ export function CertificationReviewForm({
           归档
         </button> : null}
       </div>
+      {auditRecords ? <div className="mt-6">{auditRecords}</div> : null}
     </section>
   );
 }
@@ -426,7 +432,7 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
   };
 
   return (
-    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="certificate-status">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-6" id="certificate-status">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Status</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">证书状态维护</h2>
       <div className="mt-6 grid gap-5">
