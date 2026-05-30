@@ -56,6 +56,8 @@ function ApplicationQueryContent() {
   const [supplementSubmitted, setSupplementSubmitted] = useState(false);
   const [supplementFiles, setSupplementFiles] = useState<string[]>([]);
   const [isLookupOpen, setIsLookupOpen] = useState(false);
+  const [pdfDownloadMessage, setPdfDownloadMessage] = useState("");
+  const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
 
   const selectedApplication = applications[selectedIndex] || null;
 
@@ -69,6 +71,7 @@ function ApplicationQueryContent() {
     setSelectedIndex(0);
     setSupplementSubmitted(false);
     setSupplementFiles([]);
+    setPdfDownloadMessage("");
 
     try {
       const { response, result } = await queryApplicationProgress(applicationNumber, contact);
@@ -83,6 +86,47 @@ function ApplicationQueryContent() {
       setErrorMessage("申请查询服务暂时不可用，请稍后重试或联系协会秘书处。");
     } finally {
       setIsQuerying(false);
+    }
+  };
+
+  const downloadCertificatePdf = async (application: ApplicationQueryResult) => {
+    if (isDownloadingPdf) return;
+    setIsDownloadingPdf(true);
+    setPdfDownloadMessage("");
+
+    try {
+      const response = await fetch("/api/applications/certificate-pdf", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ applicationNo: application.applicationNo, contact })
+      });
+
+      if (!response.ok) {
+        let message = "正式证书 PDF 暂时无法下载，请稍后重试或联系协会秘书处。";
+        try {
+          const result = (await response.json()) as { message?: string };
+          if (result.message) message = result.message;
+        } catch {
+          // The response may not be JSON if the server failed before formatting the error.
+        }
+        setPdfDownloadMessage(message);
+        return;
+      }
+
+      const blob = await response.blob();
+      const url = window.URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `${application.certificateNo || application.applicationNo}.pdf`;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      window.URL.revokeObjectURL(url);
+      setPdfDownloadMessage("正式证书 PDF 已开始下载。");
+    } catch {
+      setPdfDownloadMessage("正式证书 PDF 下载服务暂时不可用，请稍后重试。");
+    } finally {
+      setIsDownloadingPdf(false);
     }
   };
 
@@ -244,7 +288,19 @@ function ApplicationQueryContent() {
                       <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
                         前往证书查询页
                       </a>
+                      {selectedApplication.certificatePdfAvailable ? (
+                        <button className="inline-flex rounded-full bg-[#7F1D1D] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" disabled={isDownloadingPdf} onClick={() => downloadCertificatePdf(selectedApplication)} type="button">
+                          {isDownloadingPdf ? "正在下载..." : "下载正式证书 PDF"}
+                        </button>
+                      ) : null}
                     </div>
+                    {selectedApplication.certificatePdfAvailable ? (
+                      <p className="mt-3 text-xs leading-6 text-[#8a6b3e]">
+                        PDF 版本：v{selectedApplication.certificatePdfVersion || 1}
+                        {selectedApplication.certificatePdfGeneratedAt ? ` · 生成时间：${formatDateTime(selectedApplication.certificatePdfGeneratedAt)}` : ""}
+                      </p>
+                    ) : null}
+                    {pdfDownloadMessage ? <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">{pdfDownloadMessage}</p> : null}
                   </div>
                 ) : null}
                 {selectedApplication.certificateNo ? <ApplicantCertificatePrint application={selectedApplication} /> : null}

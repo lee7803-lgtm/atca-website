@@ -124,6 +124,11 @@ export type ApplicationQueryResult = {
   certificateValidUntil?: string;
   certificatePhotoUrl?: string;
   certificatePhotoRecorded?: boolean;
+  certificatePdfAvailable?: boolean;
+  certificatePdfStatus?: string;
+  certificatePdfGeneratedAt?: string | null;
+  certificatePdfVersion?: number;
+  certificatePdfFileSize?: number | null;
   deliveryStatus?: "not_delivered" | "delivered";
   deliveredAt?: string | null;
   supplementSubmittedAt?: string | null;

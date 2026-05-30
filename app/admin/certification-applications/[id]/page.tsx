@@ -7,11 +7,12 @@ import { MaterialReviewField } from "./MaterialReviewField";
 import { CopyButton } from "@/components/CopyButton";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId, findCertificatePdfMetadataByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import {
   certificationLevelLabels,
   certificationPathLabels,
   type CertificateQueryResult,
+  type CertificatePdfMetadata,
   type CertificationApplicationAdminRecord,
   type CertificationAttachment,
   type CertificationLevel,
@@ -45,6 +46,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
   let application: CertificationApplicationAdminRecord | null = null;
   let certificate: CertificateQueryResult | null = null;
+  let certificatePdf: CertificatePdfMetadata | null = null;
   let databaseMessage = "";
 
   try {
@@ -84,6 +86,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   let certificateMessage = "";
   try {
     certificate = await findCertificateByApplicationId(params.id);
+    if (certificate) certificatePdf = await findCertificatePdfMetadataByApplicationId(params.id);
   } catch (error) {
     if (isSupabaseSchemaError(error)) {
       certificateMessage = "证书记录服务尚未完成系统配置，仍可查看认证申请详情。";
@@ -275,7 +278,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       </div>
       {certificate ? (
         <div className="mt-8">
-          <FormalCertificatePreview application={application} certificate={certificate} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} />
+          <FormalCertificatePreview application={application} certificate={certificate} certificatePdf={certificatePdf} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} />
         </div>
       ) : null}
     </section>
@@ -325,10 +328,12 @@ function formatCertificateStatus(certificate: CertificateQueryResult) {
 function FormalCertificatePreview({
   application,
   certificate,
+  certificatePdf,
   hasCertificatePhoto
 }: {
   application: CertificationApplicationAdminRecord;
   certificate: CertificateQueryResult;
+  certificatePdf: CertificatePdfMetadata | null;
   hasCertificatePhoto: boolean;
 }) {
   const certificateHolderName = certificate.holderName || application.applicantName;
@@ -351,8 +356,20 @@ function FormalCertificatePreview({
               生成 / 预览 PDF
             </button>
           </form>
-          <p className="max-w-xl text-sm leading-7 text-[#5f5b52]">本预览使用已生成证书记录渲染，用于后台核对正式版式；PDF 本轮仅实时生成响应，不上传 Storage、不开放公众下载。</p>
+          {certificatePdf?.hasPdf ? (
+            <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/api/admin/certification-applications/${application.id}/certificate-pdf`} target="_blank" rel="noreferrer">
+              下载已生成 PDF
+            </a>
+          ) : null}
+          <p className="max-w-xl text-sm leading-7 text-[#5f5b52]">本预览使用已生成证书记录渲染，用于后台核对正式版式；PDF 生成后写入私有 Storage，并仅向后台或已完成本人校验的申请人开放下载。</p>
         </div>
+      </div>
+
+      <div className="mb-5 grid gap-3 rounded-2xl border border-[#e4ded0] bg-white/82 p-4 text-sm leading-7 text-[#5f5b52] sm:grid-cols-4">
+        <CertificatePdfStatusItem label="PDF 状态" value={formatCertificatePdfStatus(certificatePdf)} />
+        <CertificatePdfStatusItem label="PDF 版本" value={certificatePdf?.version ? `v${certificatePdf.version}` : "未生成"} />
+        <CertificatePdfStatusItem label="生成时间" value={certificatePdf?.generatedAt ? formatDateTime(certificatePdf.generatedAt) : "未记录"} />
+        <CertificatePdfStatusItem label="文件大小" value={formatFileSize(certificatePdf?.fileSize)} />
       </div>
 
       <div className="border border-[#cdbf9f] bg-[#f7f0df] p-3 shadow-[0_22px_70px_rgba(39,51,49,0.13)] sm:p-5">
@@ -417,6 +434,29 @@ function FormalCertificatePreview({
       </div>
     </section>
   );
+}
+
+function CertificatePdfStatusItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-xs tracking-[0.18em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-1 font-medium text-porcelain">{value}</p>
+    </div>
+  );
+}
+
+function formatCertificatePdfStatus(metadata: CertificatePdfMetadata | null) {
+  if (!metadata) return "字段未配置或未生成";
+  if (metadata.status === "generated" && metadata.hasPdf) return "已生成";
+  if (metadata.status === "failed") return "生成失败";
+  return "未生成";
+}
+
+function formatFileSize(value?: number | null) {
+  if (!value) return "未记录";
+  if (value < 1024) return `${value} B`;
+  if (value < 1024 * 1024) return `${(value / 1024).toFixed(1)} KB`;
+  return `${(value / 1024 / 1024).toFixed(2)} MB`;
 }
 
 function CertificatePreviewField({ className = "", label, value }: { className?: string; label: string; value: string }) {

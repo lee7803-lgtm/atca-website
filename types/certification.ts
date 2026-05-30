@@ -217,6 +217,18 @@ export type CertificateQueryResult = {
   detailUrl: string;
 };
 
+export type CertificatePdfMetadata = {
+  status: "not_generated" | "generated" | "failed" | string;
+  generatedAt: string | null;
+  generatedBy: string;
+  version: number;
+  sha256: string;
+  fileSize: number | null;
+  lastDownloadedAt: string | null;
+  downloadCount: number;
+  hasPdf: boolean;
+};
+
 export type CertificateQueryResponse =
   | {
       success: true;

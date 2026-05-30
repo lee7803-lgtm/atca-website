@@ -3,6 +3,7 @@ import { certificationLevelLabels } from "@/types/certification";
 import { getCertificateEffectiveValidity, getMemberEffectiveValidity } from "@/lib/validity";
 import type {
   CertificateQueryResult,
+  CertificatePdfMetadata,
   CertificateRecord,
   CertificationAttachment,
   CertificationApplicationAdminRecord,
@@ -148,6 +149,15 @@ type SupabaseCertificateRow = {
   certificate_review_status: string | null;
   last_reviewed_at: string | null;
   certificate_status_note: string | null;
+  pdf_storage_path?: string | null;
+  pdf_generated_at?: string | null;
+  pdf_generated_by?: string | null;
+  pdf_version?: number | null;
+  pdf_sha256?: string | null;
+  pdf_file_size?: number | null;
+  pdf_status?: string | null;
+  pdf_last_downloaded_at?: string | null;
+  pdf_download_count?: number | null;
   public_query_enabled: boolean | null;
   created_at: string;
   updated_at: string;
@@ -771,6 +781,24 @@ function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQuery
   };
 }
 
+function toCertificatePdfMetadata(row: SupabaseCertificateRow): CertificatePdfMetadata {
+  const status = row.pdf_status || "not_generated";
+  const version = Number(row.pdf_version || 0);
+  const storagePath = row.pdf_storage_path || "";
+
+  return {
+    status,
+    generatedAt: row.pdf_generated_at || null,
+    generatedBy: row.pdf_generated_by || "",
+    version,
+    sha256: row.pdf_sha256 || "",
+    fileSize: typeof row.pdf_file_size === "number" ? row.pdf_file_size : null,
+    lastDownloadedAt: row.pdf_last_downloaded_at || null,
+    downloadCount: Number(row.pdf_download_count || 0),
+    hasPdf: status === "generated" && version > 0 && Boolean(storagePath)
+  };
+}
+
 async function toApplicantCertificateFields(row: SupabaseCertificateRow) {
   let certificatePhotoUrl = "";
   const certificateEffective = getCertificateEffectiveValidity({
@@ -802,7 +830,12 @@ async function toApplicantCertificateFields(row: SupabaseCertificateRow) {
     certificateValidFrom: row.valid_from,
     certificateValidUntil: row.valid_until,
     certificatePhotoUrl,
-    certificatePhotoRecorded: Boolean(row.certificate_photo_path)
+    certificatePhotoRecorded: Boolean(row.certificate_photo_path),
+    certificatePdfAvailable: row.pdf_status === "generated" && Boolean(row.pdf_storage_path),
+    certificatePdfStatus: row.pdf_status || "not_generated",
+    certificatePdfGeneratedAt: row.pdf_generated_at || null,
+    certificatePdfVersion: Number(row.pdf_version || 0),
+    certificatePdfFileSize: typeof row.pdf_file_size === "number" ? row.pdf_file_size : null
   } satisfies Partial<ApplicationQueryResult>;
 }
 
@@ -955,6 +988,30 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
   }
 
   return row ? toCertificationQueryResult(row, certificate || undefined) : null;
+}
+
+export async function getCertificationApplicationByNoAndContact(applicationNo: string, contact: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_no: `eq.${applicationNo}`,
+    or: `(email.eq.${contact},phone.eq.${contact})`,
+    select: "*",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
+  const row = rows[0];
+
+  return row ? toCertificationAdminRecord(row) : null;
 }
 
 export async function findCertificationsByIdentity(filters: { applicantName: string; taoistName: string; contact: string }) {
@@ -1686,6 +1743,117 @@ export async function findCertificateByApplicationId(applicationId: string) {
   return row ? toCertificateQueryResult(row) : null;
 }
 
+export async function findCertificatePdfMetadataByApplicationId(applicationId: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_id: `eq.${applicationId}`,
+    select: "id,pdf_storage_path,pdf_generated_at,pdf_generated_by,pdf_version,pdf_sha256,pdf_file_size,pdf_status,pdf_last_downloaded_at,pdf_download_count",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const row = rows[0];
+
+  return row ? toCertificatePdfMetadata(row) : null;
+}
+
+export async function findCertificatePdfStorageByApplicationId(applicationId: string) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_id: `eq.${applicationId}`,
+    select: "certificate_no,pdf_storage_path,pdf_status,pdf_version",
+    limit: "1"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  const row = rows[0];
+  if (!row || row.pdf_status !== "generated" || !row.pdf_storage_path) return null;
+
+  return {
+    certificateNo: row.certificate_no,
+    storagePath: row.pdf_storage_path,
+    version: Number(row.pdf_version || 0)
+  };
+}
+
+export async function updateCertificatePdfMetadata(
+  applicationId: string,
+  values: {
+    storagePath: string;
+    generatedAt: string;
+    generatedBy: string;
+    version: number;
+    sha256: string;
+    fileSize: number;
+    status?: "generated" | "failed";
+  }
+) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/rest/v1/certificates?application_id=eq.${encodeURIComponent(applicationId)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      pdf_storage_path: values.storagePath,
+      pdf_generated_at: values.generatedAt,
+      pdf_generated_by: values.generatedBy,
+      pdf_version: values.version,
+      pdf_sha256: values.sha256,
+      pdf_file_size: values.fileSize,
+      pdf_status: values.status || "generated",
+      updated_at: values.generatedAt
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  return rows[0] ? toCertificatePdfMetadata(rows[0]) : null;
+}
+
+export async function markCertificatePdfDownloadedByApplicationId(applicationId: string) {
+  const before = await findCertificatePdfMetadataByApplicationId(applicationId);
+  if (!before?.hasPdf) return null;
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(`${config.url}/rest/v1/certificates?application_id=eq.${encodeURIComponent(applicationId)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      pdf_last_downloaded_at: now,
+      pdf_download_count: before.downloadCount + 1,
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificateRow[];
+  return rows[0] ? toCertificatePdfMetadata(rows[0]) : null;
+}
+
 async function findApplicantCertificateByApplicationId(applicationId: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
@@ -1776,6 +1944,7 @@ export async function checkCertificatesTableConfigured() {
 }
 
 const certificationDocumentsBucket = "certification-documents";
+const certificatePdfsBucket = "certificate-pdfs";
 
 function sanitizeStorageName(value: string) {
   return value
@@ -1842,6 +2011,57 @@ export async function createCertificationAttachmentSignedUrl(storagePath: string
   const signedPath = data.signedURL || data.signedUrl || "";
 
   return signedPath.startsWith("http") ? signedPath : `${config.url}/storage/v1${signedPath}`;
+}
+
+export function buildCertificatePdfStoragePath(certificateNo: string, version: number) {
+  const normalizedCertificateNo = certificateNo.trim();
+  return `certificates/${normalizedCertificateNo}/v${version}/${normalizedCertificateNo}.pdf`;
+}
+
+export async function uploadCertificatePdf(storagePath: string, pdf: Buffer) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/storage/v1/object/${certificatePdfsBucket}/${storagePath}`, {
+    method: "POST",
+    headers: {
+      apikey: config.serviceRoleKey,
+      Authorization: `Bearer ${config.serviceRoleKey}`,
+      "Content-Type": "application/pdf",
+      "x-upsert": "false"
+    },
+    body: pdf
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+}
+
+async function createCertificatePdfSignedUrl(storagePath: string, expiresIn = 300) {
+  const config = getSupabaseConfig();
+  const response = await fetch(`${config.url}/storage/v1/object/sign/${certificatePdfsBucket}/${storagePath}`, {
+    method: "POST",
+    headers: getHeaders(config),
+    body: JSON.stringify({ expiresIn })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const data = (await response.json()) as { signedURL?: string; signedUrl?: string };
+  const signedPath = data.signedURL || data.signedUrl || "";
+
+  return signedPath.startsWith("http") ? signedPath : `${config.url}/storage/v1${signedPath}`;
+}
+
+export async function readCertificatePdfObject(storagePath: string) {
+  const signedUrl = await createCertificatePdfSignedUrl(storagePath, 300);
+  const response = await fetch(signedUrl, { cache: "no-store" });
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  return Buffer.from(await response.arrayBuffer());
 }
 
 export async function findCertificateByNoAndHolder(certificateNo: string, holderName: string) {
