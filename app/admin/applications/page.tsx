@@ -58,19 +58,20 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
-const csvHeaders = ["申请编号", "会员编号", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "申请类型", "统一状态", "会员有效期", "提交时间", "更新时间"];
+const csvHeaders = ["申请编号", "会员编号", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "推荐人姓名", "推荐人联系方式", "推荐说明", "申请类型", "统一状态", "会员有效期", "提交时间", "更新时间"];
 
-export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; validity?: string } }) {
+export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; validity?: string; q?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   const applicationType = typeOptions.some((item) => item.value === searchParams?.applicationType) ? searchParams?.applicationType : undefined;
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
   const validity = validityOptions.some((item) => item.value === searchParams?.validity) ? searchParams?.validity || "" : "";
+  const q = searchParams?.q?.trim() || undefined;
   let applications: ApplicationAdminRecord[] = [];
   let databaseMessage = "";
 
   try {
-    applications = await listAdminApplications({ applicationType, status });
+    applications = await listAdminApplications({ applicationType, status, keyword: q });
   } catch (error) {
     if (error instanceof AdminApiUnauthorizedError) {
       redirect("/admin");
@@ -88,6 +89,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     if (validity === "ended") return item.memberEffectiveStatus === "terminated" || item.memberEffectiveStatus === "revoked";
     return item.memberEffectiveStatus === validity;
   });
+  applications = applications.filter((item) => matchesKeyword(item, q));
 
   const csvRows = applications.map((item) => [
     item.applicationNo || "",
@@ -95,6 +97,9 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     item.name || "",
     item.email || "",
     item.phone || "",
+    item.referrerName || "",
+    item.referrerContact || "",
+    item.referrerNote || "",
     typeText[item.applicationType] || item.applicationType || "",
     formatBusinessStatus(item),
     formatMemberValidity(item),
@@ -108,7 +113,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Applications</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">申请管理</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看个人会员与机构会员申请，按类型和状态筛选申请记录。</p>
+          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看个人会员与机构会员申请，按类型、状态、申请编号、姓名或推荐人筛选申请记录。</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">
@@ -129,7 +134,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
         </div>
       ) : null}
 
-      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
+      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_1fr_1fr_auto] md:items-end">
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">申请类型</span>
           <select className="form-input" defaultValue={applicationType || ""} name="applicationType">
@@ -148,6 +153,10 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
             {validityOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
           </select>
         </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">搜索</span>
+          <input className="form-input" defaultValue={q || ""} name="q" placeholder="申请编号 / 姓名 / 推荐人" />
+        </label>
         <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
           筛选
         </button>
@@ -155,11 +164,12 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 shadow-aureate">
         <div className="overflow-x-auto">
-          <table className="min-w-[1200px] w-full table-fixed border-collapse text-left text-sm">
+          <table className="min-w-[1360px] w-full table-fixed border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
                 <th className="w-[250px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请 / 编号</th>
-                <th className="w-[280px] border-b border-[#e4ded0] px-4 py-3 font-medium">名称 / 联系方式</th>
+                <th className="w-[260px] border-b border-[#e4ded0] px-4 py-3 font-medium">名称 / 联系方式</th>
+                <th className="w-[220px] border-b border-[#e4ded0] px-4 py-3 font-medium">推荐人</th>
                 <th className="w-[110px] border-b border-[#e4ded0] px-4 py-3 font-medium">类型</th>
                 <th className="w-[150px] border-b border-[#e4ded0] px-4 py-3 font-medium">统一状态</th>
                 <th className="w-[210px] border-b border-[#e4ded0] px-4 py-3 font-medium">有效期</th>
@@ -179,6 +189,11 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
                     <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{item.email}</p>
                     <p className="mt-1 whitespace-nowrap text-xs leading-5 text-[#5f5b52]">{item.phone}</p>
                   </td>
+                  <td className="px-4 py-4 align-top text-[#5f5b52]">
+                    <p className="font-medium leading-6 text-porcelain">{item.referrerName || "未填写"}</p>
+                    {item.referrerContact ? <p className="mt-1 break-all text-xs leading-5">{item.referrerContact}</p> : null}
+                    {item.referrerNote ? <p className="mt-1 break-words text-xs leading-5">{item.referrerNote}</p> : null}
+                  </td>
                   <td className="whitespace-nowrap px-4 py-4 align-top text-[#5f5b52]">{typeText[item.applicationType]}</td>
                   <td className="px-4 py-4 align-top">
                     <span className="inline-flex whitespace-nowrap rounded-full bg-[#fbf8ef] px-3 py-1.5 text-xs font-semibold text-[#8a6b3e]">{formatBusinessStatus(item)}</span>
@@ -197,7 +212,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
               ))}
               {applications.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={7}>暂无符合条件的申请记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={8}>暂无符合条件的申请记录。</td>
                 </tr>
               ) : null}
             </tbody>
@@ -241,6 +256,24 @@ function formatBusinessStatus(item: ApplicationAdminRecord) {
   }
 
   return statusText[item.status] || "状态待确认";
+}
+
+function matchesKeyword(item: ApplicationAdminRecord, keyword?: string) {
+  if (!keyword) return true;
+  const normalized = keyword.toLowerCase();
+  return [
+    item.applicationNo,
+    item.memberNo,
+    item.name,
+    item.contactName,
+    item.email,
+    item.phone,
+    item.referrerName,
+    item.referrerContact,
+    item.referrerNote
+  ]
+    .filter((value): value is string => Boolean(value))
+    .some((value) => value.toLowerCase().includes(normalized));
 }
 
 function formatDateOnly(value: string) {

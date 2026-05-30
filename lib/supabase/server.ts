@@ -57,6 +57,9 @@ type SupabaseApplicationRow = {
   organization_type: string | null;
   profile: string | null;
   purpose: string | null;
+  referrer_name?: string | null;
+  referrer_contact?: string | null;
+  referrer_note?: string | null;
   receive_notice: boolean | null;
   truth_confirmed: boolean | null;
   terms_accepted: boolean | null;
@@ -479,6 +482,9 @@ function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdmin
     memberEffectiveStatusLabel: memberEffective.effectiveStatusLabel,
     daysUntilExpiry: memberEffective.daysUntilExpiry,
     expiryBucket: memberEffective.expiryBucket,
+    referrerName: row.referrer_name ?? "",
+    referrerContact: row.referrer_contact ?? "",
+    referrerNote: row.referrer_note ?? "",
     applicationNoScheme: row.application_no_scheme ?? "",
     applicationType: row.application_type as ApplicationType,
     status: row.status as ApplicationStatus,
@@ -1293,7 +1299,7 @@ export async function listCertificationApplications(filters: { status?: Certific
   if (filters.q) {
     params.set(
       "or",
-      `(application_no.ilike.*${filters.q}*,applicant_name.ilike.*${filters.q}*,taoist_name.ilike.*${filters.q}*,recommender_name.ilike.*${filters.q}*,recommender_contact.ilike.*${filters.q}*)`
+      `(application_no.ilike.*${filters.q}*,applicant_name.ilike.*${filters.q}*,taoist_name.ilike.*${filters.q}*,recommender_name.ilike.*${filters.q}*,recommender_contact.ilike.*${filters.q}*,recommender_relation.ilike.*${filters.q}*)`
     );
   }
 

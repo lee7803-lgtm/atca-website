@@ -35,6 +35,11 @@ const certificateStatusText: Record<string, string> = {
   validity_not_set: "有效期未设置"
 };
 
+const identityMaterialFieldNames = new Set(["idProof"]);
+const photoMaterialFieldNames = new Set(["photo", "supplementPhoto"]);
+const lineageMaterialFieldNames = new Set(["lineageProof", "templeProof", "duDocument", "guanJinDocument", "jieDocument", "luDocument"]);
+const credentialMaterialFieldNames = new Set(["internalVoucher", "educationProof", "organizationLetter"]);
+
 export default async function AdminCertificationApplicationDetailPage({ params }: { params: { id: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
@@ -92,8 +97,11 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   const existingCertificates = await attachSignedUrls(application.existingCertificates);
   const supportingDocuments = await attachSignedUrls(application.supportingDocuments);
   const certificatePhoto = await getCertificatePhoto(application, supportingDocuments);
-  const supportingDocumentsWithoutPhoto = sortLatestAttachments(supportingDocuments.filter((attachment) => attachment.fieldName !== "photo"));
-  const existingCertificatesLatest = sortLatestAttachments(existingCertificates);
+  const identityDocuments = sortLatestAttachments(supportingDocuments.filter((attachment) => attachment.fieldName === "idProof"));
+  const photoDocuments = sortLatestAttachments(supportingDocuments.filter((attachment) => attachment.fieldName === "photo"));
+  const lineageDocuments = sortLatestAttachments(supportingDocuments.filter((attachment) => lineageMaterialFieldNames.has(attachment.fieldName)));
+  const credentialDocuments = sortLatestAttachments([...existingCertificates, ...supportingDocuments.filter((attachment) => credentialMaterialFieldNames.has(attachment.fieldName))]);
+  const otherDocuments = sortLatestAttachments(supportingDocuments.filter((attachment) => !identityMaterialFieldNames.has(attachment.fieldName) && !photoMaterialFieldNames.has(attachment.fieldName) && !lineageMaterialFieldNames.has(attachment.fieldName) && !credentialMaterialFieldNames.has(attachment.fieldName)));
   const supplementalSubmissions = await attachSupplementalSubmissionUrls(application.supplementalSubmissions);
   const materialReviewSteps: Array<{ key: keyof MaterialReview; note: string; targetId: string }> = [
     { key: "identity", note: "核对姓名、身份材料、道装证件照与申请人一致性。", targetId: "identity-detail" },
@@ -121,14 +129,15 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         <DetailItem label="国籍" value={application.nationality || "未填写"} />
         <DetailItem label="现居地" value={application.residence || "未填写"} />
         <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(0)} disabledReason={isMaterialReviewLocked(0) ? "请先完成上一项资料审核" : undefined} itemKey="identity" label="基本身份资料" materialReview={application.materialReview} step={1} />
+        <AttachmentGroup attachments={identityDocuments} className="md:col-span-2" title="身份证明材料" />
+        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(0)} disabledReason={isMaterialReviewLocked(0) ? "请先完成上一项资料审核" : undefined} itemKey="identity" label="身份真实性" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="contact-detail" title="联系方式">
         <DetailItem label="手机 / WhatsApp" value={application.phone} />
         <DetailItem label="邮箱" value={application.email} />
         <DetailItem className="md:col-span-2" label="地址" value={application.address || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(1)} disabledReason={isMaterialReviewLocked(1) ? "请先完成上一项资料审核" : undefined} itemKey="ethics" label="联系方式" materialReview={application.materialReview} step={2} />
+        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(1)} disabledReason={isMaterialReviewLocked(1) ? "请先完成上一项资料审核" : undefined} itemKey="ethics" label="联系方式" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="lineage-detail" title="师承 / 传承信息">
@@ -139,42 +148,56 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         <DetailItem label="所属道派" value={application.sect || "未填写"} />
         <DetailItem label="宫观 / 机构" value={application.templeOrOrganization || "未填写"} />
         <DetailItem label="实践年限" value={application.practiceYears || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(2)} disabledReason={isMaterialReviewLocked(2) ? "请先完成上一项资料审核" : undefined} itemKey="lineage" label="师承 / 传承信息" materialReview={application.materialReview} step={3} />
+        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(2)} disabledReason={isMaterialReviewLocked(2) ? "请先完成上一项资料审核" : undefined} itemKey="lineage" label="师承 / 传承信息" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="recommendation-detail" title="推荐人信息">
         <DetailItem label="推荐人姓名" value={application.recommenderName || "未填写"} />
         <DetailItem label="推荐人联系方式" value={application.recommenderContact || "未填写"} />
         <DetailItem className="md:col-span-2" label="推荐关系 / 推荐说明" value={application.recommenderRelation || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(3)} disabledReason={isMaterialReviewLocked(3) ? "请先完成上一项资料审核" : undefined} itemKey="recommendation" label="推荐人信息" materialReview={application.materialReview} step={4} />
+        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(3)} disabledReason={isMaterialReviewLocked(3) ? "请先完成上一项资料审核" : undefined} itemKey="recommendation" label="推荐人信息" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="practice-detail" title="经历与申请理由">
         <DetailItem className="md:col-span-2" label="道教履历说明" value={application.experienceSummary || "未填写"} />
         <DetailItem className="md:col-span-2" label="申请理由" value={application.applicationReason || "未填写"} />
         <DetailItem className="md:col-span-2" label="补充备注" value={application.additionalNote || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(4)} disabledReason={isMaterialReviewLocked(4) ? "请先完成上一项资料审核" : undefined} itemKey="practice" label="经历与申请理由" materialReview={application.materialReview} step={5} />
+        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(4)} disabledReason={isMaterialReviewLocked(4) ? "请先完成上一项资料审核" : undefined} itemKey="practice" label="经历与申请理由" materialReview={application.materialReview} />
       </DetailSection>
 
       <SupplementalRecords applicationId={application.id} materialReview={application.materialReview} reviewDisabled={isMaterialReviewLocked(5)} submissions={supplementalSubmissions} />
 
       <DetailSection id="supporting-materials-detail" title="上传材料 / 证明材料">
-        <div className="md:col-span-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
-          <h4 className="font-medium text-porcelain">道装证件照</h4>
-          {certificatePhoto?.signedUrl ? (
-            // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
-            <img alt="道装证件照" className="mt-4 max-h-48 w-full rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
-          ) : (
-            <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
-          )}
-        </div>
         <div className="md:col-span-2 grid gap-5">
-          <AttachmentGroup attachments={existingCertificatesLatest} title="资质说明 / 既有证书" />
-          <AttachmentGroup attachments={supportingDocumentsWithoutPhoto} title="补充证明材料" />
+          <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+            <AttachmentGroup attachments={lineageDocuments} title="师承证明材料" />
+            <div className="mt-5">
+              <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(6)} disabledReason={isMaterialReviewLocked(6) ? "请先完成上一项资料审核" : undefined} itemKey="credential" label="师承证明材料" materialReview={application.materialReview} />
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+            <h3 className="font-medium text-porcelain">道装证件照 / 既有证书</h3>
+            {certificatePhoto?.signedUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element -- Signed Supabase URLs are short-lived admin-only previews.
+              <img alt="道装证件照" className="mt-4 max-h-48 w-full rounded-lg border border-[#e4ded0] bg-white object-contain" src={certificatePhoto.signedUrl} />
+            ) : (
+              <p className="mt-4 text-sm leading-7 text-[#666666]">未识别到道装证件照。旧申请资料会从附件中的照片资料回退识别。</p>
+            )}
+            <div className="mt-5 grid gap-5">
+              <AttachmentGroup attachments={photoDocuments} title="道装证件照原始附件" />
+              <AttachmentGroup attachments={credentialDocuments} title="既有证书 / 资质凭证" />
+            </div>
+            <div className="mt-5">
+              <MaterialReviewField applicationId={application.id} disabled={application.materialReview.credential === "pending"} disabledReason={application.materialReview.credential === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="photo" label="道装证件照 / 既有证书" materialReview={application.materialReview} />
+            </div>
+          </div>
+          <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+            <AttachmentGroup attachments={otherDocuments} title="其他证明材料" />
+            <div className="mt-5">
+              <MaterialReviewField applicationId={application.id} disabled={application.materialReview.photo === "pending"} disabledReason={application.materialReview.photo === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="completeness" label="其他证明材料" materialReview={application.materialReview} />
+            </div>
+          </div>
         </div>
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(6)} disabledReason={isMaterialReviewLocked(6) ? "请先完成上一项资料审核" : undefined} itemKey="credential" label="上传材料 / 证明材料" materialReview={application.materialReview} step={7} />
-        <MaterialReviewField applicationId={application.id} disabled={application.materialReview.credential === "pending"} disabledReason={application.materialReview.credential === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="photo" materialReview={application.materialReview} step={8} />
-        <MaterialReviewField applicationId={application.id} disabled={application.materialReview.photo === "pending"} disabledReason={application.materialReview.photo === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="completeness" materialReview={application.materialReview} step={9} />
       </DetailSection>
     </div>
   );
@@ -319,9 +342,9 @@ async function attachSignedUrls(attachments: CertificationAttachment[]) {
   return results;
 }
 
-function AttachmentGroup({ attachments, title }: { attachments: CertificationAttachment[]; title: string }) {
+function AttachmentGroup({ attachments, className = "", title }: { attachments: CertificationAttachment[]; className?: string; title: string }) {
   return (
-    <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
+    <div className={`rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 ${className}`}>
       <h3 className="font-medium text-porcelain">{title}</h3>
       {attachments.length === 0 ? <p className="mt-4 text-sm leading-7 text-[#666666]">未提交附件。</p> : null}
       <div className="mt-4 grid gap-4 md:grid-cols-2 xl:grid-cols-3">
@@ -459,8 +482,8 @@ function SupplementalRecords({
 }) {
   return (
     <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7" id="supplement-detail">
-      <h2 className="font-serif text-2xl text-porcelain">补充 / 修改记录</h2>
-      {submissions.length === 0 ? <p className="mt-4 text-sm leading-7 text-[#666666]">暂无补充 / 修改记录。</p> : null}
+      <h2 className="font-serif text-2xl text-porcelain">补充 / 修改请求</h2>
+      {submissions.length === 0 ? <p className="mt-4 text-sm leading-7 text-[#666666]">未提交补充请求。</p> : null}
       <div className="mt-5 grid gap-4">
         {submissions.map((submission, index) => (
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5" key={`${submission.submittedAt}-${index}`}>
@@ -489,7 +512,7 @@ function SupplementalRecords({
         ))}
       </div>
       <div className="mt-5">
-        <MaterialReviewField applicationId={applicationId} disabled={reviewDisabled} disabledReason={reviewDisabled ? "请先完成上一项资料审核" : undefined} itemKey="international" label="补充 / 修改请求" materialReview={materialReview} step={6} />
+        <MaterialReviewField applicationId={applicationId} disabled={reviewDisabled} disabledReason={reviewDisabled ? "请先完成上一项资料审核" : undefined} itemKey="international" label="补充 / 修改请求" materialReview={materialReview} />
       </div>
     </section>
   );

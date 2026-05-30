@@ -22,6 +22,9 @@ export type ApplicationRecord = {
   country: string;
   profile: string;
   purpose: string;
+  referrerName?: string;
+  referrerContact?: string;
+  referrerNote?: string;
   organizationType?: OrganizationType;
   receiveNotice?: boolean;
   truthConfirmed: boolean;
@@ -50,6 +53,9 @@ export type ApplicationAdminRecord = Required<Pick<ApplicationRecord, "applicati
   memberEffectiveStatusLabel: string;
   daysUntilExpiry: number | null;
   expiryBucket: string;
+  referrerName: string;
+  referrerContact: string;
+  referrerNote: string;
   applicationNoScheme: string;
   organizationType: OrganizationType | null;
   receiveNotice: boolean;

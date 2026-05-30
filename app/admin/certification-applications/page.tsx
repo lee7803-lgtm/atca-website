@@ -166,11 +166,12 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
 
       <div className="mt-8 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 shadow-aureate">
         <div className="overflow-x-auto">
-          <table className="min-w-[1200px] w-full table-fixed border-collapse text-left text-sm">
+          <table className="min-w-[1420px] w-full table-fixed border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                <th className="w-[230px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请 / 证书</th>
-                <th className="w-[230px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请人 / 联系方式</th>
+                <th className="w-[220px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请 / 证书</th>
+                <th className="w-[220px] border-b border-[#e4ded0] px-4 py-3 font-medium">申请人 / 联系方式</th>
+                <th className="w-[220px] border-b border-[#e4ded0] px-4 py-3 font-medium">推荐人</th>
                 <th className="w-[220px] border-b border-[#e4ded0] px-4 py-3 font-medium">认证信息</th>
                 <th className="w-[170px] border-b border-[#e4ded0] px-4 py-3 font-medium">统一状态</th>
                 <th className="w-[210px] border-b border-[#e4ded0] px-4 py-3 font-medium">有效期</th>
@@ -194,6 +195,11 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
                       <p className="mt-1 whitespace-nowrap text-xs leading-5 text-[#5f5b52]">{item.phone}</p>
                     </td>
                     <td className="px-4 py-4 align-top text-[#5f5b52]">
+                      <p className="font-medium leading-6 text-porcelain">{item.recommenderName || "未填写"}</p>
+                      {item.recommenderContact ? <p className="mt-1 break-all text-xs leading-5">{item.recommenderContact}</p> : null}
+                      {item.recommenderRelation ? <p className="mt-1 break-words text-xs leading-5">{item.recommenderRelation}</p> : null}
+                    </td>
+                    <td className="px-4 py-4 align-top text-[#5f5b52]">
                       <p className="font-medium leading-6 text-porcelain">{formatCertificationType(item)}</p>
                       <p className="mt-1 break-words text-xs leading-5">道名 / 法名：{item.taoistName || "未填写"}</p>
                       <p className="mt-1 break-words text-xs leading-5">道派：{item.sect || item.lineage || "未填写"}</p>
@@ -215,7 +221,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
                   </tr>
                 );
               })}
-              {applications.length === 0 ? <tr><td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={7}>暂无符合条件的认证申请。</td></tr> : null}
+              {applications.length === 0 ? <tr><td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={8}>暂无符合条件的认证申请。</td></tr> : null}
             </tbody>
           </table>
         </div>
