@@ -273,6 +273,11 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           materialReviewWorkflow={materialReviewWorkflow}
         />
       </div>
+      {certificate ? (
+        <div className="mt-8">
+          <FormalCertificatePreview application={application} certificate={certificate} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} />
+        </div>
+      ) : null}
     </section>
   );
 }
@@ -315,6 +320,105 @@ function formatCertificateValidity(certificate: CertificateQueryResult) {
 
 function formatCertificateStatus(certificate: CertificateQueryResult) {
   return certificate.effectiveStatusLabel || certificateStatusText[certificate.effectiveStatus || certificate.status] || certificate.status;
+}
+
+function FormalCertificatePreview({
+  application,
+  certificate,
+  hasCertificatePhoto
+}: {
+  application: CertificationApplicationAdminRecord;
+  certificate: CertificateQueryResult;
+  hasCertificatePhoto: boolean;
+}) {
+  const certificateHolderName = certificate.holderName || application.applicantName;
+  const taoistName = certificate.taoistName || application.taoistName || "";
+  const lineageOrTemple = certificate.lineageOrTemple || [application.sect, application.lineage, application.templeOrOrganization].filter(Boolean).join(" / ");
+  const status = formatCertificateStatus(certificate);
+  const validity = formatCertificateValidity(certificate);
+  const certificationPath = certificate.certificationPath ? certificationPathLabels[certificate.certificationPath] : formatCertificationPath(application.approvedPath);
+
+  return (
+    <section className="scroll-mt-6" id="formal-certificate-preview">
+      <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Formal Certificate Preview</p>
+          <h2 className="mt-2 font-serif text-3xl text-porcelain">正式证书预览</h2>
+        </div>
+        <p className="max-w-xl text-sm leading-7 text-[#5f5b52]">本预览使用已生成证书记录渲染，仅用于后台核对正式版式；本轮不生成 PDF、不上传 Storage、不开放下载。</p>
+      </div>
+
+      <div className="border border-[#cdbf9f] bg-[#f7f0df] p-3 shadow-[0_22px_70px_rgba(39,51,49,0.13)] sm:p-5">
+        <article className="relative overflow-hidden border border-[#a98a52] bg-[#fffdf7] px-6 py-8 text-[#273331] sm:px-10 sm:py-10">
+          <div className="pointer-events-none absolute inset-4 border border-[#d9c99c]" />
+          <div className="pointer-events-none absolute inset-8 border border-[#efe4c8]" />
+          <div className="pointer-events-none absolute left-1/2 top-1/2 h-64 w-64 -translate-x-1/2 -translate-y-1/2 rounded-full border border-[#eadfbe] opacity-60" />
+
+          <div className="relative z-10 text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.34em] text-[#8a6b3e]">ITCA Official Certificate</p>
+            <h3 className="mt-4 font-serif text-3xl leading-tight text-[#273331] sm:text-5xl">国际道教与文化协会</h3>
+            <p className="mt-3 text-sm uppercase tracking-[0.18em] text-[#6f6252]">International Taoisme And Cultural Association</p>
+            <div className="mx-auto mt-5 h-px w-48 bg-[#b08a45]" />
+            <p className="mt-5 font-serif text-2xl text-[#7F1D1D] sm:text-3xl">道士资格认证证书</p>
+          </div>
+
+          <div className="relative z-10 mt-10 grid gap-8 lg:grid-cols-[12rem_1fr] lg:items-start">
+            <div className="border border-[#d8d0bf] bg-[#fbf8ef] p-3 text-center">
+              <p className="mb-3 text-xs tracking-[0.18em] text-[#8a6b3e]">证书照片</p>
+              {hasCertificatePhoto ? (
+                // eslint-disable-next-line @next/next/no-img-element -- Admin-only proxy avoids exposing Supabase Storage paths in certificate preview HTML.
+                <img alt="证书照片" className="mx-auto max-h-60 w-full bg-white object-contain" src={`/api/admin/certification-applications/${application.id}/certificate-photo`} />
+              ) : (
+                <div className="grid min-h-56 place-items-center border border-dashed border-[#cdbf9f] bg-white px-4 text-xs leading-6 text-[#8a6b3e]">未记录证书照片</div>
+              )}
+            </div>
+
+            <div className="grid gap-4">
+              <div className="grid gap-4 sm:grid-cols-2">
+                <CertificatePreviewField label="证书编号" value={certificate.certificateNo} />
+                <CertificatePreviewField label="证书状态" value={status} />
+                <CertificatePreviewField label="持证人姓名" value={certificateHolderName} />
+                <CertificatePreviewField label="道名 / 法名" value={taoistName || "未记录"} />
+                <CertificatePreviewField label="认证路径" value={certificationPath} />
+                <CertificatePreviewField label="认证等级" value={certificate.certificationLevel || "未记录"} />
+                <CertificatePreviewField className="sm:col-span-2" label="传承 / 宫观 / 机构信息" value={lineageOrTemple || "未记录"} />
+                <CertificatePreviewField label="签发日期" value={formatDateOnly(certificate.issuedDate)} />
+                <CertificatePreviewField label="有效期" value={validity} />
+              </div>
+
+              <div className="mt-2 border-l-4 border-[#7F1D1D] bg-[#fbf8ef] px-4 py-3 text-sm leading-7 text-[#5f5b52]">
+                核验提示：本证书信息应以 ITCA 官网公开核验结果为准。公众核验需通过证书编号与持证人姓名共同验证；公众页面不提供 PDF 下载。
+              </div>
+            </div>
+          </div>
+
+          <div className="relative z-10 mt-10 grid gap-6 sm:grid-cols-[11rem_1fr_1fr] sm:items-end">
+            <div className="grid aspect-square place-items-center border border-[#b08a45] bg-[#fbf8ef] p-3 text-center text-xs leading-6 text-[#8a6b3e]">
+              {/* Real certificate verification QR code is intentionally deferred to V1.3 8.5. */}
+              <span>二维码占位<br />8.5 接入核验链接</span>
+            </div>
+            <div className="border-t border-[#8a6b3e] pt-3 text-center">
+              <p className="font-serif text-lg text-[#273331]">签发人</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8a6b3e]">Authorized Signatory</p>
+            </div>
+            <div className="border-t border-[#8a6b3e] pt-3 text-center">
+              <p className="font-serif text-lg text-[#273331]">协会签章</p>
+              <p className="mt-2 text-xs uppercase tracking-[0.18em] text-[#8a6b3e]">Official Seal</p>
+            </div>
+          </div>
+        </article>
+      </div>
+    </section>
+  );
+}
+
+function CertificatePreviewField({ className = "", label, value }: { className?: string; label: string; value: string }) {
+  return (
+    <div className={`border-b border-[#d8d0bf] pb-3 ${className}`}>
+      <p className="text-xs tracking-[0.2em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-1 break-words font-serif text-xl leading-8 text-[#273331]">{value}</p>
+    </div>
+  );
 }
 
 function formatDateOnly(value?: string | null) {

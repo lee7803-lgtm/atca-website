@@ -752,9 +752,11 @@ function toCertificateQueryResult(row: SupabaseCertificateRow): CertificateQuery
   return {
     certificateNo: row.certificate_no,
     holderName: row.holder_name,
+    taoistName: row.taoist_name ?? "",
     certificationType: row.taoist_rank || "道士资格认证",
     certificationPath: (row.certification_path || "") as CertificationPath | "",
     certificationLevel: formatCertificationLevel(row.certification_level, row.taoist_rank || "道士资格认证"),
+    lineageOrTemple: row.lineage_or_temple || row.sect || "",
     issuer: "ITCA / 国际道教与文化协会",
     issuedDate: row.issued_date,
     validFrom: row.valid_from,

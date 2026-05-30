@@ -199,9 +199,11 @@ export type CertificateRecord = {
 export type CertificateQueryResult = {
   certificateNo: string;
   holderName: string;
+  taoistName?: string;
   certificationType: string;
   certificationPath: CertificationPath | "";
   certificationLevel: string;
+  lineageOrTemple?: string;
   issuer: string;
   issuedDate: string;
   validFrom: string;
