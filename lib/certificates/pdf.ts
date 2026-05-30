@@ -16,8 +16,10 @@ export type CertificatePdfInput = {
   photo: CertificatePdfPhoto;
 };
 
+const bundledCjkFontPath = path.join(process.cwd(), "public", "fonts", "NotoSansCJKsc-Regular.otf");
+
 const projectCjkFontCandidates = [
-  "public/fonts/NotoSansCJKsc-Regular.otf",
+  bundledCjkFontPath,
   "public/fonts/NotoSansSC-Regular.otf",
   "public/fonts/NotoSansTC-Regular.otf",
   "public/fonts/SourceHanSansSC-Regular.otf",
@@ -72,6 +74,12 @@ function findCjkFontPath() {
 
   const projectFontPath = findExistingFile(projectCjkFontCandidates);
   if (projectFontPath) return projectFontPath;
+
+  if (isVercelOrProduction()) {
+    throw new CertificatePdfFontError(
+      `证书 PDF 缺少项目内 CJK 字体，已停止生成以避免中文乱码。Vercel / production 环境必须能读取 ${bundledCjkFontPath}，或将 ITCA_CERTIFICATE_PDF_FONT_PATH 设置为可读取的字体文件。`
+    );
+  }
 
   if (!isVercelOrProduction()) {
     const localFontPath = findExistingFile(localMacCjkFontCandidates);

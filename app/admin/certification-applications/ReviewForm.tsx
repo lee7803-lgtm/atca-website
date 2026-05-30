@@ -264,7 +264,7 @@ export function CertificationReviewForm({
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
         <p className="font-medium text-porcelain">当前审核状态：{currentStatusText}</p>
         <p className="mt-1">{statusGuide}</p>
-        <p className="mt-2 text-[#7F1D1D]">材料审核状态请在各资料板块中逐项完成。</p>
+        <p className="mt-2 text-[#7F1D1D]">材料审核状态请在下方“逐项材料审核”中完成；状态为需补充资料的申请，收到补充后可继续在同一入口复核为通过。</p>
         {materialReviewHasIncomplete && initialStatus === "approved" ? <p className="mt-2 text-[#7F1D1D]">仍有材料审核项未通过或未完成，暂不能生成证书。</p> : null}
       </div>
       <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
@@ -296,7 +296,18 @@ export function CertificationReviewForm({
             {certificateValidityText ? <p className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3 text-sm leading-7 text-[#5f5b52] md:col-span-2">证书有效期：{certificateValidityText}</p> : null}
           </div>
         </div>
-        {materialReviewWorkflow ? <div id="material-review">{materialReviewWorkflow}</div> : null}
+        {materialReviewWorkflow ? (
+          <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white p-5" id="material-review">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Material Review</p>
+                <h3 className="mt-2 font-serif text-2xl text-porcelain">逐项材料审核</h3>
+              </div>
+              <p className="max-w-xl text-sm leading-7 text-[#5f5b52]">按顺序复核身份、联系方式、师承、推荐、经历、补充资料、凭证、照片和完整性。上一项仍为未审核时，下一项会保持锁定；已标记需补充的项目可在收到补充后直接改为通过。</p>
+            </div>
+            <div className="mt-5">{materialReviewWorkflow}</div>
+          </section>
+        ) : null}
         <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5" id="supplement-request">
           <h3 className="font-serif text-2xl text-porcelain">补交资料要求</h3>
           <p className="mt-2 text-sm leading-7 text-[#5f5b52]">需要申请人补充或修改资料时，在这里填写对申请人可见的说明；不会自动发送邮件或 WhatsApp 通知。</p>

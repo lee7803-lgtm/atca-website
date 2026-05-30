@@ -30,7 +30,7 @@ export function generateCertificationApplicationNo(date = new Date()) {
   const dateSegment = formatDateSegment(date);
   const sequence = `${Math.floor(1 + Math.random() * 999999)}`.padStart(6, "0");
 
-  return `ITCA-TAO-${dateSegment}-${sequence}`;
+  return `ARID-ITCA-TAO-${dateSegment}-${sequence}`;
 }
 
 export function generateCertificateNo(date = new Date()) {

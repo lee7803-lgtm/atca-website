@@ -170,7 +170,7 @@ function ApplicationQueryContent() {
             <div className="mt-7 grid gap-5">
               <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
                 <span className="text-sm font-medium text-porcelain">申请编号 <span className="text-[#7F1D1D]">*</span></span>
-                <input className="form-input" placeholder="例如 ARID-ITCA-M-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
+                <input className="form-input" placeholder="例如 ARID-ITCA-TAO-2026-000001" required value={applicationNumber} onChange={(event) => setApplicationNumber(event.target.value)} />
               </label>
               <div className="rounded-2xl border border-[#e4ded0] bg-[#fff8ed] px-4 py-3 text-sm leading-6 text-[#5f5b52]">
                 <span className="font-medium text-porcelain">忘记申请编号？</span>
@@ -218,7 +218,7 @@ function ApplicationQueryContent() {
               {isQuerying ? "正在查询..." : "查询申请进度 / 结果"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
-              支持 ARID-ITCA-M、ARID-ITCA-ORG、旧 ITCA-M / ITCA-O，以及 ITCA-TAO 开头的申请编号。查询结果仅用于申请人本人查看，不展示处理说明以外的后台操作记录或其他申请人的资料。
+              支持 ARID-ITCA-M、ARID-ITCA-ORG、ARID-ITCA-TAO，以及旧 ITCA-M / ITCA-O / ITCA-TAO 开头的历史申请编号。查询结果仅用于申请人本人查看，不展示处理说明以外的后台操作记录或其他申请人的资料。
             </div>
           </form>
 
@@ -574,7 +574,7 @@ function QueryPageFallback() {
           <div className="mt-7 grid gap-5">
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">申请编号</span>
-              <input className="form-input" placeholder="例如 ARID-ITCA-M-2026-000001" readOnly />
+              <input className="form-input" placeholder="例如 ARID-ITCA-TAO-2026-000001" readOnly />
             </label>
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">邮箱或手机 / WhatsApp</span>

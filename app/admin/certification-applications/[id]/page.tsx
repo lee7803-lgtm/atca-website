@@ -136,7 +136,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
     return previous ? application.materialReview[previous.key] === "pending" : false;
   };
   const materialReviewWorkflow = (
-    <div className="grid gap-5" id="material-review">
+    <div className="grid gap-5">
       <DetailSection id="identity-detail" title="基本身份资料">
         <DetailItem label="申请人中文姓名" value={application.applicantName} />
         <DetailItem label="英文名 / 拼音" value={application.applicantNameEn || "未填写"} />
