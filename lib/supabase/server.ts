@@ -34,6 +34,8 @@ type SupabaseConfig = {
 const publicNumberSuffixAlphabet = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
 const publicNumberSuffixLength = 6;
 const publicNumberMaxAttempts = 10;
+const applicantCertificateSelect =
+  "certificate_no,status,certificate_review_status,holder_name,taoist_name,certification_path,certification_level,taoist_rank,lineage_or_temple,sect,issued_date,valid_from,valid_until,certificate_photo_path,pdf_storage_path,pdf_generated_at,pdf_version,pdf_file_size,pdf_status";
 
 type SupabaseApplicationRow = {
   id: string;
@@ -433,6 +435,11 @@ function toCertificationQueryResult(
     certificateValidUntil: certificate?.certificateValidUntil,
     certificatePhotoUrl: certificate?.certificatePhotoUrl,
     certificatePhotoRecorded: certificate?.certificatePhotoRecorded,
+    certificatePdfAvailable: certificate?.certificatePdfAvailable,
+    certificatePdfStatus: certificate?.certificatePdfStatus,
+    certificatePdfGeneratedAt: certificate?.certificatePdfGeneratedAt,
+    certificatePdfVersion: certificate?.certificatePdfVersion,
+    certificatePdfFileSize: certificate?.certificatePdfFileSize,
     deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
     deliveredAt: row.delivered_at,
     supplementSubmittedAt: row.supplement_submitted_at ?? null,
@@ -1858,7 +1865,7 @@ async function findApplicantCertificateByApplicationId(applicationId: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_id: `eq.${applicationId}`,
-    select: "*",
+    select: applicantCertificateSelect,
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/certificates?${params.toString()}`, {
