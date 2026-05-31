@@ -1,6 +1,6 @@
 # ITCA V1.3 Resend production readiness checklist
 
-This document covers Phase 11.7 only. It is a readiness checklist for Resend, Vercel, sender identity, environment variables, and test boundaries before real email sending. It does not configure secrets, modify `.env` files, send email, add SQL, execute SQL, publish production, create test data, add WhatsApp, add bulk sending, change payment `paid` flow, change certificate verification tokens, or change PDF behavior.
+This document covers Phase 11.7 and 11.8 readiness only. It is a checklist for Resend, Vercel, sender identity, environment variables, test-recipient safeguards, and test boundaries before real email sending. It does not configure secrets, modify `.env` files, send email, add SQL, execute SQL, publish production, create test data, add WhatsApp, add bulk sending, change payment `paid` flow, change certificate verification tokens, or change PDF behavior.
 
 ## 1. Resend real-send prerequisites
 
@@ -90,7 +90,7 @@ Only variable names are documented here. Do not write real values into this repo
 | `ITCA_EMAIL_FROM` | Verified sender email address. | Use a verified test sender on the approved domain or sandbox domain. | Use the approved verified ITCA sender address. |
 | `ITCA_EMAIL_FROM_NAME` | Visible sender display name. | Use an approved test display name, for example `ITCA Test`. | Use the approved ITCA display name. |
 | `ITCA_EMAIL_REPLY_TO` | Monitored reply mailbox. | Use an internal monitored test mailbox. | Use the approved monitored ITCA mailbox. |
-| `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` | Suggested future allowlist for internal test recipients. Current code does not enforce it. | Recommended before Preview real-send testing. | Keep for smoke tests; do not treat it as a bulk-send list. |
+| `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` | Comma-separated internal test recipient allowlist. Current code reads it case-insensitively and never displays the full list. | Required before Preview real-send testing. | Keep for smoke tests; do not treat it as a bulk-send list. |
 | `NEXT_PUBLIC_SITE_URL` | Public site base URL used by email templates when links are included. | Preview deployment URL or approved Preview base URL. | Official production site URL. |
 
 ## 3. Default safety configuration
@@ -104,7 +104,7 @@ Recommended default:
 - `ITCA_EMAIL_MANUAL_SEND_ENABLED=false`
 - Do not configure a real production API key.
 - If a key is needed, use a separate test key and internal recipients only.
-- Keep any future test-recipient allowlist restricted to internal addresses.
+- Configure `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` only with internal test addresses before any real Preview send.
 
 For a short controlled Preview real-send test, set `ITCA_EMAIL_DRY_RUN=false` and `ITCA_EMAIL_MANUAL_SEND_ENABLED=true` only for the test window, then turn the switch back off and redeploy.
 
@@ -192,3 +192,45 @@ Phase 11.8 should still avoid automatic sending. Suggested scope:
 3. Make dry-run versus real-send copy explicit in the admin action response.
 4. Prepare one safe test notification row using an internal recipient through an approved manual process.
 5. Keep WhatsApp, bulk send, payment notifications, PDF delivery, automatic triggers, SQL changes, and test-data creation outside the phase.
+
+## 8. Phase 11.8 implementation notes
+
+Phase 11.8 prepares for a future Preview-only manual single-send test. It still does not send real email, configure real keys, or create test notification data.
+
+Code-level safeguards now expected before real Preview testing:
+
+- `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` is read as a comma-separated list.
+- Whitespace is trimmed and matching is case-insensitive.
+- The admin page may show whether the allowlist is configured, but must never display the full email list.
+- `provider=none` and `dry-run=true` continue to skip without requiring a white-listed recipient.
+- `provider=resend` with `dry-run=false` and manual send enabled still cannot call Resend unless the allowlist exists and the selected notification recipient is on it.
+- Payment, PDF-related, WhatsApp, and sensitive-payload notification types remain blocked from manual real-send preparation.
+
+## 9. Preparing a safe test notification for Phase 11.9
+
+Phase 11.9 should prepare one safe notification for a Preview environment manual single-send test only after approval. Do not create test data without explicit confirmation.
+
+Safe test notification requirements:
+
+1. Use only an internal test mailbox that appears in `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS`.
+2. Use a low-risk email notification type, preferably an application submission confirmation such as `member_application_submitted`, `organization_application_submitted`, or `certification_application_submitted`.
+3. Do not test payment notification types.
+4. Do not test PDF notification types.
+5. Do not test WhatsApp.
+6. Do not include Storage paths, PDF paths, `vt` tokens, identity materials, recommender information, committee notes, or internal review text.
+7. Confirm the message body uses a standard safe template and points users back to official query pages.
+
+Preview variables for an approved Phase 11.9 test:
+
+- `ITCA_EMAIL_PROVIDER=resend`
+- `ITCA_EMAIL_DRY_RUN=false`
+- `ITCA_EMAIL_MANUAL_SEND_ENABLED=true`
+- `RESEND_API_KEY` configured only in Vercel Preview, never in code
+- `ITCA_EMAIL_FROM` set to a verified-domain sender
+- `ITCA_EMAIL_REPLY_TO` set to a monitored internal mailbox
+- `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` set only to internal test mailboxes
+
+After the test, immediately restore one of these safety settings and redeploy:
+
+- `ITCA_EMAIL_DRY_RUN=true`
+- Or `ITCA_EMAIL_MANUAL_SEND_ENABLED=false`

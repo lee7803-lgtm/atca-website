@@ -6,7 +6,8 @@ import { getEmailProviderConfig } from "@/lib/notifications/email/config";
 import { resolveEmailProvider } from "@/lib/notifications/email/provider";
 import { sanitizeNotificationPayload } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
-import type { NotificationSendStatus } from "@/lib/notifications/types";
+import type { EmailProviderSendResult } from "@/lib/notifications/email/types";
+import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 
@@ -37,25 +38,31 @@ export async function POST(request: Request, { params }: { params: { id: string 
     }
 
     if (notification.channel !== "email") {
-      return NextResponse.json({ success: false, message: "当前仅支持邮件通知模拟发送。" }, { status: 400 });
+      return NextResponse.json({ success: false, message: "当前仅支持邮件通知单条操作。" }, { status: 400 });
+    }
+
+    if (notification.sendStatus === "sent") {
+      return NextResponse.json({ success: false, message: "该通知已处理，不重复发送。" }, { status: 409 });
     }
 
     const providerConfig = getEmailProviderConfig();
-    const provider = resolveEmailProvider();
-    const providerResult = await provider.send({
-      to: {
-        name: notification.recipientName,
-        email: notification.recipientEmail
-      },
-      from: providerConfig.from,
-      fromName: providerConfig.fromName,
-      replyTo: providerConfig.replyTo,
-      subject: notification.subject || "ITCA 通知",
-      messageBody: notification.messageBody,
-      templateKey: notification.templateKey || `manual.${notification.notificationType}`,
-      payloadJson: sanitizeNotificationPayload(notification.payloadJson || {}),
-      allowRealSend: true
-    });
+    const manualSendBlockReason = getManualSendBlockReason(notification);
+    const providerResult = manualSendBlockReason
+      ? buildBlockedProviderResult(providerConfig.provider, manualSendBlockReason)
+      : await resolveEmailProvider().send({
+          to: {
+            name: notification.recipientName,
+            email: notification.recipientEmail
+          },
+          from: providerConfig.from,
+          fromName: providerConfig.fromName,
+          replyTo: providerConfig.replyTo,
+          subject: notification.subject || "ITCA 通知",
+          messageBody: notification.messageBody,
+          templateKey: notification.templateKey || `manual.${notification.notificationType}`,
+          payloadJson: sanitizeNotificationPayload(notification.payloadJson || {}),
+          allowRealSend: true
+        });
     const now = new Date().toISOString();
     const sendStatus = providerResult.sendStatus;
     const updated = await updateNotificationSendResult(notification.id, {
@@ -81,7 +88,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
     return NextResponse.json({
       success: true,
-      message: getResponseMessage(sendStatus),
+      message: getResponseMessage(sendStatus, providerResult.errorMessage),
       notification: updated
         ? {
             id: updated.id,
@@ -103,14 +110,54 @@ export async function POST(request: Request, { params }: { params: { id: string 
 
 function getStatusMessage(status: NotificationSendStatus, providerErrorMessage?: string) {
   if (status === "sent") return "";
-  if (status === "skipped") return "已完成模拟发送，当前未接入真实邮件服务。";
+  if (status === "skipped") return providerErrorMessage || "本次未真实发送邮件，已记录为跳过。";
   return providerErrorMessage || "通知发送失败，请稍后重试。";
 }
 
-function getResponseMessage(status: NotificationSendStatus) {
+function getResponseMessage(status: NotificationSendStatus, providerErrorMessage?: string) {
   if (status === "sent") return "通知发送操作已完成。";
-  if (status === "skipped") return "当前邮件 provider 尚未启用真实发送，本次未发送真实邮件。";
+  if (status === "skipped") return providerErrorMessage || "本次未真实发送邮件，已记录为跳过。";
   return "通知发送失败，已记录失败原因。";
+}
+
+function getManualSendBlockReason(notification: NotificationLogRecord) {
+  if (isBlockedNotificationType(notification.notificationType)) return "manual_send_notification_type_blocked";
+  if (containsSensitiveNotificationPayload(notification.payloadJson)) return "manual_send_sensitive_payload_blocked";
+  return "";
+}
+
+function isBlockedNotificationType(notificationType: string) {
+  return (
+    notificationType.startsWith("payment.") ||
+    notificationType === "renewal.payment_required" ||
+    notificationType === "rereview.payment_required" ||
+    notificationType === "certificate_pdf_generated"
+  );
+}
+
+function containsSensitiveNotificationPayload(payload: Record<string, unknown>) {
+  return Object.keys(payload || {}).some((key) => /storage|pdf|vt|token|identity|id[_-]?proof|recommend|recommender|committee|internal|material/i.test(key));
+}
+
+function buildBlockedProviderResult(provider: string, skippedReason: string): EmailProviderSendResult {
+  return {
+    ok: true,
+    sendStatus: "skipped",
+    provider,
+    providerResponse: {
+      provider,
+      delivery: "blocked",
+      skippedReason
+    },
+    errorMessage: getBlockedMessage(skippedReason),
+    skippedReason
+  };
+}
+
+function getBlockedMessage(reason: string) {
+  if (reason === "manual_send_notification_type_blocked") return "该通知类型不允许在本阶段真实发送。";
+  if (reason === "manual_send_sensitive_payload_blocked") return "通知 payload 含敏感字段，本阶段不允许发送。";
+  return "该通知不符合本阶段手动发送安全边界。";
 }
 
 async function writeAuditBestEffort(

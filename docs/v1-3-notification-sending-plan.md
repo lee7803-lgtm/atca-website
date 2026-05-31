@@ -279,6 +279,7 @@ Common variables:
 - `ITCA_EMAIL_WEBHOOK_SECRET`: reserved for future provider webhook verification.
 - `ITCA_EMAIL_DRY_RUN`: optional guard for preview environments.
 - `ITCA_EMAIL_MANUAL_SEND_ENABLED`: optional manual-send gate; defaults to disabled.
+- `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS`: comma-separated internal test recipient allowlist for Preview manual-send testing.
 
 SMTP-specific variables if SMTP is selected:
 
@@ -343,3 +344,14 @@ Status: implemented in the Next.js notification layer.
 - Updated `/admin/notifications` to show safe Resend status without exposing provider keys or sensitive paths.
 - Updated `POST /api/admin/notifications/[id]/send` to pass through the unified provider abstraction for one existing notification row at a time.
 - Did not add WhatsApp, bulk sending, SQL, payment paid status changes, certificate verification token changes, PDF changes, or attachments.
+
+### Phase 11.8: Resend Preview manual-send safeguards
+
+Status: implemented as preparation only. No real email was sent, no real provider key was configured, and automatic sending remains off.
+
+- Added `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` parsing for comma-separated internal test recipients.
+- Kept the full allowlist out of page output, API responses, logs, and provider metadata.
+- Required Resend real-send attempts to pass dry-run, manual-send, provider config, explicit route allowance, and test-recipient allowlist checks.
+- Enhanced `/admin/notifications` diagnostics for provider, mode, manual send, dry-run, allowlist configured status, real-send allowance, and safe block reasons.
+- Strengthened single-send route boundaries for non-email channels, already-sent rows, payment notification types, PDF notification types, and sensitive payload keys.
+- Kept Production real sending disabled by default and restricted the first future real test to Preview backend single-notification manual send.

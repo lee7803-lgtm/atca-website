@@ -64,12 +64,17 @@ export default async function AdminNotificationsPage() {
       <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52]">
         <p className="font-semibold text-porcelain">当前邮件发送模式：{emailProviderStatus.displayName}</p>
         <p className="mt-1">{emailProviderStatus.safeMessage}</p>
-        <p className="mt-1 text-xs text-[#8a6b3e]">
-          Provider：{emailProviderStatus.provider} / Mode：{emailProviderStatus.mode} / {emailProviderStatus.configured ? "配置状态已识别" : "配置未完成"} / {emailProviderStatus.canSend ? "允许真实发送" : "不会真实发送邮件"}
-        </p>
-        <p className="mt-1 text-xs text-[#8a6b3e]">
-          Resend：{formatResendStatus(emailProviderStatus)}
-        </p>
+        <dl className="mt-3 grid gap-2 text-xs text-[#8a6b3e] sm:grid-cols-2 lg:grid-cols-3">
+          <DiagnosticItem label="当前 provider" value={emailProviderStatus.provider} />
+          <DiagnosticItem label="当前模式" value={formatProviderMode(emailProviderStatus)} />
+          <DiagnosticItem label="Manual send" value={emailProviderStatus.manualSendEnabled ? "已开启" : "未开启"} />
+          <DiagnosticItem label="Dry-run" value={emailProviderStatus.dryRun ? "已开启" : "未开启"} />
+          <DiagnosticItem label="测试收件人白名单" value={emailProviderStatus.testRecipientAllowlistConfigured ? "已配置" : "未配置"} />
+          <DiagnosticItem label="允许真实发送" value={emailProviderStatus.canSend ? "是" : "否"} />
+        </dl>
+        {!emailProviderStatus.canSend ? (
+          <p className="mt-3 text-xs text-[#8a6b3e]">安全原因：{formatBlockReasons(emailProviderStatus)}</p>
+        ) : null}
       </div>
 
       {message ? (
@@ -112,7 +117,7 @@ export default async function AdminNotificationsPage() {
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(getStatusTime(item))}</td>
                   <td className="max-w-sm px-4 py-4 text-[#5f5b52]" title={item.errorMessage}>{summarizeError(item.errorMessage)}</td>
                   <td className="px-4 py-4">
-                    <NotificationSendAction channel={item.channel} id={item.id} status={item.sendStatus} />
+                    <NotificationSendAction channel={item.channel} id={item.id} status={item.sendStatus} {...getSendActionCopy(emailProviderStatus)} />
                   </td>
                 </tr>
               ))}
@@ -144,6 +149,15 @@ function StatusBadge({ status }: { status: NotificationSendStatus }) {
   );
 }
 
+function DiagnosticItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <dt className="font-semibold text-[#5f5b52]">{label}</dt>
+      <dd className="mt-0.5 break-words">{value}</dd>
+    </div>
+  );
+}
+
 function getRelatedNo(item: NotificationLogRecord) {
   return item.applicationNo || item.memberNo || item.certificateNo;
 }
@@ -157,12 +171,76 @@ function summarizeError(value: string) {
   return value.length > 80 ? `${value.slice(0, 80)}...` : value;
 }
 
-function formatResendStatus(status: ReturnType<typeof getEmailProviderConfig>) {
-  if (status.provider !== "resend") return "未选择";
-  if (!status.configured) return `配置未完成${status.missingConfig.length > 0 ? `：${status.missingConfig.join("、")}` : ""}`;
-  if (status.dryRun) return "dry-run，不会真实发送";
-  if (!status.manualSendEnabled) return "手动发送未启用，不会真实发送";
-  return status.canSend ? "后台单条手动发送可用" : "不会真实发送";
+function formatProviderMode(status: ReturnType<typeof getEmailProviderConfig>) {
+  if (status.provider === "none") return "模拟发送";
+  if (!status.configured) return "配置未完成";
+  if (status.dryRun) return "dry-run";
+  if (status.canSend) return "可后台单条真实发送";
+  return "不会真实发送";
+}
+
+function getSendActionCopy(status: ReturnType<typeof getEmailProviderConfig>) {
+  if (status.provider === "none") {
+    return {
+      label: "模拟发送",
+      title: "provider=none，本次只记录模拟发送，不会真实发送邮件。",
+      helperText: "provider=none，不会真实发送"
+    };
+  }
+  if (status.provider === "resend" && status.dryRun) {
+    return {
+      label: "dry-run",
+      title: "Resend dry-run 已开启，本次不会真实发送邮件。",
+      helperText: "dry-run，不会真实发送"
+    };
+  }
+  if (status.provider === "resend" && !status.configured) {
+    return {
+      label: "配置未完成",
+      title: "Resend 配置未完成，本次不会真实发送邮件。",
+      helperText: "配置未完成，仅记录跳过"
+    };
+  }
+  if (status.provider === "resend" && !status.manualSendEnabled) {
+    return {
+      label: "真实发送未开启",
+      title: "Resend manual send 未开启，本次不会真实发送邮件。",
+      helperText: "manual send 未开启"
+    };
+  }
+  if (status.provider === "resend" && status.canSend) {
+    return {
+      label: "后台单条发送",
+      title: "Resend 已通过全局安全门闩；只有测试白名单内收件人会真实发送。",
+      helperText: "仅白名单收件人可真实发送"
+    };
+  }
+  return {
+    label: "模拟发送",
+    title: "当前 provider 不支持真实发送，本次不会真实发送邮件。",
+    helperText: "当前 provider 不支持真实发送"
+  };
+}
+
+function formatBlockReasons(status: ReturnType<typeof getEmailProviderConfig>) {
+  if (status.missingConfig.length > 0) return `配置未完成：${status.missingConfig.join("、")}`;
+  const reasons = status.realSendBlockReasons || [];
+  if (reasons.length === 0) return "无";
+  return reasons.map(formatBlockReason).join("；");
+}
+
+function formatBlockReason(reason: string) {
+  const labels: Record<string, string> = {
+    provider_none: "当前 provider=none",
+    provider_unsupported: "当前 provider 不受支持",
+    provider_not_real_send_enabled: "当前 provider 未启用真实发送",
+    provider_reserved_not_implemented: "当前 provider 仍为预留实现",
+    configuration_incomplete: "配置未完成",
+    dry_run_enabled: "dry-run=true",
+    manual_send_disabled: "manual send 未开启",
+    test_recipient_allowlist_missing: "测试收件人白名单未配置"
+  };
+  return labels[reason] || reason;
 }
 
 function formatDateTime(value: string) {

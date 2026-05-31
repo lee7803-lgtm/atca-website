@@ -81,9 +81,11 @@ Common:
 - `ITCA_EMAIL_REPLY_TO`
 - `ITCA_EMAIL_PROVIDER_API_KEY`
 - `ITCA_EMAIL_WEBHOOK_SECRET`
+- `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS`
 
 Resend:
 
+- `RESEND_API_KEY`
 - `ITCA_RESEND_API_KEY`
 
 SendGrid:
@@ -105,7 +107,7 @@ Operational safeguards:
 - `ITCA_EMAIL_MANUAL_SEND_ENABLED`
 - `ITCA_EMAIL_RATE_LIMIT_PER_MINUTE`
 
-These safeguard names are recommendations for later phases; Phase 11.5 does not implement them.
+`ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` is implemented for Preview manual-send preparation. The broader allowlist, auto-send, and rate-limit safeguard names remain recommendations for later phases.
 
 ## 6. DNS and domain verification checklist
 
@@ -233,8 +235,23 @@ Minimum development range:
 Implementation notes:
 
 - Missing provider key, missing sender/reply-to, dry-run, disabled manual send, and non-manual workflow paths all return `sendStatus=skipped`.
+- Missing `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` or a recipient outside that allowlist also returns `sendStatus=skipped` before any Resend call.
 - Existing automatic workflow calls continue to use `sendEmailNotification()` without the real-send allowance.
-- The admin notification page displays safe Resend state only and does not expose API keys, storage paths, certificate verification tokens, PDF paths, or raw provider responses.
+- The admin notification page displays safe Resend state only and does not expose API keys, full test recipient allowlists, storage paths, certificate verification tokens, PDF paths, or raw provider responses.
+
+## 13.1 Phase 11.8 Preview manual-send preparation
+
+Status: implemented as safety preparation only. No real email was sent and no real provider key was configured.
+
+Phase 11.8 adds:
+
+- A test-recipient allowlist reader for `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS`.
+- Case-insensitive, comma-separated allowlist matching.
+- Safe admin diagnostics for provider, dry-run, manual send, allowlist configured status, and real-send block reasons.
+- Clearer button and response copy so dry-run and skipped states are not confused with real sends.
+- Manual route safety boundaries for payment, PDF-related, WhatsApp/non-email, and sensitive-payload notifications.
+
+Production remains blocked from real sending unless a later approved phase changes the environment gates and operating procedure.
 
 ## 14. Phase 11.6 if choosing SMTP
 

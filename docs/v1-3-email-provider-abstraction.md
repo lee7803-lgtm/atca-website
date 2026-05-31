@@ -1,6 +1,6 @@
 # ITCA V1.3 email provider abstraction
 
-This document records the Phase 11.2 to 11.6 email provider abstraction work. These phases do not add provider secrets, do not modify `.env` files, and do not add automatic email trigger points.
+This document records the Phase 11.2 to 11.8 email provider abstraction work. These phases do not add provider secrets, do not modify `.env` files, and do not add automatic email trigger points.
 
 ## Current entry point
 
@@ -90,11 +90,12 @@ It:
 - Requires `ITCA_EMAIL_DRY_RUN=false` before any real provider call.
 - Requires `ITCA_EMAIL_MANUAL_SEND_ENABLED=true` before any real provider call.
 - Requires the caller to pass `allowRealSend=true`; the existing automatic workflow entry point does not pass this flag.
+- Requires `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS` to be configured and the selected recipient to be in that allowlist before a real Preview manual send.
 - Sends text-only email content and does not send attachments.
 - Stores only the Resend message ID and small sanitized delivery metadata.
-- Returns `sendStatus=skipped` for missing config, dry-run, disabled manual send, missing recipient, or non-manual paths.
+- Returns `sendStatus=skipped` for missing config, dry-run, disabled manual send, missing allowlist, non-allowlisted recipient, missing recipient, or non-manual paths.
 
-The admin notification page displays safe Resend status only. It does not display API keys, provider secrets, storage paths, certificate verification tokens, PDF paths, or raw provider responses.
+The admin notification page displays safe Resend status only, including whether the test recipient allowlist is configured. It does not display API keys, provider secrets, full allowlist emails, storage paths, certificate verification tokens, PDF paths, or raw provider responses.
 
 ## Reserved provider behavior
 
@@ -123,6 +124,8 @@ Supported environment variable names:
 - `ITCA_EMAIL_REPLY_TO`: reply-to address, required before any real provider can be enabled.
 - `ITCA_EMAIL_PROVIDER_API_KEY`: reserved API-provider key name; never output by UI/API.
 - `ITCA_RESEND_API_KEY`: reserved Resend-specific key name; never output by UI/API.
+- `RESEND_API_KEY`: Resend/Vercel integration key name; never output by UI/API.
+- `ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS`: comma-separated internal test recipient allowlist; never output by UI/API as a full list.
 - `ITCA_SENDGRID_API_KEY`: reserved SendGrid-specific key name; never output by UI/API.
 - `ITCA_SMTP_HOST`, `ITCA_SMTP_PORT`, `ITCA_SMTP_USER`, `ITCA_SMTP_PASSWORD`: reserved SMTP names; never output by UI/API.
 
@@ -143,7 +146,7 @@ Current status behavior:
 - `provider=resend` with missing required config: shows Resend configuration incomplete; no real email is sent.
 - `provider=resend` with dry-run enabled: shows Resend dry-run; no real email is sent.
 - `provider=resend` with required names present and dry-run disabled but `ITCA_EMAIL_MANUAL_SEND_ENABLED` not enabled: shows Resend configured but manual send disabled; no real email is sent.
-- `provider=resend` with full configuration, dry-run disabled, and manual send enabled: only the admin single-notification route may call Resend.
+- `provider=resend` with full configuration, dry-run disabled, manual send enabled, and test recipient allowlist configured: only the admin single-notification route may call Resend, and only for allowlisted recipients.
 - `provider=smtp/sendgrid/other` with required names present: shows reserved/dry-run provider state; no real email is sent because no real adapter is implemented.
 - Unknown provider names are unavailable and skipped.
 
@@ -186,8 +189,8 @@ Provider responses are also sanitized before they are stored in `notification_lo
 
 This phase does not:
 
-- Send real email.
-- Add a real email SDK.
+- Send real email automatically.
+- Configure provider keys.
 - Add WhatsApp.
 - Add group/bulk sending.
 - Modify payment paid status flow.

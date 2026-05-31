@@ -8,16 +8,19 @@ type NotificationSendActionProps = {
   id: string;
   channel: NotificationChannel;
   status: NotificationSendStatus;
+  label: string;
+  title: string;
+  helperText: string;
 };
 
-export function NotificationSendAction({ id, channel, status }: NotificationSendActionProps) {
+export function NotificationSendAction({ id, channel, status, label, title, helperText }: NotificationSendActionProps) {
   const router = useRouter();
   const [isPending, startTransition] = useTransition();
   const [message, setMessage] = useState("");
   const isEmail = channel === "email";
   const isSent = status === "sent";
   const disabled = isPending || !isEmail || isSent;
-  const label = isSent ? "已处理" : "模拟发送";
+  const buttonLabel = isSent ? "已处理" : label;
 
   async function handleSend() {
     if (disabled) return;
@@ -47,12 +50,13 @@ export function NotificationSendAction({ id, channel, status }: NotificationSend
         className="rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-3 py-2 text-xs font-semibold text-[#66594d] disabled:cursor-not-allowed disabled:opacity-50"
         disabled={disabled}
         onClick={handleSend}
-        title={!isEmail ? "当前仅支持邮件通知模拟发送" : isSent ? "该通知已处理" : "当前未接入真实邮件服务，仅执行模拟发送"}
+        title={!isEmail ? "当前仅支持邮件通知单条操作" : isSent ? "该通知已处理" : title}
         type="button"
       >
-        {isPending ? "处理中" : label}
+        {isPending ? "处理中" : buttonLabel}
       </button>
-      {!isEmail ? <p className="text-xs leading-5 text-[#8a6b3e]">当前仅支持邮件通知模拟发送</p> : null}
+      {!isEmail ? <p className="text-xs leading-5 text-[#8a6b3e]">当前仅支持邮件通知单条操作</p> : null}
+      {isEmail && !isSent ? <p className="max-w-[12rem] text-xs leading-5 text-[#8a6b3e]">{helperText}</p> : null}
       {message ? <p className="max-w-[12rem] text-xs leading-5 text-[#5f5b52]">{message}</p> : null}
     </div>
   );

@@ -1,6 +1,7 @@
 import "server-only";
 
 import { Resend } from "resend";
+import { getEmailAllowedTestRecipients, isEmailAllowedTestRecipient } from "./config";
 import type { getEmailProviderConfig } from "./config";
 import type { EmailProviderSendInput, EmailProviderSendResult } from "./types";
 
@@ -24,6 +25,7 @@ export class ResendEmailProvider {
           mode: this.config.mode,
           configured: this.config.configured,
           manualSendEnabled: Boolean(this.config.manualSendEnabled),
+          testRecipientAllowlistConfigured: Boolean(this.config.testRecipientAllowlistConfigured),
           delivery: "skipped",
           skippedReason
         },
@@ -87,21 +89,27 @@ function getSkippedReason(config: ResendProviderConfig, input: EmailProviderSend
   if (!config.configured) return "email_provider_configuration_incomplete";
   if (config.dryRun) return "email_provider_dry_run";
   if (!apiKey) return "email_provider_api_key_missing";
-  if (!config.canSend) return "email_provider_manual_send_disabled";
+  if (!config.manualSendEnabled) return "email_provider_manual_send_disabled";
   if (!input.allowRealSend) return "email_provider_real_send_not_allowed";
   if (!input.to.email) return "email_recipient_missing";
   if (!input.from) return "email_sender_missing";
+  if (getEmailAllowedTestRecipients().length === 0) return "email_test_recipient_allowlist_missing";
+  if (!isEmailAllowedTestRecipient(input.to.email)) return "email_recipient_not_in_test_allowlist";
+  if (!config.canSend) return "email_provider_not_ready";
   return "";
 }
 
 function getSkippedMessage(reason: string) {
-  if (reason === "email_provider_dry_run") return "Resend is in dry-run mode.";
-  if (reason === "email_provider_manual_send_disabled") return "Resend manual sending is not enabled.";
-  if (reason === "email_provider_real_send_not_allowed") return "Real sending is not allowed for this notification path.";
-  if (reason === "email_provider_api_key_missing") return "Resend API key is not configured.";
-  if (reason === "email_recipient_missing") return "Recipient email is missing.";
-  if (reason === "email_sender_missing") return "Sender email is missing.";
-  return "Resend email provider configuration is incomplete.";
+  if (reason === "email_provider_dry_run") return "Resend 当前为 dry-run，本次未真实发送邮件。";
+  if (reason === "email_provider_manual_send_disabled") return "Resend manual send 未开启，本次未真实发送邮件。";
+  if (reason === "email_provider_real_send_not_allowed") return "当前通知路径不允许真实发送。";
+  if (reason === "email_provider_api_key_missing") return "Resend API key 未配置，本次未真实发送邮件。";
+  if (reason === "email_recipient_missing") return "收件人邮箱缺失，本次未真实发送邮件。";
+  if (reason === "email_sender_missing") return "发件邮箱缺失，本次未真实发送邮件。";
+  if (reason === "email_test_recipient_allowlist_missing") return "测试收件人白名单未配置，本次未真实发送邮件。";
+  if (reason === "email_recipient_not_in_test_allowlist") return "收件人不在测试白名单内，本次未真实发送邮件。";
+  if (reason === "email_provider_not_ready") return "Resend provider 尚未满足真实发送条件。";
+  return "Resend 邮件配置未完成，本次未真实发送邮件。";
 }
 
 function formatFromAddress(email: string, name?: string) {
@@ -110,5 +118,5 @@ function formatFromAddress(email: string, name?: string) {
 }
 
 function getResendApiKey() {
-  return (process.env.ITCA_EMAIL_PROVIDER_API_KEY || process.env.ITCA_RESEND_API_KEY || "").trim();
+  return (process.env.ITCA_EMAIL_PROVIDER_API_KEY || process.env.ITCA_RESEND_API_KEY || process.env.RESEND_API_KEY || "").trim();
 }

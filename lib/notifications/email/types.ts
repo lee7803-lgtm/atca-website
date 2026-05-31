@@ -14,6 +14,8 @@ export type EmailProviderStatus = {
   dryRun: boolean;
   missingConfig: string[];
   manualSendEnabled?: boolean;
+  testRecipientAllowlistConfigured?: boolean;
+  realSendBlockReasons?: string[];
 };
 
 export type EmailRecipient = {
