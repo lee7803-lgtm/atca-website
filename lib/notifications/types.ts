@@ -77,8 +77,10 @@ export type NotificationLogRecord = Required<
   recipientPhone: string;
   subject: string;
   templateKey: string;
+  payloadJson: NotificationSafePayload;
   provider: string;
   providerMessageId: string;
+  providerResponse: NotificationSafePayload;
   errorMessage: string;
   createdBy: string;
   createdAt: string;
@@ -93,6 +95,17 @@ export type ListNotificationLogsParams = {
   limit?: number;
   status?: NotificationSendStatus;
   channel?: NotificationChannel;
+};
+
+export type UpdateNotificationSendResultInput = {
+  sendStatus: NotificationSendStatus;
+  provider: string;
+  providerMessageId?: string;
+  providerResponse?: NotificationSafePayload;
+  errorMessage?: string;
+  sentAt?: string | null;
+  failedAt?: string | null;
+  skippedAt?: string | null;
 };
 
 export type CreateNotificationLogResult =

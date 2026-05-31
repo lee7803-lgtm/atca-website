@@ -16,6 +16,23 @@ export type AuditLogRecord = {
   createdAt: string;
 };
 
+export type CreateAuditLogInput = {
+  actorAdminId?: string;
+  actorEmail?: string;
+  actorName?: string;
+  actorRole?: string;
+  actorType?: "admin" | "legacy_admin" | "system";
+  action: string;
+  resourceType: string;
+  resourceId?: string;
+  resourceNo?: string;
+  beforeData?: Record<string, unknown> | null;
+  afterData?: Record<string, unknown> | null;
+  summary?: string;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
 type SupabaseAuditConfig = {
   url: string;
   serviceRoleKey: string;
@@ -77,4 +94,32 @@ export async function listAuditLogs(limit = 50) {
     userAgent: row.user_agent || "",
     createdAt: row.created_at || ""
   }));
+}
+
+export async function createAuditLog(input: CreateAuditLogInput) {
+  const config = getSupabaseAuditConfig();
+  const response = await fetch(`${config.url}/rest/v1/audit_logs`, {
+    method: "POST",
+    headers: getHeaders(config),
+    body: JSON.stringify({
+      actor_admin_id: input.actorAdminId || null,
+      actor_email: input.actorEmail || null,
+      actor_name: input.actorName || null,
+      actor_role: input.actorRole || null,
+      actor_type: input.actorType || "system",
+      action: input.action,
+      resource_type: input.resourceType,
+      resource_id: input.resourceId || null,
+      resource_no: input.resourceNo || null,
+      before_data: input.beforeData || null,
+      after_data: input.afterData || null,
+      summary: input.summary || null,
+      ip_address: input.ipAddress || null,
+      user_agent: input.userAgent || null
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error("Audit log could not be written.");
+  }
 }

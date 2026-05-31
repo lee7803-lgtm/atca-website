@@ -126,3 +126,27 @@ This phase does not:
 - Modify database structure.
 - Add external service dependencies.
 
+## Phase 11.3 manual single-notification action
+
+The admin notification page can trigger one notification at a time through:
+
+- `POST /api/admin/notifications/[id]/send`
+
+The route:
+
+- Requires an authenticated admin session.
+- Reads the recipient, subject, message body, template key, and safe payload from the existing `notification_logs` row.
+- Does not accept client-supplied recipient overrides.
+- Supports email-channel rows only in this phase.
+- Calls the existing email provider abstraction.
+- Updates the same `notification_logs` row with the provider result.
+- Uses existing `send_status` values only.
+
+When the selected provider is `none`, the action is a simulation:
+
+- No real email is sent.
+- `send_status` remains an existing allowed value: `skipped`.
+- `skipped_at` is refreshed.
+- The admin-facing message is: `已完成模拟发送，当前未接入真实邮件服务。`
+
+The route returns only a minimal status summary and never returns raw payloads, provider responses, service keys, storage paths, verification tokens, or applicant material details.

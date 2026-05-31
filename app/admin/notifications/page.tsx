@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
+import { NotificationSendAction } from "./NotificationSendAction";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { listNotificationLogs } from "@/lib/notifications/admin";
 import { formatNotificationChannel, formatNotificationStatus, formatNotificationType, maskEmail, maskPhone } from "@/lib/notifications/format";
@@ -40,7 +41,7 @@ export default async function AdminNotificationsPage() {
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Notification Logs</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">通知记录</h1>
           <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">
-            查看系统、邮件、WhatsApp 与人工处理通知记录。本阶段仅记录通知，不发送真实邮件，也不调用 WhatsApp API。
+            查看系统、邮件、WhatsApp 与人工处理通知记录。本阶段支持单条邮件通知模拟发送，不发送真实邮件，也不调用 WhatsApp API。
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -55,7 +56,7 @@ export default async function AdminNotificationsPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
-        重发功能后续支持。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径或证书核验凭证。
+        当前仅支持单条邮件通知模拟发送。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径或证书核验凭证。
       </div>
 
       {message ? (
@@ -69,7 +70,7 @@ export default async function AdminNotificationsPage() {
           <table className="min-w-[1280px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["创建时间", "通知类型", "渠道", "状态", "接收人", "邮箱 / 手机", "关联编号", "状态时间", "失败原因"].map((item) => (
+                {["创建时间", "通知类型", "渠道", "状态", "接收人", "邮箱 / 手机", "关联编号", "状态时间", "失败原因", "操作"].map((item) => (
                   <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
                 ))}
               </tr>
@@ -97,11 +98,14 @@ export default async function AdminNotificationsPage() {
                   </td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(getStatusTime(item))}</td>
                   <td className="max-w-sm px-4 py-4 text-[#5f5b52]" title={item.errorMessage}>{summarizeError(item.errorMessage)}</td>
+                  <td className="px-4 py-4">
+                    <NotificationSendAction channel={item.channel} id={item.id} status={item.sendStatus} />
+                  </td>
                 </tr>
               ))}
               {logs.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={9}>暂无通知记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无通知记录。</td>
                 </tr>
               ) : null}
             </tbody>
