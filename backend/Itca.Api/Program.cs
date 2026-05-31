@@ -3,6 +3,7 @@ using Itca.Api.Features.Admin;
 using Itca.Api.Features.Applications;
 using Itca.Api.Features.Certificates;
 using Itca.Api.Features.Members;
+using Itca.Api.Features.Payments;
 using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -42,6 +43,9 @@ builder.Services.AddScoped<ApplicationSubmissionService>();
 builder.Services.AddScoped<CertificateQueries>();
 builder.Services.AddSingleton<CertificateVerificationTokenService>();
 builder.Services.AddScoped<MemberQueries>();
+builder.Services.AddScoped<PaymentCommands>();
+builder.Services.AddScoped<PaymentNotificationLogWriter>();
+builder.Services.AddScoped<PaymentQueries>();
 
 var app = builder.Build();
 
@@ -213,6 +217,113 @@ app.MapPatch(
             {
                 success = true,
                 application
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
+app.MapGet(
+    "/api/admin/payment-orders",
+    async (
+        HttpRequest request,
+        string? status,
+        string? keyword,
+        int? page,
+        int? pageSize,
+        PaymentQueries queries,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(request);
+
+            var orders = await queries.ListPaymentOrdersAsync(
+                status?.Trim(),
+                keyword?.Trim(),
+                page ?? 1,
+                pageSize ?? 100,
+                cancellationToken
+            );
+
+            return Results.Ok(new
+            {
+                success = true,
+                orders,
+                page = page ?? 1,
+                pageSize = pageSize ?? 100
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
+app.MapGet(
+    "/api/admin/payment-orders/{id:guid}",
+    async (HttpRequest request, Guid id, PaymentQueries queries, CancellationToken cancellationToken) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(request);
+
+            var order = await queries.GetPaymentOrderAsync(id, cancellationToken);
+            if (order is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未找到支付订单。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                order
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
+app.MapPatch(
+    "/api/admin/payment-orders/{id:guid}/status",
+    async (
+        HttpRequest request,
+        Guid id,
+        PaymentStatusUpdateRequest? body,
+        PaymentCommands commands,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(request);
+
+            var result = await commands.UpdateStatusAsync(id, body, GetAdminActorContext(request), cancellationToken);
+            if (result is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未找到支付订单。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                order = result.Order
             });
         }
         catch (Exception error)
@@ -650,6 +761,14 @@ static IResult HandleAdminReadException(Exception error)
             statusCode: StatusCodes.Status401Unauthorized
         ),
         ApplicationAdminReviewValidationException validationError => Results.Json(
+            new
+            {
+                success = false,
+                message = validationError.Message
+            },
+            statusCode: StatusCodes.Status400BadRequest
+        ),
+        PaymentValidationException validationError => Results.Json(
             new
             {
                 success = false,

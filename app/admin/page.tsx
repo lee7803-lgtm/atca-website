@@ -71,6 +71,12 @@ export default function AdminPage() {
             title="通知记录"
             text="查看系统、邮件、WhatsApp 与人工处理通知记录，支持后续通知链路追踪。"
           />
+          <AdminEntryCard
+            href="/admin/payments"
+            index="05"
+            title="支付订单管理"
+            text="查看 manual / none 支付订单，处理待人工确认、已付款和已取消状态。"
+          />
         </div>
       ) : (
         <AdminLoginForm />
