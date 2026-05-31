@@ -55,7 +55,7 @@ export default async function AdminNotificationsPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
-        重发功能后续支持。本页不会展示 service role、数据库连接串、管理员 token、Storage path 或证书核验 token。
+        重发功能后续支持。本页不会展示敏感服务端凭证、数据库连接串、管理员 token、Storage path 或证书核验 token。
       </div>
 
       {message ? (
