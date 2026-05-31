@@ -4,7 +4,7 @@ using NpgsqlTypes;
 
 namespace Itca.Api.Features.Applications;
 
-public sealed class ApplicationSubmissionService(SupabaseDb database)
+public sealed class ApplicationSubmissionService(SupabaseDb database, ApplicationNotificationLogWriter notificationLogs)
 {
     private static readonly string[] OpenStatuses =
     [
@@ -69,7 +69,18 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
             cancellationToken
         );
 
-        await InsertApplicationAsync(connection, applicationNo, values, now, cancellationToken);
+        var applicationId = await InsertApplicationAsync(connection, applicationNo, values, now, cancellationToken);
+
+        await notificationLogs.WriteSubmittedNotificationAsync(
+            applicationId,
+            applicationNo,
+            values.ApplicationType,
+            values.Name,
+            values.ContactName,
+            values.Email,
+            values.Phone,
+            cancellationToken
+        );
 
         return new ApplicationSubmissionResult(applicationNo, values.ApplicationType, "submitted");
     }
@@ -259,7 +270,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
         return result is not null;
     }
 
-    private static async Task InsertApplicationAsync(
+    private static async Task<Guid?> InsertApplicationAsync(
         NpgsqlConnection connection,
         string applicationNo,
         ValidatedApplicationSubmission values,
@@ -315,7 +326,8 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
               null,
               @createdAt,
               @updatedAt
-            );
+            )
+            returning id;
             """;
         command.Parameters.AddWithValue("applicationNo", applicationNo);
         command.Parameters.AddWithValue("applicationType", values.ApplicationType);
@@ -336,7 +348,8 @@ public sealed class ApplicationSubmissionService(SupabaseDb database)
         command.Parameters.AddWithValue("createdAt", now);
         command.Parameters.AddWithValue("updatedAt", now);
 
-        await command.ExecuteNonQueryAsync(cancellationToken);
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return result is Guid id ? id : null;
     }
 
     private static string Trim(string? value)

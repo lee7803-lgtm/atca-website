@@ -38,6 +38,7 @@ builder.Services.AddSingleton<SupabaseDb>();
 builder.Services.AddScoped<AuditLogWriter>();
 builder.Services.AddScoped<ApplicationAdminCommands>();
 builder.Services.AddScoped<ApplicationAdminQueries>();
+builder.Services.AddScoped<ApplicationNotificationLogWriter>();
 builder.Services.AddScoped<ApplicationQueries>();
 builder.Services.AddScoped<ApplicationSubmissionService>();
 builder.Services.AddScoped<CertificateQueries>();
