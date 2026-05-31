@@ -6,6 +6,7 @@ import { getEmailProviderConfig } from "@/lib/notifications/email/config";
 import { resolveEmailProvider } from "@/lib/notifications/email/provider";
 import { sanitizeNotificationPayload } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
+import { getNotificationRecipientEmail } from "@/lib/notifications/recipient";
 import type { EmailProviderSendResult } from "@/lib/notifications/email/types";
 import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
 
@@ -52,7 +53,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       : await resolveEmailProvider().send({
           to: {
             name: notification.recipientName,
-            email: notification.recipientEmail
+            email: getNotificationRecipientEmail(notification)
           },
           from: providerConfig.from,
           fromName: providerConfig.fromName,

@@ -9,6 +9,7 @@ import { listNotificationLogs } from "@/lib/notifications/admin";
 import { getEmailProviderConfig, isEmailAllowedTestRecipient } from "@/lib/notifications/email/config";
 import { formatNotificationChannel, formatNotificationStatus, formatNotificationType, maskEmail, maskPhone } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
+import { getNotificationRecipientEmail } from "@/lib/notifications/recipient";
 import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
 
 export const dynamic = "force-dynamic";
@@ -108,9 +109,9 @@ export default async function AdminNotificationsPage() {
                   </td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.recipientName || "未记录"}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">
-                    <p>{maskEmail(item.recipientEmail) || "未记录邮箱"}</p>
+                    <p>{maskEmail(getNotificationRecipientEmail(item)) || "未记录邮箱"}</p>
                     <p className="mt-1 text-xs text-[#8a6b3e]">{maskPhone(item.recipientPhone) || "未记录手机"}</p>
-                    {item.channel === "email" ? <p className="mt-1 text-xs text-[#8a6b3e]">测试白名单：{formatAllowlistMatch(item.recipientEmail, emailProviderStatus)}</p> : null}
+                    {item.channel === "email" ? <p className="mt-1 text-xs text-[#8a6b3e]">测试白名单：{formatAllowlistMatch(item, emailProviderStatus)}</p> : null}
                   </td>
                   <td className="px-4 py-4 text-[#5f5b52]">
                     <p className="break-all">{getRelatedNo(item) || "未关联"}</p>
@@ -231,8 +232,9 @@ function formatBlockReasons(status: ReturnType<typeof getEmailProviderConfig>) {
   return reasons.map(formatBlockReason).join("；");
 }
 
-function formatAllowlistMatch(recipientEmail: string, status: ReturnType<typeof getEmailProviderConfig>) {
+function formatAllowlistMatch(notification: NotificationLogRecord, status: ReturnType<typeof getEmailProviderConfig>) {
   if (!status.testRecipientAllowlistConfigured) return "未配置";
+  const recipientEmail = getNotificationRecipientEmail(notification);
   if (!recipientEmail) return "收件人邮箱缺失";
   return isEmailAllowedTestRecipient(recipientEmail) ? "已命中" : "未命中";
 }

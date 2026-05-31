@@ -1,5 +1,6 @@
 import "server-only";
 
+import { isValidNotificationEmail, normalizeNotificationEmail } from "../recipient";
 import type { EmailProviderName, EmailProviderStatus } from "./types";
 
 type EmailProviderConfig = EmailProviderStatus & {
@@ -165,12 +166,11 @@ export function isEmailAllowedTestRecipient(email?: string) {
 }
 
 export function normalizeEmailAddress(value?: string) {
-  return (value || "").trim().toLowerCase();
+  return normalizeNotificationEmail(value);
 }
 
 export function isValidEmailAddress(value?: string) {
-  const normalized = normalizeEmailAddress(value);
-  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+  return isValidNotificationEmail(value);
 }
 
 function getEmailAllowedTestRecipientsEnv() {
