@@ -1,0 +1,58 @@
+import type { NotificationSafePayload, NotificationSendStatus, NotificationType } from "../types";
+
+export type EmailProviderName = "none" | string;
+
+export type EmailRecipient = {
+  name?: string;
+  email?: string;
+};
+
+export type EmailProviderSendInput = {
+  to: EmailRecipient;
+  from?: string;
+  replyTo?: string;
+  subject: string;
+  messageBody: string;
+  templateKey: string;
+  payloadJson?: NotificationSafePayload;
+};
+
+export type EmailProviderSendResult = {
+  ok: boolean;
+  sendStatus: NotificationSendStatus;
+  provider: EmailProviderName;
+  providerMessageId?: string;
+  providerResponse?: NotificationSafePayload;
+  errorMessage?: string;
+};
+
+export type SendEmailNotificationInput = {
+  notificationType: NotificationType;
+  recipientName?: string;
+  recipientEmail?: string;
+  applicantName?: string;
+  organizationName?: string;
+  applicationId?: string;
+  certificationApplicationId?: string;
+  certificateId?: string;
+  applicationNo?: string;
+  memberNo?: string;
+  certificateNo?: string;
+  sourceType?: string;
+  sourceAction?: string;
+  idempotencyKey?: string;
+  createdBy?: string;
+  nextStep?: string;
+  publicQueryUrl?: string;
+  applicationQueryUrl?: string;
+  certificateQueryUrl?: string;
+  payloadJson?: NotificationSafePayload;
+};
+
+export type SendEmailNotificationResult = {
+  ok: boolean;
+  status: NotificationSendStatus;
+  notificationLogId?: string;
+  provider: EmailProviderName;
+  error?: string;
+};
