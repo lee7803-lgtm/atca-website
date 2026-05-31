@@ -31,11 +31,13 @@ export async function sendEmailNotification(input: SendEmailNotificationInput): 
         email: input.recipientEmail
       },
       from: config.from,
+      fromName: config.fromName,
       replyTo: config.replyTo,
       subject: template.subject,
       messageBody: template.messageBody,
       templateKey: template.templateKey,
-      payloadJson: template.payloadJson
+      payloadJson: template.payloadJson,
+      allowRealSend: false
     });
     const sendStatus = providerResult.sendStatus;
     const idempotencyKey = input.idempotencyKey || buildNotificationIdempotencyKey({

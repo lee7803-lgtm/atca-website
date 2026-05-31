@@ -2,7 +2,7 @@ import type { NotificationSafePayload, NotificationSendStatus, NotificationType 
 
 export type EmailProviderName = "none" | "resend" | "smtp" | "sendgrid" | "other" | string;
 
-export type EmailProviderMode = "none" | "dry-run" | "reserved" | "unavailable";
+export type EmailProviderMode = "none" | "dry-run" | "ready" | "reserved" | "unavailable";
 
 export type EmailProviderStatus = {
   provider: EmailProviderName;
@@ -13,6 +13,7 @@ export type EmailProviderStatus = {
   safeMessage: string;
   dryRun: boolean;
   missingConfig: string[];
+  manualSendEnabled?: boolean;
 };
 
 export type EmailRecipient = {
@@ -23,11 +24,13 @@ export type EmailRecipient = {
 export type EmailProviderSendInput = {
   to: EmailRecipient;
   from?: string;
+  fromName?: string;
   replyTo?: string;
   subject: string;
   messageBody: string;
   templateKey: string;
   payloadJson?: NotificationSafePayload;
+  allowRealSend?: boolean;
 };
 
 export type EmailProviderSendResult = {

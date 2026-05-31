@@ -2,6 +2,7 @@ import "server-only";
 
 import { getEmailProviderConfig, normalizeEmailProviderName } from "./config";
 import { NoneEmailProvider } from "./none-provider";
+import { ResendEmailProvider } from "./resend-provider";
 import type { EmailProviderSendInput, EmailProviderSendResult } from "./types";
 
 export type EmailProvider = {
@@ -13,7 +14,8 @@ export function resolveEmailProvider(): EmailProvider {
   const config = getEmailProviderConfig();
   const providerName = normalizeEmailProviderName(config.provider);
   if (providerName === "none") return new NoneEmailProvider();
-  if (["resend", "smtp", "sendgrid", "other"].includes(providerName)) return new ReservedEmailProvider(config);
+  if (providerName === "resend") return new ResendEmailProvider(config);
+  if (["smtp", "sendgrid", "other"].includes(providerName)) return new ReservedEmailProvider(config);
   return new UnsupportedEmailProvider(providerName);
 }
 

@@ -48,11 +48,13 @@ export async function POST(request: Request, { params }: { params: { id: string 
         email: notification.recipientEmail
       },
       from: providerConfig.from,
+      fromName: providerConfig.fromName,
       replyTo: providerConfig.replyTo,
       subject: notification.subject || "ITCA 通知",
       messageBody: notification.messageBody,
       templateKey: notification.templateKey || `manual.${notification.notificationType}`,
-      payloadJson: sanitizeNotificationPayload(notification.payloadJson || {})
+      payloadJson: sanitizeNotificationPayload(notification.payloadJson || {}),
+      allowRealSend: true
     });
     const now = new Date().toISOString();
     const sendStatus = providerResult.sendStatus;
@@ -64,6 +66,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
         provider: providerResult.provider,
         mode: providerConfig.mode,
         configured: providerConfig.configured,
+        manualSendEnabled: Boolean(providerConfig.manualSendEnabled),
         manualAction: "single_notification_send",
         skippedReason: providerResult.skippedReason,
         ...sanitizeNotificationPayload(providerResult.providerResponse || {})

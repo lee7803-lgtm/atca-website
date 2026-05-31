@@ -43,7 +43,7 @@ export default async function AdminNotificationsPage() {
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Notification Logs</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">通知记录</h1>
           <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">
-            查看系统、邮件、WhatsApp 与人工处理通知记录。本阶段支持单条邮件通知模拟发送，不发送真实邮件，也不调用 WhatsApp API。
+            查看系统、邮件、WhatsApp 与人工处理通知记录。本阶段支持单条邮件通知手动发送接入；未配置真实 provider 或处于 dry-run 时不会发送真实邮件，也不调用 WhatsApp API。
           </p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -58,7 +58,7 @@ export default async function AdminNotificationsPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
-        当前仅支持单条邮件通知模拟发送。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径或证书核验凭证。
+        当前仅支持后台单条邮件通知操作。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径或证书核验凭证。
       </div>
 
       <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52]">
@@ -66,6 +66,9 @@ export default async function AdminNotificationsPage() {
         <p className="mt-1">{emailProviderStatus.safeMessage}</p>
         <p className="mt-1 text-xs text-[#8a6b3e]">
           Provider：{emailProviderStatus.provider} / Mode：{emailProviderStatus.mode} / {emailProviderStatus.configured ? "配置状态已识别" : "配置未完成"} / {emailProviderStatus.canSend ? "允许真实发送" : "不会真实发送邮件"}
+        </p>
+        <p className="mt-1 text-xs text-[#8a6b3e]">
+          Resend：{formatResendStatus(emailProviderStatus)}
         </p>
       </div>
 
@@ -152,6 +155,14 @@ function getStatusTime(item: NotificationLogRecord) {
 function summarizeError(value: string) {
   if (!value) return "无";
   return value.length > 80 ? `${value.slice(0, 80)}...` : value;
+}
+
+function formatResendStatus(status: ReturnType<typeof getEmailProviderConfig>) {
+  if (status.provider !== "resend") return "未选择";
+  if (!status.configured) return `配置未完成${status.missingConfig.length > 0 ? `：${status.missingConfig.join("、")}` : ""}`;
+  if (status.dryRun) return "dry-run，不会真实发送";
+  if (!status.manualSendEnabled) return "手动发送未启用，不会真实发送";
+  return status.canSend ? "后台单条手动发送可用" : "不会真实发送";
 }
 
 function formatDateTime(value: string) {

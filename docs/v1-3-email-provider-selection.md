@@ -215,17 +215,26 @@ Never store or expose these in `notification_logs`, audit logs, API responses, p
 
 ## 13. Phase 11.6 if choosing Resend
 
+Status: selected and implemented as the minimum adapter skeleton for backend single-notification manual send.
+
 Minimum development range:
 
 - Add `resend` package only after approval.
 - Implement a single `ResendEmailProvider` adapter behind `resolveEmailProvider()`.
 - Require `ITCA_EMAIL_PROVIDER=resend`.
-- Require dry-run to be false and a future explicit send-enabled flag before real send.
+- Require dry-run to be false and `ITCA_EMAIL_MANUAL_SEND_ENABLED=true` before real send.
+- Require the admin single-notification route to pass the provider abstraction an explicit real-send allowance.
 - Use the existing normalized `EmailProviderSendResult`.
 - Store only provider message ID and sanitized metadata.
 - Keep provider errors non-blocking for the originating business workflow.
 - Add unit-level or route-level checks for missing config, dry-run, and skipped behavior.
 - Do not add automatic sends in the same step unless separately approved.
+
+Implementation notes:
+
+- Missing provider key, missing sender/reply-to, dry-run, disabled manual send, and non-manual workflow paths all return `sendStatus=skipped`.
+- Existing automatic workflow calls continue to use `sendEmailNotification()` without the real-send allowance.
+- The admin notification page displays safe Resend state only and does not expose API keys, storage paths, certificate verification tokens, PDF paths, or raw provider responses.
 
 ## 14. Phase 11.6 if choosing SMTP
 
@@ -254,4 +263,3 @@ Minimum development range:
 - Rate limit values.
 - Retry policy owner.
 - Bounce and complaint monitoring owner.
-

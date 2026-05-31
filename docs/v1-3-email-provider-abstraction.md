@@ -1,6 +1,6 @@
 # ITCA V1.3 email provider abstraction
 
-This document records the Phase 11.2 to 11.4 email provider abstraction work. These phases do not connect a real email SDK, do not add provider secrets, and do not send real email.
+This document records the Phase 11.2 to 11.6 email provider abstraction work. These phases do not add provider secrets, do not modify `.env` files, and do not add automatic email trigger points.
 
 ## Current entry point
 
@@ -34,7 +34,8 @@ Default behavior:
 - Blank `ITCA_EMAIL_PROVIDER` means `none`.
 - Missing `ITCA_EMAIL_DRY_RUN` means dry-run safety is enabled.
 - `none` does not send email and returns `sendStatus=skipped`.
-- Reserved real providers currently do not send email and return `sendStatus=skipped`.
+- `resend` uses the Resend adapter added in Phase 11.6, but still returns `sendStatus=skipped` unless all real-send gates are satisfied.
+- Other reserved real providers currently do not send email and return `sendStatus=skipped`.
 - Unknown provider names currently do not send email and return `sendStatus=skipped`.
 
 This keeps preview and production safe until a real provider adapter is intentionally implemented and reviewed.
@@ -77,9 +78,27 @@ It:
 - Allows the business workflow to continue.
 - Preserves the existing `notification_logs` skipped semantics.
 
+## Resend provider behavior
+
+Phase 11.6 adds `ResendEmailProvider` behind `resolveEmailProvider()`.
+
+It:
+
+- Requires `ITCA_EMAIL_PROVIDER=resend`.
+- Requires `ITCA_EMAIL_FROM`, `ITCA_EMAIL_REPLY_TO`, and `ITCA_EMAIL_PROVIDER_API_KEY` or `ITCA_RESEND_API_KEY`.
+- Keeps missing `ITCA_EMAIL_DRY_RUN` safe by treating dry-run as enabled.
+- Requires `ITCA_EMAIL_DRY_RUN=false` before any real provider call.
+- Requires `ITCA_EMAIL_MANUAL_SEND_ENABLED=true` before any real provider call.
+- Requires the caller to pass `allowRealSend=true`; the existing automatic workflow entry point does not pass this flag.
+- Sends text-only email content and does not send attachments.
+- Stores only the Resend message ID and small sanitized delivery metadata.
+- Returns `sendStatus=skipped` for missing config, dry-run, disabled manual send, missing recipient, or non-manual paths.
+
+The admin notification page displays safe Resend status only. It does not display API keys, provider secrets, storage paths, certificate verification tokens, PDF paths, or raw provider responses.
+
 ## Reserved provider behavior
 
-`resend`, `smtp`, `sendgrid`, and `other` are reserved names only in this phase.
+`smtp`, `sendgrid`, and `other` remain reserved names only in this phase.
 
 They:
 
@@ -121,8 +140,11 @@ It never includes secret values, SMTP passwords, provider keys, database connect
 Current status behavior:
 
 - `provider=none`: shows `模拟发送模式`; no real email is sent.
-- `provider=resend/smtp/sendgrid/other` with missing required config: shows `配置未完成`; no real email is sent.
-- `provider=resend/smtp/sendgrid/other` with required names present: shows reserved/dry-run provider state; no real email is sent because no real adapter is implemented.
+- `provider=resend` with missing required config: shows Resend configuration incomplete; no real email is sent.
+- `provider=resend` with dry-run enabled: shows Resend dry-run; no real email is sent.
+- `provider=resend` with required names present and dry-run disabled but `ITCA_EMAIL_MANUAL_SEND_ENABLED` not enabled: shows Resend configured but manual send disabled; no real email is sent.
+- `provider=resend` with full configuration, dry-run disabled, and manual send enabled: only the admin single-notification route may call Resend.
+- `provider=smtp/sendgrid/other` with required names present: shows reserved/dry-run provider state; no real email is sent because no real adapter is implemented.
 - Unknown provider names are unavailable and skipped.
 
 Before enabling real sending, the project must complete:

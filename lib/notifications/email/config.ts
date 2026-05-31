@@ -16,6 +16,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
   const from = cleanEnv(process.env.ITCA_EMAIL_FROM);
   const fromName = cleanEnv(process.env.ITCA_EMAIL_FROM_NAME || process.env.ITCA_EMAIL_SENDER_NAME);
   const replyTo = cleanEnv(process.env.ITCA_EMAIL_REPLY_TO);
+  const manualSendEnabled = parseBoolean(process.env.ITCA_EMAIL_MANUAL_SEND_ENABLED, false);
   const missingConfig = getMissingConfig(provider, { from, replyTo });
 
   if (provider === "none") {
@@ -27,6 +28,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       displayName: "模拟发送模式",
       safeMessage: "当前为模拟发送模式，不会真实发送邮件。",
       dryRun: true,
+      manualSendEnabled: false,
       missingConfig: [],
       from,
       fromName,
@@ -43,6 +45,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       displayName: "邮件 provider 不可用",
       safeMessage: "当前邮件 provider 不受支持，后台仅允许模拟发送或记录通知。",
       dryRun,
+      manualSendEnabled,
       missingConfig: ["ITCA_EMAIL_PROVIDER"],
       from,
       fromName,
@@ -59,7 +62,30 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       displayName: "配置未完成",
       safeMessage: "邮件发送配置未完成，后台仅允许模拟发送或记录通知。",
       dryRun,
+      manualSendEnabled,
       missingConfig,
+      from,
+      fromName,
+      replyTo
+    };
+  }
+
+  if (provider === "resend") {
+    const canSend = !dryRun && manualSendEnabled;
+    return {
+      provider,
+      mode: dryRun ? "dry-run" : canSend ? "ready" : "reserved",
+      configured: true,
+      canSend,
+      displayName: dryRun ? "Resend dry-run" : canSend ? "Resend 手动发送已就绪" : "Resend 已配置但未启用手动发送",
+      safeMessage: dryRun
+        ? "Resend 当前处于 dry-run，不会真实发送邮件。"
+        : canSend
+          ? "Resend 配置已识别，仅后台单条手动发送可调用真实邮件服务。"
+          : "Resend 配置已识别，但未启用后台单条手动发送，不会真实发送邮件。",
+      dryRun,
+      manualSendEnabled,
+      missingConfig: [],
       from,
       fromName,
       replyTo
@@ -74,6 +100,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
     displayName: dryRun ? "预留 provider dry-run" : "预留 provider",
     safeMessage: "当前 provider 已配置为预留类型，但本版本尚未启用真实发送。",
     dryRun,
+    manualSendEnabled,
     missingConfig: [],
     from,
     fromName,
@@ -102,24 +129,31 @@ function getMissingConfig(provider: EmailProviderName, common: { from?: string; 
     return [
       !common.from ? "ITCA_EMAIL_FROM" : "",
       !common.replyTo ? "ITCA_EMAIL_REPLY_TO" : "",
-      !cleanEnv(process.env.ITCA_EMAIL_PROVIDER_API_KEY || process.env.ITCA_RESEND_API_KEY) ? "ITCA_EMAIL_PROVIDER_API_KEY" : ""
+      !getProviderApiKey(provider) ? "ITCA_EMAIL_PROVIDER_API_KEY" : ""
     ].filter(Boolean);
   }
   if (provider === "sendgrid") {
     return [
       !common.from ? "ITCA_EMAIL_FROM" : "",
       !common.replyTo ? "ITCA_EMAIL_REPLY_TO" : "",
-      !cleanEnv(process.env.ITCA_EMAIL_PROVIDER_API_KEY || process.env.ITCA_SENDGRID_API_KEY) ? "ITCA_EMAIL_PROVIDER_API_KEY" : ""
+      !getProviderApiKey(provider) ? "ITCA_EMAIL_PROVIDER_API_KEY" : ""
     ].filter(Boolean);
   }
   if (provider === "other") {
     return [
       !common.from ? "ITCA_EMAIL_FROM" : "",
       !common.replyTo ? "ITCA_EMAIL_REPLY_TO" : "",
-      !cleanEnv(process.env.ITCA_EMAIL_PROVIDER_API_KEY) ? "ITCA_EMAIL_PROVIDER_API_KEY" : ""
+      !getProviderApiKey(provider) ? "ITCA_EMAIL_PROVIDER_API_KEY" : ""
     ].filter(Boolean);
   }
   return ["ITCA_EMAIL_PROVIDER"];
+}
+
+function getProviderApiKey(provider: EmailProviderName) {
+  if (provider === "resend") return cleanEnv(process.env.ITCA_EMAIL_PROVIDER_API_KEY || process.env.ITCA_RESEND_API_KEY);
+  if (provider === "sendgrid") return cleanEnv(process.env.ITCA_EMAIL_PROVIDER_API_KEY || process.env.ITCA_SENDGRID_API_KEY);
+  if (provider === "other") return cleanEnv(process.env.ITCA_EMAIL_PROVIDER_API_KEY);
+  return undefined;
 }
 
 function parseBoolean(value: string | undefined, fallback: boolean) {

@@ -278,6 +278,7 @@ Common variables:
 - `ITCA_EMAIL_PROVIDER_API_KEY`: provider API key, if using an HTTP API provider.
 - `ITCA_EMAIL_WEBHOOK_SECRET`: reserved for future provider webhook verification.
 - `ITCA_EMAIL_DRY_RUN`: optional guard for preview environments.
+- `ITCA_EMAIL_MANUAL_SEND_ENABLED`: optional manual-send gate; defaults to disabled.
 
 SMTP-specific variables if SMTP is selected:
 
@@ -330,3 +331,15 @@ Payment notification hardening should follow only after real provider configurat
 - Keep formal bank transfer copy blocked until real bank/payment instructions are provided.
 - Keep `paid` changes restricted to admin confirmation or future real gateway callback.
 - Keep .NET payment writer and Next.js email sender aligned through either a shared dispatcher or a server-only send endpoint.
+
+### Phase 11.6: Resend minimum adapter and admin single-send integration
+
+Status: implemented in the Next.js notification layer.
+
+- Added the `resend` dependency and a single `ResendEmailProvider` adapter behind `resolveEmailProvider()`.
+- Kept `provider=none` as the default simulated/skipped path.
+- Kept `provider=resend` skipped when configuration is incomplete, dry-run is enabled, manual send is disabled, or the caller is not the admin single-notification send route.
+- Kept automatic application/certification workflow calls log-only unless a later phase explicitly adds an automatic-send gate.
+- Updated `/admin/notifications` to show safe Resend status without exposing provider keys or sensitive paths.
+- Updated `POST /api/admin/notifications/[id]/send` to pass through the unified provider abstraction for one existing notification row at a time.
+- Did not add WhatsApp, bulk sending, SQL, payment paid status changes, certificate verification token changes, PDF changes, or attachments.
