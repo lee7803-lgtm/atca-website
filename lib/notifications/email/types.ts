@@ -15,6 +15,7 @@ export type EmailProviderStatus = {
   missingConfig: string[];
   manualSendEnabled?: boolean;
   testRecipientAllowlistConfigured?: boolean;
+  testRecipientAllowlistCount?: number;
   realSendBlockReasons?: string[];
 };
 

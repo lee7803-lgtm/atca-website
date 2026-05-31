@@ -6,7 +6,7 @@ import { AdminLogoutButton } from "../AdminLogoutButton";
 import { NotificationSendAction } from "./NotificationSendAction";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { listNotificationLogs } from "@/lib/notifications/admin";
-import { getEmailProviderConfig } from "@/lib/notifications/email/config";
+import { getEmailProviderConfig, isEmailAllowedTestRecipient } from "@/lib/notifications/email/config";
 import { formatNotificationChannel, formatNotificationStatus, formatNotificationType, maskEmail, maskPhone } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
 import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
@@ -70,6 +70,7 @@ export default async function AdminNotificationsPage() {
           <DiagnosticItem label="Manual send" value={emailProviderStatus.manualSendEnabled ? "已开启" : "未开启"} />
           <DiagnosticItem label="Dry-run" value={emailProviderStatus.dryRun ? "已开启" : "未开启"} />
           <DiagnosticItem label="测试收件人白名单" value={emailProviderStatus.testRecipientAllowlistConfigured ? "已配置" : "未配置"} />
+          <DiagnosticItem label="白名单条目数" value={String(emailProviderStatus.testRecipientAllowlistCount || 0)} />
           <DiagnosticItem label="允许真实发送" value={emailProviderStatus.canSend ? "是" : "否"} />
         </dl>
         {!emailProviderStatus.canSend ? (
@@ -109,6 +110,7 @@ export default async function AdminNotificationsPage() {
                   <td className="px-4 py-4 text-[#5f5b52]">
                     <p>{maskEmail(item.recipientEmail) || "未记录邮箱"}</p>
                     <p className="mt-1 text-xs text-[#8a6b3e]">{maskPhone(item.recipientPhone) || "未记录手机"}</p>
+                    {item.channel === "email" ? <p className="mt-1 text-xs text-[#8a6b3e]">测试白名单：{formatAllowlistMatch(item.recipientEmail, emailProviderStatus)}</p> : null}
                   </td>
                   <td className="px-4 py-4 text-[#5f5b52]">
                     <p className="break-all">{getRelatedNo(item) || "未关联"}</p>
@@ -227,6 +229,12 @@ function formatBlockReasons(status: ReturnType<typeof getEmailProviderConfig>) {
   const reasons = status.realSendBlockReasons || [];
   if (reasons.length === 0) return "无";
   return reasons.map(formatBlockReason).join("；");
+}
+
+function formatAllowlistMatch(recipientEmail: string, status: ReturnType<typeof getEmailProviderConfig>) {
+  if (!status.testRecipientAllowlistConfigured) return "未配置";
+  if (!recipientEmail) return "收件人邮箱缺失";
+  return isEmailAllowedTestRecipient(recipientEmail) ? "已命中" : "未命中";
 }
 
 function formatBlockReason(reason: string) {

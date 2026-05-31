@@ -19,6 +19,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
   const manualSendEnabled = parseBoolean(process.env.ITCA_EMAIL_MANUAL_SEND_ENABLED, false);
   const testRecipientAllowlist = getEmailAllowedTestRecipients();
   const testRecipientAllowlistConfigured = testRecipientAllowlist.length > 0;
+  const testRecipientAllowlistCount = testRecipientAllowlist.length;
   const missingConfig = getMissingConfig(provider, { from, replyTo });
 
   if (provider === "none") {
@@ -32,6 +33,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       dryRun: true,
       manualSendEnabled: false,
       testRecipientAllowlistConfigured,
+      testRecipientAllowlistCount,
       realSendBlockReasons: ["provider_none"],
       missingConfig: [],
       from,
@@ -51,6 +53,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       dryRun,
       manualSendEnabled,
       testRecipientAllowlistConfigured,
+      testRecipientAllowlistCount,
       realSendBlockReasons: ["provider_unsupported"],
       missingConfig: ["ITCA_EMAIL_PROVIDER"],
       from,
@@ -70,6 +73,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       dryRun,
       manualSendEnabled,
       testRecipientAllowlistConfigured,
+      testRecipientAllowlistCount,
       realSendBlockReasons: getRealSendBlockReasons({
         provider,
         configured: false,
@@ -109,6 +113,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
       dryRun,
       manualSendEnabled,
       testRecipientAllowlistConfigured,
+      testRecipientAllowlistCount,
       realSendBlockReasons,
       missingConfig: [],
       from,
@@ -127,6 +132,7 @@ export function getEmailProviderConfig(): EmailProviderConfig {
     dryRun,
     manualSendEnabled,
     testRecipientAllowlistConfigured,
+    testRecipientAllowlistCount,
     realSendBlockReasons: ["provider_reserved_not_implemented"],
     missingConfig: [],
     from,
@@ -143,10 +149,10 @@ export function normalizeEmailProviderName(value?: string): EmailProviderName {
 export function getEmailAllowedTestRecipients() {
   return Array.from(
     new Set(
-      (process.env.ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS || "")
-        .split(",")
-        .map((item) => item.trim().toLowerCase())
-        .filter(Boolean)
+      getEmailAllowedTestRecipientsEnv()
+        .split(/[,\uFF0C;\uFF1B\s]+/)
+        .map(normalizeEmailAddress)
+        .filter(isValidEmailAddress)
     )
   );
 }
@@ -154,8 +160,26 @@ export function getEmailAllowedTestRecipients() {
 export function isEmailAllowedTestRecipient(email?: string) {
   const allowlist = getEmailAllowedTestRecipients();
   if (allowlist.length === 0) return false;
-  const normalized = email?.trim().toLowerCase();
-  return Boolean(normalized && allowlist.includes(normalized));
+  const normalized = normalizeEmailAddress(email);
+  return isValidEmailAddress(normalized) && allowlist.includes(normalized);
+}
+
+export function normalizeEmailAddress(value?: string) {
+  return (value || "").trim().toLowerCase();
+}
+
+export function isValidEmailAddress(value?: string) {
+  const normalized = normalizeEmailAddress(value);
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(normalized);
+}
+
+function getEmailAllowedTestRecipientsEnv() {
+  return (
+    process.env.ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS ||
+    process.env.ITCA_RESEND_ALLOWED_TEST_RECIPIENTS ||
+    process.env.RESEND_ALLOWED_TEST_RECIPIENTS ||
+    ""
+  );
 }
 
 function getMissingConfig(provider: EmailProviderName, common: { from?: string; replyTo?: string }) {
