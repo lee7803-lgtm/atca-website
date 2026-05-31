@@ -65,6 +65,12 @@ export default function AdminPage() {
             title="操作记录"
             text="查看后台关键写操作的基础审计记录，用于追踪审核状态修改和后续操作留痕。"
           />
+          <AdminEntryCard
+            href="/admin/notifications"
+            index="04"
+            title="通知记录"
+            text="查看系统、邮件、WhatsApp 与人工处理通知记录，支持后续通知链路追踪。"
+          />
         </div>
       ) : (
         <AdminLoginForm />
