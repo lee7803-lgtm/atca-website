@@ -76,6 +76,9 @@ export async function sendEmailNotification(input: SendEmailNotificationInput): 
         ok: false,
         status: sendStatus,
         provider: providerResult.provider,
+        providerMessageId: providerResult.providerMessageId,
+        errorMessage: logResult.error,
+        skippedReason: providerResult.skippedReason,
         error: logResult.error
       };
     }
@@ -85,14 +88,20 @@ export async function sendEmailNotification(input: SendEmailNotificationInput): 
       status: sendStatus,
       notificationLogId: logResult.id,
       provider: providerResult.provider,
+      providerMessageId: providerResult.providerMessageId,
+      errorMessage: providerResult.errorMessage,
+      skippedReason: providerResult.skippedReason,
       error: providerResult.errorMessage
     };
   } catch (error) {
+    const errorMessage = error instanceof Error ? error.message : "Email notification failed.";
+
     return {
       ok: false,
       status: "failed",
       provider: "none",
-      error: error instanceof Error ? error.message : "Email notification failed."
+      errorMessage,
+      error: errorMessage
     };
   }
 }

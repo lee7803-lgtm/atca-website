@@ -240,6 +240,7 @@ async function safeSendEmailNotification(input: SendEmailNotificationInput) {
       ok: false,
       status: "failed",
       provider: "none",
+      errorMessage: error instanceof Error ? error.message : "Notification recording failed.",
       error: error instanceof Error ? error.message : "Notification recording failed."
     } satisfies SendEmailNotificationResult;
   }
@@ -262,6 +263,8 @@ function skippedResult(reason: string): SendEmailNotificationResult {
     ok: true,
     status: "skipped",
     provider: "none",
+    skippedReason: reason,
+    errorMessage: reason,
     error: reason
   };
 }

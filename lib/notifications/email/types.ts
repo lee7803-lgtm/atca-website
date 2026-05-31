@@ -1,6 +1,6 @@
 import type { NotificationSafePayload, NotificationSendStatus, NotificationType } from "../types";
 
-export type EmailProviderName = "none" | string;
+export type EmailProviderName = "none" | "resend" | "smtp" | "sendgrid" | "other" | string;
 
 export type EmailRecipient = {
   name?: string;
@@ -24,6 +24,7 @@ export type EmailProviderSendResult = {
   providerMessageId?: string;
   providerResponse?: NotificationSafePayload;
   errorMessage?: string;
+  skippedReason?: string;
 };
 
 export type SendEmailNotificationInput = {
@@ -54,5 +55,8 @@ export type SendEmailNotificationResult = {
   status: NotificationSendStatus;
   notificationLogId?: string;
   provider: EmailProviderName;
+  providerMessageId?: string;
+  errorMessage?: string;
+  skippedReason?: string;
   error?: string;
 };

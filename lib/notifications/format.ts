@@ -1,6 +1,6 @@
 import type { NotificationChannel, NotificationLogInput, NotificationSendStatus, NotificationType } from "./types";
 
-const forbiddenPayloadKeyPattern = /internal|committee|material_review|photo_path|supporting_documents|existing_certificates|storage|pdf_storage_path|vt|token|service_role|connection|string|password|secret|recommend|recommender|id_proof|identity/i;
+const forbiddenPayloadKeyPattern = /internal|committee|material_review|photo_path|supporting_documents|existing_certificates|storage|pdf_storage_path|vt|token|api[_-]?key|private[_-]?key|service_role|connection|string|password|secret|smtp|recommend|recommender|id_proof|identity/i;
 
 export const notificationTypeLabels: Record<string, string> = {
   member_application_submitted: "会员申请已提交",
@@ -97,7 +97,7 @@ function sanitizePayloadValue(value: unknown): unknown {
 }
 
 function looksSensitive(value: string) {
-  return /\/storage\/|supabase\.co\/storage|Bearer\s+|eyJ[A-Za-z0-9_-]+\./.test(value);
+  return /\/storage\/|supabase\.co\/storage|Bearer\s+|service_role|smtp:\/\/|postgres(?:ql)?:\/\/|eyJ[A-Za-z0-9_-]+\./i.test(value);
 }
 
 function maskMiddle(value: string) {
