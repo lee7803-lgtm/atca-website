@@ -1,6 +1,7 @@
 import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType } from "@/types/application";
 import { certificationLevelLabels } from "@/types/certification";
 import { getCertificateEffectiveValidity, getMemberEffectiveValidity } from "@/lib/validity";
+import type { PublicPaymentOrder, PublicPaymentStatus } from "@/types/payment";
 import type {
   CertificateQueryResult,
   CertificatePdfMetadata,
@@ -71,6 +72,22 @@ type SupabaseApplicationRow = {
   admin_note: string | null;
   supplemental_submissions: unknown;
   supplement_submitted_at: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+type SupabasePublicPaymentOrderRow = {
+  order_no: string;
+  business_type: string;
+  application_no: string | null;
+  payer_name: string | null;
+  amount: number | string;
+  currency: string;
+  payment_channel: string | null;
+  provider: string;
+  status: string;
+  paid_at: string | null;
+  cancelled_at: string | null;
   created_at: string;
   updated_at: string;
 };
@@ -292,6 +309,88 @@ function getHeaders(config: SupabaseConfig, prefer?: string) {
     Authorization: `Bearer ${config.serviceRoleKey}`,
     "Content-Type": "application/json",
     ...(prefer ? { Prefer: prefer } : {})
+  };
+}
+
+export async function findPublicPaymentOrderByOrderNo(orderNo: string) {
+  const normalizedOrderNo = orderNo.trim().toUpperCase();
+  if (!/^ITCA-PAY-\d{4}-[A-Z0-9]{6}$/.test(normalizedOrderNo)) {
+    return null;
+  }
+
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    order_no: `eq.${normalizedOrderNo}`,
+    select: publicPaymentOrderSelect,
+    limit: "1"
+  });
+
+  const response = await fetch(`${config.url}/rest/v1/payment_orders?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabasePublicPaymentOrderRow[];
+  return rows[0] ? toPublicPaymentOrder(rows[0]) : null;
+}
+
+export async function listPublicPaymentOrdersByApplicationNos(applicationNos: string[]) {
+  const normalizedApplicationNos = Array.from(new Set(applicationNos.map((item) => item.trim()).filter(Boolean)));
+  if (normalizedApplicationNos.length === 0) return new Map<string, PublicPaymentOrder[]>();
+
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_no: `in.(${normalizedApplicationNos.join(",")})`,
+    select: publicPaymentOrderSelect,
+    order: "created_at.desc"
+  });
+
+  const response = await fetch(`${config.url}/rest/v1/payment_orders?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabasePublicPaymentOrderRow[];
+  const ordersByApplicationNo = new Map<string, PublicPaymentOrder[]>();
+  rows.forEach((row) => {
+    const order = toPublicPaymentOrder(row);
+    if (!order.applicationNo) return;
+
+    const existing = ordersByApplicationNo.get(order.applicationNo) || [];
+    existing.push(order);
+    ordersByApplicationNo.set(order.applicationNo, existing);
+  });
+
+  return ordersByApplicationNo;
+}
+
+const publicPaymentOrderSelect = "order_no,business_type,application_no,payer_name,amount,currency,payment_channel,provider,status,paid_at,cancelled_at,created_at,updated_at";
+
+function toPublicPaymentOrder(row: SupabasePublicPaymentOrderRow): PublicPaymentOrder {
+  return {
+    orderNo: row.order_no,
+    businessType: row.business_type,
+    applicationNo: row.application_no || "",
+    payerName: row.payer_name || "",
+    amount: Number(row.amount || 0),
+    currency: row.currency,
+    paymentChannel: row.payment_channel || "manual",
+    provider: row.provider,
+    status: row.status as PublicPaymentStatus,
+    paidAt: row.paid_at,
+    cancelledAt: row.cancelled_at,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }
 

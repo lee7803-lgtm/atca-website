@@ -5,6 +5,7 @@ import {
   findCertificationByNoAndContact,
   findCertificationsByIdentity,
   isSupabaseSchemaError,
+  listPublicPaymentOrdersByApplicationNos,
   SupabaseConfigError,
   SupabaseRequestError
 } from "@/lib/supabase/server";
@@ -95,6 +96,12 @@ export async function GET(request: Request) {
 
       return NextResponse.json(response, { status: 404 });
     }
+
+    const paymentOrdersByApplicationNo = await listPublicPaymentOrdersByApplicationNos(applications.map((application) => application.applicationNo));
+    applications = applications.map((application) => ({
+      ...application,
+      paymentOrders: paymentOrdersByApplicationNo.get(application.applicationNo) || []
+    }));
 
     const response: ApplicationQueryResponse = {
       success: true,

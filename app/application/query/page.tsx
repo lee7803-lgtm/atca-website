@@ -1,13 +1,16 @@
 "use client";
 
+import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import type { FormEvent, ReactNode } from "react";
 import { Suspense, useState } from "react";
 import { PageHero } from "@/components/PageHero";
 import { queryApplicationProgress } from "@/lib/api/applications";
 import { maskApplicationNo, maskName } from "@/lib/masking";
+import { formatPaymentAmount, formatPaymentDateTime, paymentStatusText } from "@/lib/payment-display";
 import { formatQueryStatus } from "@/lib/status-labels";
 import type { ApplicationQueryResponse, ApplicationQueryResult } from "@/types/application";
+import type { PublicPaymentOrder } from "@/types/payment";
 
 const contactEmail = "aseantaoist@gmail.com";
 const applicationLookupMailto = `mailto:${contactEmail}?subject=${encodeURIComponent("找回申请编号")}`;
@@ -279,6 +282,7 @@ function ApplicationQueryContent() {
                   </>
                 ) : null}
                 <StatusRow label="下一步提示" value={nextStepText(selectedApplication)} />
+                {selectedApplication.paymentOrders?.length ? <PaymentOrdersPanel orders={selectedApplication.paymentOrders} /> : null}
                 {selectedApplication.certificateNo ? (
                   <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
                     <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
@@ -361,6 +365,44 @@ function ApplicationQueryContent() {
         </section>
       </main>
     </>
+  );
+}
+
+function PaymentOrdersPanel({ orders }: { orders: PublicPaymentOrder[] }) {
+  return (
+    <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
+      <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">付款信息</p>
+      <div className="mt-3 grid gap-3">
+        {orders.map((order) => (
+          <div className="rounded-2xl border border-[#e4ded0] bg-white p-4" key={order.orderNo}>
+            <div className="grid gap-3 md:grid-cols-2">
+              <PaymentDetail label="支付订单编号" value={order.orderNo} />
+              <PaymentDetail label="金额" value={formatPaymentAmount(order.amount, order.currency)} />
+              <PaymentDetail label="支付状态" value={paymentStatusText[order.status]} />
+              <PaymentDetail label="创建时间" value={formatPaymentDateTime(order.createdAt)} />
+              <PaymentDetail label="付款确认时间" value={formatPaymentDateTime(order.paidAt)} />
+            </div>
+            <div className="mt-4 flex flex-col gap-2 sm:flex-row">
+              <Link className="rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
+                查看付款说明
+              </Link>
+              <Link className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink" href={`/payment/result?orderNo=${encodeURIComponent(order.orderNo)}`}>
+                查看付款状态
+              </Link>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+function PaymentDetail({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-[11px] tracking-[0.18em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-1 break-all text-sm leading-6 text-porcelain">{value}</p>
+    </div>
   );
 }
 

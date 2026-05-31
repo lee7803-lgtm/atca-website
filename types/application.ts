@@ -1,4 +1,5 @@
 import type { CertificationAttachment, CertificationPath, SupplementalSubmission } from "./certification";
+import type { PublicPaymentOrder } from "./payment";
 
 export type ApplicationType = "personal_member" | "organization_member";
 
@@ -135,6 +136,7 @@ export type ApplicationQueryResult = {
   hasSupplementalSubmission?: boolean;
   editableData?: Record<string, string>;
   supportingDocuments?: CertificationAttachment[];
+  paymentOrders?: PublicPaymentOrder[];
   createdAt: string;
   updatedAt: string;
 };
