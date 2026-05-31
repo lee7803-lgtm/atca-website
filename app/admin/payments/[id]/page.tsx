@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { PaymentStatusActions } from "./PaymentStatusActions";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getPaymentOrder, PaymentApiRequestError, PaymentApiUnauthorizedError, type PaymentEvent, type PaymentOrderDetail, type PaymentStatus } from "@/lib/api/payments";
+import { formatPaymentProvider } from "@/lib/payment-display";
 
 export const dynamic = "force-dynamic";
 
@@ -74,7 +75,7 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
         <div className="mt-5 flex flex-wrap gap-3">
           <Badge>{businessTypeText[order.businessType] || order.businessType}</Badge>
           <Badge>{statusText[order.status] || order.status}</Badge>
-          <Badge>{order.provider} / {order.paymentChannel}</Badge>
+          <Badge>{formatPaymentProvider(order.provider, order.paymentChannel)}</Badge>
         </div>
       </section>
 
@@ -105,14 +106,14 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
             <DetailItem label="创建来源" value={order.createdBy || "system"} />
           </DetailSection>
 
-          <DetailSection title="渠道与第三方编号">
-            <DetailItem label="Provider" value={order.provider} />
+          <DetailSection title="支付方式与第三方编号">
+            <DetailItem label="支付方式" value={formatPaymentProvider(order.provider, order.paymentChannel)} />
             <DetailItem label="支付渠道" value={order.paymentChannel || "manual"} />
             <DetailItem label="支付方式" value={order.paymentMethod || "未记录"} />
-            <DetailItem label="Provider Order ID" value={order.providerOrderId || "未记录"} />
-            <DetailItem label="Provider Transaction ID" value={order.providerTransactionId || "未记录"} />
-            <DetailItem label="Provider Payment ID" value={order.providerPaymentId || "未记录"} />
-            <DetailItem label="Provider Callback ID" value={order.providerCallbackId || "未记录"} />
+            <DetailItem label="第三方订单编号" value={order.providerOrderId || "未记录"} />
+            <DetailItem label="第三方交易编号" value={order.providerTransactionId || "未记录"} />
+            <DetailItem label="第三方支付编号" value={order.providerPaymentId || "未记录"} />
+            <DetailItem label="第三方回调编号" value={order.providerCallbackId || "未记录"} />
           </DetailSection>
 
           <DetailSection title="时间记录">
@@ -136,7 +137,7 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
             <DetailItem className="md:col-span-2" label="退款原因" value={order.refundReason || "无"} />
           </DetailSection>
 
-          <DetailSection title="Provider Payload">
+          <DetailSection title="第三方回调资料">
             <pre className="md:col-span-2 max-h-[360px] overflow-auto rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#5f5b52]">{formatJson(order.providerPayload)}</pre>
           </DetailSection>
 
@@ -185,7 +186,7 @@ function PaymentTimeline({ events }: { events: PaymentEvent[] }) {
               <p className="text-xs">{formatDateTime(event.createdAt)}</p>
             </div>
             <p className="mt-1">状态：{event.fromStatus || "无"} → {event.toStatus || "无"}</p>
-            <p className="mt-1">Provider：{event.provider}</p>
+            <p className="mt-1">支付方式：{formatPaymentProvider(event.provider, "")}</p>
             <p className="mt-1">操作人：{event.createdBy || "system"}</p>
             {event.message ? <p className="mt-1">{event.message}</p> : null}
             {event.adminNote ? <p className="mt-1">备注：{event.adminNote}</p> : null}

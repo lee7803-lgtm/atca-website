@@ -51,12 +51,12 @@ public sealed class PaymentCommands(
         }
 
         var amount = request.Amount ?? -1;
-        if (amount < 0)
+        if (amount <= 0)
         {
-            throw new PaymentValidationException("支付金额不能小于 0。");
+            throw new PaymentValidationException("请输入大于 0 的金额。");
         }
 
-        var currency = (request.Currency?.Trim() ?? "USD").ToUpperInvariant();
+        var currency = (request.Currency?.Trim() ?? "MYR").ToUpperInvariant();
         if (!CurrencyPattern.IsMatch(currency))
         {
             throw new PaymentValidationException("币种必须使用 3 位大写 ISO 代码。");
@@ -65,7 +65,7 @@ public sealed class PaymentCommands(
         var provider = (request.Provider?.Trim() ?? "manual").ToLowerInvariant();
         if (!ValidCreateProviders.Contains(provider))
         {
-            throw new PaymentValidationException("本阶段仅支持 manual / none 支付 provider。");
+            throw new PaymentValidationException("请选择有效的支付方式。");
         }
 
         var paymentChannel = request.PaymentChannel?.Trim() ?? "manual";

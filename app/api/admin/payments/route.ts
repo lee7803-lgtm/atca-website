@@ -48,13 +48,13 @@ export async function POST(request: Request) {
   }
 
   const amount = Number(body.amount);
-  if (!Number.isFinite(amount) || amount < 0) {
-    return NextResponse.json({ success: false, message: "支付金额不能小于 0。" }, { status: 400 });
+  if (!Number.isFinite(amount) || amount <= 0) {
+    return NextResponse.json({ success: false, message: "请输入大于 0 的金额。" }, { status: 400 });
   }
 
   const provider = body.provider || "manual";
   if (!validProviders.includes(provider as (typeof validProviders)[number])) {
-    return NextResponse.json({ success: false, message: "本阶段仅支持 manual / none 支付 provider。" }, { status: 400 });
+    return NextResponse.json({ success: false, message: "请选择有效的支付方式。" }, { status: 400 });
   }
 
   try {
@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       sourceId: body.sourceId || "",
       businessType: body.businessType?.trim() || undefined,
       amount,
-      currency: (body.currency || "USD").trim().toUpperCase(),
+      currency: (body.currency || "MYR").trim().toUpperCase(),
       provider: provider as (typeof validProviders)[number],
       paymentChannel: (body.paymentChannel || provider).trim(),
       adminNote: body.adminNote?.trim() || "",

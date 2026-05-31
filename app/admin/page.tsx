@@ -75,7 +75,7 @@ export default function AdminPage() {
             href="/admin/payments"
             index="05"
             title="支付订单管理"
-            text="查看 manual / none 支付订单，处理待人工确认、已付款和已取消状态。"
+            text="查看人工确认 / 内部测试支付订单，处理待人工确认、已付款和已取消状态。"
           />
         </div>
       ) : (
