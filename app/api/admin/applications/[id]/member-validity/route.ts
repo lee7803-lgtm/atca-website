@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminMemberValidity } from "@/lib/api/admin-applications";
+import { recordMemberStatusUpdatedNotification } from "@/lib/notifications/workflows";
 import { SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 
 const validMemberStatuses = ["active", "suspended", "revoked", "terminated"];
@@ -75,6 +76,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (!application) {
       return NextResponse.json({ success: false, message: "未找到申请记录。" }, { status: 404 });
     }
+    await recordMemberStatusUpdatedNotification(application);
 
     return NextResponse.json({ success: true, application });
   } catch (error) {

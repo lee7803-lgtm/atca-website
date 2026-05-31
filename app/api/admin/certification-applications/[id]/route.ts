@@ -2,6 +2,12 @@ import { NextResponse } from "next/server";
 import { generateCertificateNo } from "@/lib/application-number";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import {
+  recordCertificateDeliveredNotification,
+  recordCertificateGeneratedNotification,
+  recordCertificateStatusUpdatedNotification,
+  recordCertificationApplicationReviewNotification
+} from "@/lib/notifications/workflows";
+import {
   deleteCertificateByNo,
   findCertificateByApplicationId,
   getCertificationApplicationById,
@@ -155,6 +161,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         ipAddress: getRequestIp(request),
         userAgent: request.headers.get("user-agent") || ""
       });
+      if (certificate) await recordCertificateStatusUpdatedNotification(application, certificate);
 
       return NextResponse.json({ success: true, certificate });
     }
@@ -242,6 +249,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         }
         throw error;
       }
+      await recordCertificateGeneratedNotification(application, certificate);
 
       return NextResponse.json({ success: true, certificate });
     }
@@ -264,6 +272,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
         deliveryStatus: "delivered",
         deliveredAt
       });
+      await recordCertificateDeliveredNotification(application, existing);
 
       return NextResponse.json({ success: true, application: updated });
     }
@@ -339,6 +348,7 @@ export async function PATCH(request: Request, { params }: { params: { id: string
       committeeReviewNote,
       reviewer
     });
+    if (updatedApplication) await recordCertificationApplicationReviewNotification(updatedApplication, status);
 
     return NextResponse.json({ success: true, application: updatedApplication });
   } catch (error) {

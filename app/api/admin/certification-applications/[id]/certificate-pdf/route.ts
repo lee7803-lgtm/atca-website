@@ -2,6 +2,7 @@ import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { CertificatePdfFontError, generateCertificatePdf } from "@/lib/certificates/pdf";
+import { recordCertificatePdfGeneratedNotification } from "@/lib/notifications/workflows";
 import {
   buildCertificatePdfStoragePath,
   createCertificationAttachmentSignedUrl,
@@ -72,6 +73,7 @@ export async function POST(request: Request, { params }: { params: { id: string 
       fileSize: pdf.length,
       status: "generated"
     });
+    await recordCertificatePdfGeneratedNotification(application, certificate);
 
     const filename = `${certificate.certificateNo}.pdf`;
 

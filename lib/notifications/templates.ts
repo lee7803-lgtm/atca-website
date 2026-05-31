@@ -101,6 +101,32 @@ const templateDefinitions: Record<string, TemplateDefinition> = {
     nextStep: "公众核验页不提供证书 PDF 下载入口。",
     includeApplicationQuery: true,
     includeCertificateQuery: true
+  },
+  supplement_submitted: {
+    subject: "ITCA 补充资料已提交",
+    opening: "您的补充资料已提交。申请状态已转回审核流程，请以官网申请进度查询页面显示的信息为准。",
+    nextStep: "审核状态更新后，系统将继续记录相关通知。",
+    includeApplicationQuery: true
+  },
+  certificate_delivered: {
+    subject: "ITCA 证书已下发",
+    opening: "您的 ITCA 证书已标记下发。证书真实性可通过官网证书公众核验入口进行核验。",
+    nextStep: "正式证书 PDF 如已生成，仅面向申请人本人通过申请进度查询入口下载。",
+    includeApplicationQuery: true,
+    includeCertificateQuery: true
+  },
+  member_status_updated: {
+    subject: "ITCA 会员状态已更新",
+    opening: "您的 ITCA 会员状态已有更新。请以官网申请进度查询和会员公众核验结果为准。",
+    nextStep: "如需对外核验会员身份，可使用官网会员公众核验入口。",
+    includeApplicationQuery: true
+  },
+  certificate_status_updated: {
+    subject: "ITCA 证书状态已更新",
+    opening: "您的 ITCA 证书状态已有更新。证书真实性与当前状态可通过官网证书公众核验入口进行核验。",
+    nextStep: "如需查看申请侧信息，请使用官网申请进度查询入口。",
+    includeApplicationQuery: true,
+    includeCertificateQuery: true
   }
 };
 

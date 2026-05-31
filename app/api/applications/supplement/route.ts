@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { recordSupplementSubmittedNotification } from "@/lib/notifications/workflows";
 import {
   findApplicationSupplementTarget,
   findCertificationSupplementTarget,
@@ -195,6 +196,14 @@ export async function POST(request: Request) {
         supplementalSubmissions: [...certification.supplementalSubmissions, submission],
         internalReviewNote: [certification.internalReviewNote, "申请人已在线补充 / 修改资料，系统已转回审核中。"].filter(Boolean).join("\n")
       });
+      await recordSupplementSubmittedNotification({
+        certificationApplicationId: certification.id,
+        applicationNo: certification.applicationNo,
+        recipientName: certification.applicantName,
+        recipientEmail: certification.email,
+        applicationKind: "certification",
+        supplementRound
+      });
 
       return NextResponse.json({ success: true, message: "补充资料已提交", files: uploadedFiles.map((file) => file.originalName) });
     }
@@ -260,6 +269,14 @@ export async function POST(request: Request) {
       ...next,
       adminNote: application.adminNote,
       supplementalSubmissions: [...application.supplementalSubmissions, submission]
+    });
+    await recordSupplementSubmittedNotification({
+      applicationId: application.id,
+      applicationNo: application.applicationNo,
+      recipientName: application.applicationType === "organization_member" ? application.contactName || application.name : application.name,
+      recipientEmail: application.email,
+      applicationKind: application.applicationType === "organization_member" ? "organization" : "member",
+      supplementRound
     });
 
     return NextResponse.json({ success: true, message: "补充资料已提交", files: uploadedFiles.map((file) => file.originalName) });

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateCertificationApplicationNo } from "@/lib/application-number";
+import { recordCertificationApplicationSubmittedNotification } from "@/lib/notifications/workflows";
 import { defaultMaterialReview, findOpenCertificationApplicationByContact, insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
 import type { CertificationApplicationPayload, CertificationApplicationRecord, CertificationSubmitResponse, CertificationAttachment, CertificationLevel, CertificationPath } from "@/types/certification";
 
@@ -254,6 +255,13 @@ export async function POST(request: Request) {
     };
 
     await insertCertificationApplication(application);
+    await recordCertificationApplicationSubmittedNotification({
+      id: application.id || "",
+      applicationNo: application.applicationNo,
+      applicantName: application.applicantName,
+      email: application.email,
+      phone: application.phone
+    });
 
     const response: CertificationSubmitResponse = { success: true, applicationNo, status: "submitted" };
     return NextResponse.json(response);

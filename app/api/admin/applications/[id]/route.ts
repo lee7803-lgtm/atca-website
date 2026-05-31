@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationReview } from "@/lib/api/admin-applications";
+import { recordMemberApplicationReviewNotification } from "@/lib/notifications/workflows";
 import { getApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/application";
 
@@ -27,7 +28,6 @@ export async function GET(request: Request, { params }: { params: { id: string }
     if (!application) {
       return NextResponse.json({ success: false, message: "未找到申请记录。" }, { status: 404 });
     }
-
     return NextResponse.json({ success: true, application });
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
@@ -73,6 +73,8 @@ export async function PATCH(request: Request, { params }: { params: { id: string
     if (!application) {
       return NextResponse.json({ success: false, message: "未找到申请记录。" }, { status: 404 });
     }
+    const notificationApplication = await getApplicationById(params.id).catch(() => null);
+    if (notificationApplication) await recordMemberApplicationReviewNotification(notificationApplication, body.status);
 
     return NextResponse.json({ success: true, application });
   } catch (error) {

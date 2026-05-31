@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateApplicationNo } from "@/lib/application-number";
+import { recordMemberApplicationSubmittedNotification } from "@/lib/notifications/workflows";
 import { findOpenApplicationByContact, generateItcaNumber, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
@@ -161,6 +162,7 @@ export async function POST(request: Request) {
     };
 
     await insertApplication(application);
+    await recordMemberApplicationSubmittedNotification(application);
 
     const response: ApplicationSubmitResponse = {
       success: true,
