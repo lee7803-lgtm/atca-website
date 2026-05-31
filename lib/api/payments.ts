@@ -100,6 +100,7 @@ type PaymentOrderDetailResponse =
 export type PaymentOrderCreateInput = {
   sourceType: "application" | "certification_application";
   sourceId: string;
+  businessType?: string;
   amount: number;
   currency: string;
   provider: "none" | "manual";
@@ -283,6 +284,7 @@ export async function createPaymentOrder(values: PaymentOrderCreateInput) {
     body: JSON.stringify({
       sourceType: values.sourceType,
       sourceId: values.sourceId,
+      businessType: values.businessType,
       amount: values.amount,
       currency: values.currency,
       provider: values.provider,

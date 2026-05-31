@@ -95,6 +95,7 @@ public sealed record PaymentStatusUpdateResult(
 public sealed record PaymentOrderCreateRequest(
     string? SourceType,
     Guid? SourceId,
+    string? BusinessType,
     decimal? Amount,
     string? Currency,
     string? Provider,

@@ -29,6 +29,7 @@ export async function POST(request: Request) {
   let body: {
     sourceType?: string;
     sourceId?: string;
+    businessType?: string;
     amount?: number | string;
     currency?: string;
     provider?: string;
@@ -60,6 +61,7 @@ export async function POST(request: Request) {
     const result = await createPaymentOrder({
       sourceType: body.sourceType as (typeof validSourceTypes)[number],
       sourceId: body.sourceId || "",
+      businessType: body.businessType?.trim() || undefined,
       amount,
       currency: (body.currency || "USD").trim().toUpperCase(),
       provider: provider as (typeof validProviders)[number],

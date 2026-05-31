@@ -60,8 +60,51 @@ function ApplicationQueryContent() {
   const [isLookupOpen, setIsLookupOpen] = useState(false);
   const [pdfDownloadMessage, setPdfDownloadMessage] = useState("");
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
+  const [paymentActionMessage, setPaymentActionMessage] = useState("");
+  const [isCreatingPaymentOrder, setIsCreatingPaymentOrder] = useState(false);
 
   const selectedApplication = applications[selectedIndex] || null;
+
+  const createRenewalOrReviewOrder = async (businessType: string) => {
+    if (!selectedApplication || isCreatingPaymentOrder) return;
+
+    setIsCreatingPaymentOrder(true);
+    setPaymentActionMessage("");
+
+    try {
+      const response = await fetch("/api/payments/renewal-order", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          applicationNo: selectedApplication.applicationNo,
+          contact,
+          businessType,
+          amount: 0,
+          currency: "USD"
+        })
+      });
+      const result = (await response.json().catch(() => null)) as { success?: boolean; message?: string; order?: PublicPaymentOrder; created?: boolean } | null;
+      if (!response.ok || !result?.success || !result.order) {
+        setPaymentActionMessage(result?.message || "续期 / 复审支付订单未能生成。");
+        return;
+      }
+
+      const createdOrder = result.order;
+      setApplications((current) =>
+        current.map((application, index) => {
+          if (index !== selectedIndex) return application;
+          const existingOrders = application.paymentOrders || [];
+          const nextOrders = existingOrders.some((order) => order.orderNo === createdOrder.orderNo) ? existingOrders : [createdOrder, ...existingOrders];
+          return { ...application, paymentOrders: nextOrders };
+        })
+      );
+      setPaymentActionMessage(result.created === false ? `已有有效支付订单：${createdOrder.orderNo}` : `支付订单已生成：${createdOrder.orderNo}`);
+    } catch {
+      setPaymentActionMessage("续期 / 复审支付订单创建服务暂时不可用。");
+    } finally {
+      setIsCreatingPaymentOrder(false);
+    }
+  };
 
   const submitQuery = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -74,6 +117,7 @@ function ApplicationQueryContent() {
     setSupplementSubmitted(false);
     setSupplementFiles([]);
     setPdfDownloadMessage("");
+    setPaymentActionMessage("");
 
     try {
       const { response, result } = await queryApplicationProgress(applicationNumber, contact);
@@ -282,6 +326,12 @@ function ApplicationQueryContent() {
                   </>
                 ) : null}
                 <StatusRow label="下一步提示" value={nextStepText(selectedApplication)} />
+                <RenewalReviewPanel
+                  application={selectedApplication}
+                  isCreating={isCreatingPaymentOrder}
+                  message={paymentActionMessage}
+                  onCreateOrder={createRenewalOrReviewOrder}
+                />
                 {selectedApplication.paymentOrders?.length ? <PaymentOrdersPanel orders={selectedApplication.paymentOrders} /> : null}
                 {selectedApplication.certificateNo ? (
                   <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
@@ -395,6 +445,75 @@ function PaymentOrdersPanel({ orders }: { orders: PublicPaymentOrder[] }) {
       </div>
     </div>
   );
+}
+
+function RenewalReviewPanel({
+  application,
+  isCreating,
+  message,
+  onCreateOrder
+}: {
+  application: ApplicationQueryResult;
+  isCreating: boolean;
+  message: string;
+  onCreateOrder: (businessType: string) => void;
+}) {
+  const actions = getRenewalReviewActions(application);
+  if (actions.length === 0) return null;
+
+  return (
+    <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
+      <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">续期 / 复审付款</p>
+      <div className="mt-3 rounded-2xl border border-[#e4ded0] bg-white p-4">
+        <p className="text-sm leading-7 text-[#5f5b52]">当前阶段只创建支付订单并进入人工确认流程，不会自动修改会员有效期、证书 PDF 或公开核验资料。</p>
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          {actions.map((action) => (
+            <button className="rounded-full bg-[#7F1D1D] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" disabled={isCreating} key={action.businessType} onClick={() => onCreateOrder(action.businessType)} type="button">
+              {isCreating ? "正在生成..." : action.label}
+            </button>
+          ))}
+        </div>
+        {message ? <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">{message}</p> : null}
+      </div>
+    </div>
+  );
+}
+
+function getRenewalReviewActions(application: ApplicationQueryResult) {
+  const existingActiveTypes = new Set(
+    (application.paymentOrders || [])
+      .filter((order) => ["pending_payment", "manual_review", "paid"].includes(order.status))
+      .map((order) => order.businessType)
+  );
+
+  if (application.applicationType === "personal_member" || application.applicationType === "organization_member") {
+    const businessType = application.applicationType === "personal_member" ? "personal_member_renewal" : "organization_member_renewal";
+    if (existingActiveTypes.has(businessType)) return [];
+    if (!isMemberRenewalEligible(application)) return [];
+
+    return [{ businessType, label: "申请续期 / 续期付款" }];
+  }
+
+  if (application.applicationType === "taoist_certification" && application.certificateNo) {
+    const actions: Array<{ businessType: string; label: string }> = [];
+    if (!existingActiveTypes.has("taoist_certification_renewal") && isCertificateRenewalEligible(application)) {
+      actions.push({ businessType: "taoist_certification_renewal", label: "申请证书续期" });
+    }
+    if (!existingActiveTypes.has("taoist_certification_rereview")) {
+      actions.push({ businessType: "taoist_certification_rereview", label: "申请认证复审" });
+    }
+    return actions;
+  }
+
+  return [];
+}
+
+function isMemberRenewalEligible(application: ApplicationQueryResult) {
+  return ["expired", "expiring_soon", "pending_renewal", "renewal_in_progress"].includes(application.memberEffectiveStatus || "");
+}
+
+function isCertificateRenewalEligible(application: ApplicationQueryResult) {
+  return ["expired", "expiring_soon", "pending_renewal", "renewal_in_progress"].includes(application.certificateEffectiveStatus || application.certificateReviewStatus || "");
 }
 
 function PaymentDetail({ label, value }: { label: string; value: string }) {

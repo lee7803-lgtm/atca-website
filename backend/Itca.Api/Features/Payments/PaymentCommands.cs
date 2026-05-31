@@ -18,6 +18,8 @@ public sealed class PaymentCommands(
     private static readonly Regex CurrencyPattern = new("^[A-Z]{3}$", RegexOptions.Compiled);
     private static readonly HashSet<string> ValidCreateProviders = ["none", "manual"];
     private static readonly HashSet<string> ValidCreateSourceTypes = ["application", "certification_application"];
+    private static readonly HashSet<string> ValidMemberApplicationBusinessTypes = ["personal_member_application", "organization_member_application", "personal_member_renewal", "organization_member_renewal"];
+    private static readonly HashSet<string> ValidCertificationApplicationBusinessTypes = ["taoist_certification_application", "taoist_certification_renewal", "taoist_certification_rereview"];
     private static readonly HashSet<string> ValidTargetStatuses = ["manual_review", "paid", "cancelled"];
     private static readonly Dictionary<string, HashSet<string>> AllowedTransitions = new()
     {
@@ -81,6 +83,8 @@ public sealed class PaymentCommands(
         {
             throw new PaymentValidationException(sourceType == "application" ? "未找到可生成支付订单的会员申请。" : "未找到可生成支付订单的认证申请。");
         }
+
+        source = source with { BusinessType = ResolveBusinessType(source, sourceType, request.BusinessType?.Trim()) };
 
         var existingActiveOrder = await FindExistingActiveOrderAsync(connection, source, cancellationToken);
         if (existingActiveOrder is not null)
@@ -224,6 +228,41 @@ public sealed class PaymentCommands(
         );
 
         return new PaymentOrderCreateResult(createdOrder, true, "支付订单已生成。");
+    }
+
+    private static string ResolveBusinessType(MemberPaymentSource source, string sourceType, string? requestedBusinessType)
+    {
+        if (string.IsNullOrWhiteSpace(requestedBusinessType))
+        {
+            return source.BusinessType;
+        }
+
+        if (sourceType == "application")
+        {
+            if (!ValidMemberApplicationBusinessTypes.Contains(requestedBusinessType))
+            {
+                throw new PaymentValidationException("该会员申请不支持所选支付业务类型。");
+            }
+
+            if (source.DefaultBusinessType == "personal_member_application" && requestedBusinessType.StartsWith("organization_", StringComparison.Ordinal))
+            {
+                throw new PaymentValidationException("个人会员申请不能生成机构会员支付订单。");
+            }
+
+            if (source.DefaultBusinessType == "organization_member_application" && requestedBusinessType.StartsWith("personal_", StringComparison.Ordinal))
+            {
+                throw new PaymentValidationException("机构会员申请不能生成个人会员支付订单。");
+            }
+
+            return requestedBusinessType;
+        }
+
+        if (!ValidCertificationApplicationBusinessTypes.Contains(requestedBusinessType))
+        {
+            throw new PaymentValidationException("该认证申请不支持所选支付业务类型。");
+        }
+
+        return requestedBusinessType;
     }
 
     public async Task<PaymentStatusUpdateResult?> UpdateStatusAsync(
@@ -657,7 +696,10 @@ internal sealed record MemberPaymentSource(
     string PayerName,
     string PayerEmail,
     string PayerPhone
-);
+)
+{
+    public string DefaultBusinessType { get; } = BusinessType;
+};
 
 public sealed class PaymentValidationException(string message) : Exception(message);
 
