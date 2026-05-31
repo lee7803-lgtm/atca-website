@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
 import { MaterialReviewField } from "./MaterialReviewField";
 import { CopyButton } from "@/components/CopyButton";
+import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getCertificateVerificationUrl } from "@/lib/site-url";
@@ -266,6 +267,10 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           <SummaryItem href="#material-review" label="材料审核状态" value={formatMaterialReviewSummary(application.materialReview)} />
         </div>
       </section>
+
+      <div className="mt-8">
+        <CreatePaymentOrderForm sourceId={application.id} sourceType="certification_application" />
+      </div>
 
       <div className="mt-8">
         <CertificationReviewForm

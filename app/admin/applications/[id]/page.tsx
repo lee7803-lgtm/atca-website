@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { MemberStatusForm, ReviewForm } from "./ReviewForm";
+import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
 import { formatApplicationStatus } from "@/lib/status-labels";
@@ -96,6 +97,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
         </div>
         <div className="grid gap-6">
           <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
+          <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
           <MemberValidityPanel application={application} />
           <MemberStatusForm application={application} />
         </div>

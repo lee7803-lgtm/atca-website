@@ -97,6 +97,31 @@ type PaymentOrderDetailResponse =
       message: string;
     };
 
+export type PaymentOrderCreateInput = {
+  sourceType: "application" | "certification_application";
+  sourceId: string;
+  amount: number;
+  currency: string;
+  provider: "none" | "manual";
+  paymentChannel: string;
+  adminNote?: string;
+  actor?: AdminSession;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
+type PaymentOrderCreateResponse =
+  | {
+      success: true;
+      order: PaymentOrderDetail;
+      created: boolean;
+      message: string;
+    }
+  | {
+      success: false;
+      message: string;
+    };
+
 export class PaymentApiUnauthorizedError extends Error {
   constructor() {
     super("Payment API request is unauthorized.");
@@ -240,6 +265,44 @@ export async function updatePaymentOrderStatus(
   }
 
   return result.order;
+}
+
+export async function createPaymentOrder(values: PaymentOrderCreateInput) {
+  if (!isValidUuid(values.sourceId)) {
+    throw new PaymentApiRequestError(400, "支付订单来源记录无效。");
+  }
+
+  const response = await fetch(`${getItcaApiBaseUrl()}/api/admin/payment-orders`, {
+    method: "POST",
+    cache: "no-store",
+    headers: {
+      "Content-Type": "application/json",
+      ...getAdminApiHeaders(),
+      ...getAdminActorHeaders(values.actor, values.ipAddress, values.userAgent)
+    },
+    body: JSON.stringify({
+      sourceType: values.sourceType,
+      sourceId: values.sourceId,
+      amount: values.amount,
+      currency: values.currency,
+      provider: values.provider,
+      paymentChannel: values.paymentChannel,
+      adminNote: values.adminNote || ""
+    })
+  });
+
+  if (response.status === 401 || response.status === 403) throw new PaymentApiUnauthorizedError();
+
+  const result = (await response.json().catch(() => null)) as PaymentOrderCreateResponse | null;
+  if (!response.ok || !result || !result.success) {
+    throw new PaymentApiRequestError(response.status, result && !result.success ? result.message : "支付订单未能生成。");
+  }
+
+  return {
+    order: result.order,
+    created: result.created,
+    message: result.message
+  };
 }
 
 type SupabasePaymentOrderRow = {

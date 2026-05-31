@@ -91,3 +91,19 @@ public sealed record PaymentStatusUpdateRequest(
 public sealed record PaymentStatusUpdateResult(
     PaymentOrderDetailDto Order
 );
+
+public sealed record PaymentOrderCreateRequest(
+    string? SourceType,
+    Guid? SourceId,
+    decimal? Amount,
+    string? Currency,
+    string? Provider,
+    string? PaymentChannel,
+    string? AdminNote
+);
+
+public sealed record PaymentOrderCreateResult(
+    PaymentOrderDetailDto Order,
+    bool Created,
+    string Message
+);

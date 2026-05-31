@@ -265,6 +265,36 @@ app.MapGet(
     }
 );
 
+app.MapPost(
+    "/api/admin/payment-orders",
+    async (
+        HttpRequest request,
+        PaymentOrderCreateRequest? body,
+        PaymentCommands commands,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(request);
+
+            var result = await commands.CreateOrderAsync(body, GetAdminActorContext(request), cancellationToken);
+
+            return Results.Ok(new
+            {
+                success = true,
+                order = result.Order,
+                created = result.Created,
+                message = result.Message
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
 app.MapGet(
     "/api/admin/payment-orders/{id:guid}",
     async (HttpRequest request, Guid id, PaymentQueries queries, CancellationToken cancellationToken) =>
