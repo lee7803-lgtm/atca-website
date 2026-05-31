@@ -44,7 +44,7 @@ export default async function PaymentCheckoutPage({ searchParams }: { searchPara
             <PaymentInfoItem label="付款人姓名" value={order.payerName || "未记录"} />
             <PaymentInfoItem label="金额" value={formatPaymentAmount(order.amount, order.currency)} />
             <PaymentInfoItem label="支付渠道" value={order.paymentChannel || "manual"} />
-            <PaymentInfoItem label="Provider" value={formatPaymentProvider(order.provider, order.paymentChannel)} />
+            <PaymentInfoItem label="支付方式" value={formatPaymentProvider(order.provider, order.paymentChannel)} />
             <PaymentInfoItem label="支付状态" value={paymentStatusText[order.status]} />
             <PaymentInfoItem label="创建时间" value={formatPaymentDateTime(order.createdAt)} />
             <PaymentInfoItem label="支付确认时间" value={formatPaymentDateTime(order.paidAt)} />
