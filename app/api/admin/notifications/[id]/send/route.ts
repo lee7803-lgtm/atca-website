@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { createAuditLog } from "@/lib/admin/audit-logs";
 import { getNotificationLogById, updateNotificationSendResult } from "@/lib/notifications/admin";
+import { getEmailProviderConfig } from "@/lib/notifications/email/config";
 import { resolveEmailProvider } from "@/lib/notifications/email/provider";
 import { sanitizeNotificationPayload } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
@@ -39,14 +40,15 @@ export async function POST(request: Request, { params }: { params: { id: string 
       return NextResponse.json({ success: false, message: "当前仅支持邮件通知模拟发送。" }, { status: 400 });
     }
 
+    const providerConfig = getEmailProviderConfig();
     const provider = resolveEmailProvider();
     const providerResult = await provider.send({
       to: {
         name: notification.recipientName,
         email: notification.recipientEmail
       },
-      from: process.env.ITCA_EMAIL_FROM,
-      replyTo: process.env.ITCA_EMAIL_REPLY_TO,
+      from: providerConfig.from,
+      replyTo: providerConfig.replyTo,
       subject: notification.subject || "ITCA 通知",
       messageBody: notification.messageBody,
       templateKey: notification.templateKey || `manual.${notification.notificationType}`,
@@ -60,6 +62,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
       providerMessageId: providerResult.providerMessageId,
       providerResponse: {
         provider: providerResult.provider,
+        mode: providerConfig.mode,
+        configured: providerConfig.configured,
         manualAction: "single_notification_send",
         skippedReason: providerResult.skippedReason,
         ...sanitizeNotificationPayload(providerResult.providerResponse || {})
@@ -102,7 +106,7 @@ function getStatusMessage(status: NotificationSendStatus, providerErrorMessage?:
 
 function getResponseMessage(status: NotificationSendStatus) {
   if (status === "sent") return "通知发送操作已完成。";
-  if (status === "skipped") return "已完成模拟发送，当前未接入真实邮件服务。";
+  if (status === "skipped") return "当前邮件 provider 尚未启用真实发送，本次未发送真实邮件。";
   return "通知发送失败，已记录失败原因。";
 }
 

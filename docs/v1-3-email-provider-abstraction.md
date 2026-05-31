@@ -1,6 +1,6 @@
 # ITCA V1.3 email provider abstraction
 
-This document records the Phase 11.2 email provider abstraction update. This phase does not connect a real email SDK, does not add provider secrets, and does not send real email.
+This document records the Phase 11.2 to 11.4 email provider abstraction work. These phases do not connect a real email SDK, do not add provider secrets, and do not send real email.
 
 ## Current entry point
 
@@ -18,6 +18,8 @@ The entry point:
 
 Provider selection is handled by `resolveEmailProvider()` in `lib/notifications/email/provider.ts`.
 
+Provider configuration is read by `getEmailProviderConfig()` in `lib/notifications/email/config.ts`.
+
 Allowed/reserved provider names:
 
 - `none`
@@ -30,6 +32,7 @@ Default behavior:
 
 - Missing `ITCA_EMAIL_PROVIDER` means `none`.
 - Blank `ITCA_EMAIL_PROVIDER` means `none`.
+- Missing `ITCA_EMAIL_DRY_RUN` means dry-run safety is enabled.
 - `none` does not send email and returns `sendStatus=skipped`.
 - Reserved real providers currently do not send email and return `sendStatus=skipped`.
 - Unknown provider names currently do not send email and return `sendStatus=skipped`.
@@ -87,6 +90,53 @@ They:
 - Return `skippedReason=email_provider_reserved_not_implemented`.
 
 When a real provider is later implemented, only its adapter should call the external service. The default should remain `none`.
+
+## Phase 11.4 provider configuration status
+
+Phase 11.4 adds configuration status only. It does not enable real sending.
+
+Supported environment variable names:
+
+- `ITCA_EMAIL_PROVIDER`: `none`, `resend`, `smtp`, `sendgrid`, or `other`.
+- `ITCA_EMAIL_DRY_RUN`: defaults to safe dry-run behavior when missing.
+- `ITCA_EMAIL_FROM`: verified sender address, required before any real provider can be enabled.
+- `ITCA_EMAIL_FROM_NAME`: sender display name.
+- `ITCA_EMAIL_REPLY_TO`: reply-to address, required before any real provider can be enabled.
+- `ITCA_EMAIL_PROVIDER_API_KEY`: reserved API-provider key name; never output by UI/API.
+- `ITCA_RESEND_API_KEY`: reserved Resend-specific key name; never output by UI/API.
+- `ITCA_SENDGRID_API_KEY`: reserved SendGrid-specific key name; never output by UI/API.
+- `ITCA_SMTP_HOST`, `ITCA_SMTP_PORT`, `ITCA_SMTP_USER`, `ITCA_SMTP_PASSWORD`: reserved SMTP names; never output by UI/API.
+
+The status model exposed to admin UI is safe-only:
+
+- `provider`
+- `mode`: `none`, `dry-run`, `reserved`, or `unavailable`
+- `configured`
+- `canSend`
+- `displayName`
+- `safeMessage`
+
+It never includes secret values, SMTP passwords, provider keys, database connection strings, storage paths, or verification tokens.
+
+Current status behavior:
+
+- `provider=none`: shows `模拟发送模式`; no real email is sent.
+- `provider=resend/smtp/sendgrid/other` with missing required config: shows `配置未完成`; no real email is sent.
+- `provider=resend/smtp/sendgrid/other` with required names present: shows reserved/dry-run provider state; no real email is sent because no real adapter is implemented.
+- Unknown provider names are unavailable and skipped.
+
+Before enabling real sending, the project must complete:
+
+- Domain verification.
+- Sender address confirmation.
+- Reply-to confirmation.
+- Provider key configuration in deployment secrets.
+- Sending frequency/rate limits.
+- Idempotency protection.
+- Failure retry strategy.
+- Automatic-send whitelist.
+
+Payment notifications, PDF notification delivery, WhatsApp, bulk send, and automatic trigger expansion are outside Phase 11.4.
 
 ## Template data safety
 

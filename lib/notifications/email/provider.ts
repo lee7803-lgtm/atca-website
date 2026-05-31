@@ -1,32 +1,31 @@
 import "server-only";
 
+import { getEmailProviderConfig, normalizeEmailProviderName } from "./config";
 import { NoneEmailProvider } from "./none-provider";
-import type { EmailProviderName, EmailProviderSendInput, EmailProviderSendResult } from "./types";
+import type { EmailProviderSendInput, EmailProviderSendResult } from "./types";
 
 export type EmailProvider = {
   readonly name: string;
   send(input: EmailProviderSendInput): Promise<EmailProviderSendResult>;
 };
 
-const reservedProviderNames = new Set(["resend", "smtp", "sendgrid", "other"]);
-
 export function resolveEmailProvider(): EmailProvider {
-  const providerName = normalizeEmailProviderName(process.env.ITCA_EMAIL_PROVIDER);
+  const config = getEmailProviderConfig();
+  const providerName = normalizeEmailProviderName(config.provider);
   if (providerName === "none") return new NoneEmailProvider();
-  if (reservedProviderNames.has(providerName)) return new ReservedEmailProvider(providerName);
+  if (["resend", "smtp", "sendgrid", "other"].includes(providerName)) return new ReservedEmailProvider(config);
   return new UnsupportedEmailProvider(providerName);
 }
 
-export function normalizeEmailProviderName(value?: string): EmailProviderName {
-  const providerName = (value || "none").trim().toLowerCase();
-  return providerName || "none";
-}
-
 class ReservedEmailProvider implements EmailProvider {
-  constructor(readonly name: string) {}
+  readonly name: string;
+
+  constructor(private readonly config: ReturnType<typeof getEmailProviderConfig>) {
+    this.name = config.provider;
+  }
 
   async send(_input: EmailProviderSendInput): Promise<EmailProviderSendResult> {
-    const skippedReason = "email_provider_reserved_not_implemented";
+    const skippedReason = this.config.configured ? "email_provider_reserved_not_implemented" : "email_provider_configuration_incomplete";
 
     return {
       ok: true,
@@ -34,10 +33,12 @@ class ReservedEmailProvider implements EmailProvider {
       provider: this.name,
       providerResponse: {
         provider: this.name,
-        delivery: "reserved_not_implemented",
+        mode: this.config.mode,
+        configured: this.config.configured,
+        delivery: this.config.configured ? "reserved_not_implemented" : "configuration_incomplete",
         skippedReason
       },
-      errorMessage: `Email provider "${this.name}" is reserved but not implemented.`,
+      errorMessage: this.config.safeMessage,
       skippedReason
     };
   }

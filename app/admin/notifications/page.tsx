@@ -6,6 +6,7 @@ import { AdminLogoutButton } from "../AdminLogoutButton";
 import { NotificationSendAction } from "./NotificationSendAction";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { listNotificationLogs } from "@/lib/notifications/admin";
+import { getEmailProviderConfig } from "@/lib/notifications/email/config";
 import { formatNotificationChannel, formatNotificationStatus, formatNotificationType, maskEmail, maskPhone } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
 import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
@@ -21,6 +22,7 @@ export default async function AdminNotificationsPage() {
   let logs: NotificationLogRecord[] = [];
   let message = "";
   let messageTone: "info" | "error" = "info";
+  const emailProviderStatus = getEmailProviderConfig();
 
   try {
     logs = await listNotificationLogs();
@@ -57,6 +59,14 @@ export default async function AdminNotificationsPage() {
 
       <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
         当前仅支持单条邮件通知模拟发送。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径或证书核验凭证。
+      </div>
+
+      <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52]">
+        <p className="font-semibold text-porcelain">当前邮件发送模式：{emailProviderStatus.displayName}</p>
+        <p className="mt-1">{emailProviderStatus.safeMessage}</p>
+        <p className="mt-1 text-xs text-[#8a6b3e]">
+          Provider：{emailProviderStatus.provider} / Mode：{emailProviderStatus.mode} / {emailProviderStatus.configured ? "配置状态已识别" : "配置未完成"} / {emailProviderStatus.canSend ? "允许真实发送" : "不会真实发送邮件"}
+        </p>
       </div>
 
       {message ? (

@@ -272,6 +272,7 @@ Common variables:
 
 - `ITCA_EMAIL_PROVIDER`: `none`, `resend`, `postmark`, `sendgrid`, `smtp`, or another selected provider.
 - `ITCA_EMAIL_FROM`: verified sender address.
+- `ITCA_EMAIL_FROM_NAME`: sender display name.
 - `ITCA_EMAIL_REPLY_TO`: public support or secretary address.
 - `ITCA_EMAIL_SENDER_NAME`: display name, for example association name.
 - `ITCA_EMAIL_PROVIDER_API_KEY`: provider API key, if using an HTTP API provider.
@@ -312,9 +313,20 @@ Operational variables:
 
 ### Phase 11.4: Payment notification hardening
 
+Phase 11.4 was adjusted to provider configuration status before payment notification hardening. The safer sequence is:
+
+- Add a provider configuration reader with `provider=none` as the default.
+- Display safe provider status in the admin notification page.
+- Keep `resend`, `smtp`, `sendgrid`, and `other` as reserved providers until a real adapter is explicitly implemented.
+- Keep all sends skipped/simulated in this phase.
+- Do not add SDKs, secrets, SQL, automatic sending, WhatsApp, PDF delivery, or payment status changes.
+
+Payment notification hardening should follow only after real provider configuration, sender identity, retry policy, rate limit, idempotency, and automatic-send whitelist are settled.
+
+### Later: Payment notification hardening
+
 - Add payment-specific email templates.
 - Add checkout/result links where safe.
 - Keep formal bank transfer copy blocked until real bank/payment instructions are provided.
 - Keep `paid` changes restricted to admin confirmation or future real gateway callback.
 - Keep .NET payment writer and Next.js email sender aligned through either a shared dispatcher or a server-only send endpoint.
-

@@ -3,6 +3,7 @@ import "server-only";
 import { buildNotificationIdempotencyKey } from "../format";
 import { createNotificationLog } from "../logger";
 import { buildEmailNotificationTemplate } from "../templates";
+import { getEmailProviderConfig } from "./config";
 import { resolveEmailProvider } from "./provider";
 import type { SendEmailNotificationInput, SendEmailNotificationResult } from "./types";
 
@@ -22,14 +23,15 @@ export async function sendEmailNotification(input: SendEmailNotificationInput): 
       certificateQueryUrl: input.certificateQueryUrl,
       payloadJson: input.payloadJson
     });
+    const config = getEmailProviderConfig();
     const provider = resolveEmailProvider();
     const providerResult = await provider.send({
       to: {
         name: input.recipientName || input.applicantName || input.organizationName,
         email: input.recipientEmail
       },
-      from: process.env.ITCA_EMAIL_FROM,
-      replyTo: process.env.ITCA_EMAIL_REPLY_TO,
+      from: config.from,
+      replyTo: config.replyTo,
       subject: template.subject,
       messageBody: template.messageBody,
       templateKey: template.templateKey,

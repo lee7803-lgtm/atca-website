@@ -31,7 +31,7 @@ export function NotificationSendAction({ id, channel, status }: NotificationSend
         }
       });
       const body = (await response.json().catch(() => null)) as { message?: string } | null;
-      const nextMessage = body?.message || (response.ok ? "已完成模拟发送，当前未接入真实邮件服务。" : "通知操作失败，请稍后重试。");
+      const nextMessage = body?.message || (response.ok ? "当前邮件 provider 尚未启用真实发送，本次未发送真实邮件。" : "通知操作失败，请稍后重试。");
       setMessage(nextMessage);
       if (response.ok) {
         startTransition(() => router.refresh());

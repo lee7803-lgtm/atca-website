@@ -2,6 +2,19 @@ import type { NotificationSafePayload, NotificationSendStatus, NotificationType 
 
 export type EmailProviderName = "none" | "resend" | "smtp" | "sendgrid" | "other" | string;
 
+export type EmailProviderMode = "none" | "dry-run" | "reserved" | "unavailable";
+
+export type EmailProviderStatus = {
+  provider: EmailProviderName;
+  mode: EmailProviderMode;
+  configured: boolean;
+  canSend: boolean;
+  displayName: string;
+  safeMessage: string;
+  dryRun: boolean;
+  missingConfig: string[];
+};
+
 export type EmailRecipient = {
   name?: string;
   email?: string;
