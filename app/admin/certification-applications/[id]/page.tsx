@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
 import { MaterialReviewField } from "./MaterialReviewField";
 import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
+import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
 import { CopyButton } from "@/components/CopyButton";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
@@ -309,6 +310,16 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
       <div className="mt-8">
         <CertificationStageCard guide={getCertificationStageGuide(application, certificate, certificatePdf, certificateMessage)} />
+      </div>
+
+      <div className="mt-8">
+        <AdminRecordDispositionPanel
+          actionUrl={`/api/admin/certification-applications/${application.id}/record-disposition`}
+          disposition={application.recordDisposition || "normal"}
+          note={application.recordDispositionNote || ""}
+          updatedAt={application.recordDispositionAt}
+          updatedBy={application.recordDispositionBy || ""}
+        />
       </div>
 
       <div className="mt-8">

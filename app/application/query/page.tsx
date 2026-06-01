@@ -284,6 +284,11 @@ function ApplicationQueryContent() {
             ) : null}
             {selectedApplication ? (
               <div className="mt-7 grid gap-4">
+                {selectedApplication.recordDisposition === "archived" ? (
+                  <div className="rounded-2xl border border-[#e4ded0] bg-white/74 p-4 text-sm leading-7 text-[#5f5b52]">
+                    该申请记录已归档 / 已建档，页面展示的是可追溯历史结果；如需变更资料，请联系协会秘书处。
+                  </div>
+                ) : null}
                 <StatusRow label="申请编号" value={selectedApplication.applicationNo} />
                 <StatusRow label="申请类型" value={typeText[selectedApplication.applicationType]} />
                 <StatusRow label="申请人 / 机构名称" value={maskName(selectedApplication.name)} />

@@ -115,6 +115,15 @@ export async function POST(request: Request) {
   try {
     const certification = await findCertificationSupplementTarget(applicationNo, contact);
     if (certification) {
+      if (certification.recordDisposition === "archived") {
+        return NextResponse.json({ success: false, message: "记录已归档，不支持继续在线补充资料。" }, { status: 400 });
+      }
+      if (certification.recordDisposition === "voided") {
+        return NextResponse.json({ success: false, message: "记录已作废，请联系秘书处。" }, { status: 410 });
+      }
+      if (certification.recordDisposition && certification.recordDisposition !== "normal") {
+        return NextResponse.json({ success: false, message: "当前记录类型不支持在线提交补充资料。" }, { status: 400 });
+      }
       if (certification.status !== "need_more_info") {
         return NextResponse.json({ success: false, message: "当前申请状态暂不支持在线提交补充资料。" }, { status: 400 });
       }
@@ -210,6 +219,15 @@ export async function POST(request: Request) {
 
     const application = await findApplicationSupplementTarget(applicationNo, contact);
     if (!application) return NextResponse.json({ success: false, message: "未查询到匹配的申请记录。请确认申请编号和联系方式是否准确。" }, { status: 404 });
+    if (application.recordDisposition === "archived") {
+      return NextResponse.json({ success: false, message: "记录已归档，不支持继续在线补充资料。" }, { status: 400 });
+    }
+    if (application.recordDisposition === "voided") {
+      return NextResponse.json({ success: false, message: "记录已作废，请联系秘书处。" }, { status: 410 });
+    }
+    if (application.recordDisposition !== "normal") {
+      return NextResponse.json({ success: false, message: "当前记录类型不支持在线提交补充资料。" }, { status: 400 });
+    }
     if (application.status !== "need_more_info") {
       return NextResponse.json({ success: false, message: "当前申请状态暂不支持在线提交补充资料。" }, { status: 400 });
     }

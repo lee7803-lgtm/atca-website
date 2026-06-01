@@ -5,6 +5,8 @@ export type ApplicationType = "personal_member" | "organization_member";
 
 export type ApplicationStatus = "submitted" | "pending_review" | "under_review" | "need_more_info" | "approved" | "rejected" | "archived";
 
+export type RecordDisposition = "normal" | "test" | "archived" | "voided";
+
 export type OrganizationType = "宫观" | "文化机构" | "培训机构" | "企业" | "其他" | "宫观道堂及文化场所" | "传统文化机构" | "教育研究机构" | "社团组织" | "合作单位";
 
 export type ApplicationRecord = {
@@ -33,6 +35,10 @@ export type ApplicationRecord = {
   privacyAccepted: boolean;
   confirmedAt: string;
   adminNote?: string;
+  recordDisposition?: RecordDisposition;
+  recordDispositionNote?: string;
+  recordDispositionAt?: string | null;
+  recordDispositionBy?: string;
   supplementalSubmissions?: SupplementalSubmission[];
   supplementSubmittedAt?: string | null;
   createdAt: string;
@@ -65,6 +71,10 @@ export type ApplicationAdminRecord = Required<Pick<ApplicationRecord, "applicati
   privacyAccepted: boolean;
   confirmedAt: string;
   adminNote: string;
+  recordDisposition: RecordDisposition;
+  recordDispositionNote: string;
+  recordDispositionAt: string | null;
+  recordDispositionBy: string;
   supplementalSubmissions: SupplementalSubmission[];
   supplementSubmittedAt: string | null;
 };
@@ -137,6 +147,8 @@ export type ApplicationQueryResult = {
   editableData?: Record<string, string>;
   supportingDocuments?: CertificationAttachment[];
   paymentOrders?: PublicPaymentOrder[];
+  recordDisposition?: RecordDisposition;
+  recordDispositionNote?: string;
   createdAt: string;
   updatedAt: string;
 };

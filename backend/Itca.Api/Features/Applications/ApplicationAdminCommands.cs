@@ -19,6 +19,7 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
     ];
     private static readonly HashSet<string> ValidMemberStatuses = ["active", "suspended", "revoked", "terminated"];
     private static readonly HashSet<string> ValidMemberRenewalStatuses = ["none", "pending_renewal", "renewal_in_progress", "renewed"];
+    private static readonly HashSet<string> ValidRecordDispositions = ["normal", "test", "archived", "voided"];
 
     public async Task<ApplicationAdminReviewSummaryDto?> UpdateReviewAsync(
         Guid id,
@@ -258,6 +259,10 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
               privacy_accepted,
               confirmed_at,
               admin_note,
+              record_disposition,
+              record_disposition_note,
+              record_disposition_at,
+              record_disposition_by,
               supplemental_submissions,
               supplement_submitted_at,
               created_at,
@@ -305,6 +310,131 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
                     updated.MemberStatusNote
                 ),
                 $"会员申请 {updated.ApplicationNo} 有效期资料已更新。",
+                actor.IpAddress,
+                actor.UserAgent
+            ),
+            cancellationToken
+        );
+
+        return updated;
+    }
+
+    public async Task<ApplicationAdminDto?> UpdateRecordDispositionAsync(
+        Guid id,
+        ApplicationRecordDispositionRequest? request,
+        AdminActorContext actor,
+        CancellationToken cancellationToken
+    )
+    {
+        if (request is null)
+        {
+            throw new ApplicationAdminReviewValidationException("更新资料格式不正确。");
+        }
+
+        var disposition = NormalizeOrDefault(request.RecordDisposition, "normal");
+        if (!ValidRecordDispositions.Contains(disposition))
+        {
+            throw new ApplicationAdminReviewValidationException("请选择有效的记录类型。");
+        }
+
+        var note = request.RecordDispositionNote?.Trim() ?? string.Empty;
+        var updatedAt = DateTimeOffset.UtcNow;
+        var actorLabel = string.IsNullOrWhiteSpace(actor.Email)
+            ? string.IsNullOrWhiteSpace(actor.Name) ? "admin" : actor.Name
+            : actor.Email;
+
+        await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        var before = await GetRecordDispositionSnapshotAsync(connection, id, cancellationToken);
+        if (before is null)
+        {
+            return null;
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            update applications
+            set
+              record_disposition = @recordDisposition,
+              record_disposition_note = @recordDispositionNote,
+              record_disposition_at = @updatedAt,
+              record_disposition_by = @actor,
+              updated_at = @updatedAt
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            returning
+              id,
+              application_no,
+              member_no,
+              member_no_issued_at,
+              member_no_issued_by,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status,
+              last_renewed_at,
+              member_status_note,
+              application_no_scheme,
+              application_type,
+              status,
+              name,
+              contact_name,
+              phone,
+              email,
+              country,
+              organization_type,
+              profile,
+              purpose,
+              receive_notice,
+              truth_confirmed,
+              terms_accepted,
+              privacy_accepted,
+              confirmed_at,
+              admin_note,
+              record_disposition,
+              record_disposition_note,
+              record_disposition_at,
+              record_disposition_by,
+              supplemental_submissions,
+              supplement_submitted_at,
+              created_at,
+              updated_at;
+            """;
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("recordDisposition", disposition);
+        AddNullableTextParameter(command, "recordDispositionNote", note);
+        command.Parameters.AddWithValue("updatedAt", updatedAt);
+        command.Parameters.AddWithValue("actor", actorLabel);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var updated = ApplicationAdminQueries.ReadApplicationForCommand(reader);
+        await reader.DisposeAsync();
+
+        await auditLogs.WriteAsync(
+            new AuditLogEntry(
+                actor.AdminId,
+                actor.Email,
+                actor.Name,
+                actor.Role,
+                string.IsNullOrWhiteSpace(actor.ActorType) ? "legacy_admin" : actor.ActorType,
+                "application.record_disposition_update",
+                "application",
+                updated.Id.ToString(),
+                updated.ApplicationNo,
+                before,
+                new ApplicationRecordDispositionAuditSnapshot(
+                    updated.Id,
+                    updated.ApplicationNo,
+                    updated.RecordDisposition,
+                    updated.RecordDispositionNote,
+                    updated.RecordDispositionAt,
+                    updated.RecordDispositionBy
+                ),
+                $"会员申请 {updated.ApplicationNo} 记录类型更新为 {updated.RecordDisposition}。",
                 actor.IpAddress,
                 actor.UserAgent
             ),
@@ -402,6 +532,44 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         );
     }
 
+    private static async Task<ApplicationRecordDispositionAuditSnapshot?> GetRecordDispositionSnapshotAsync(
+        NpgsqlConnection connection,
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            select
+              id,
+              application_no,
+              coalesce(record_disposition, 'normal'),
+              record_disposition_note,
+              record_disposition_at,
+              record_disposition_by
+            from applications
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            limit 1;
+            """;
+        command.Parameters.AddWithValue("id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ApplicationRecordDispositionAuditSnapshot(
+            reader.GetGuid(0),
+            reader.GetString(1),
+            reader.IsDBNull(2) ? "normal" : reader.GetString(2),
+            reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+            GetTimestampStringOrNull(reader, 4),
+            reader.IsDBNull(5) ? string.Empty : reader.GetString(5)
+        );
+    }
+
     private static string NormalizeOrDefault(string? value, string fallback)
     {
         return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
@@ -490,4 +658,13 @@ public sealed record ApplicationMemberValidityAuditSnapshot(
     string MemberRenewalStatus,
     string? LastRenewedAt,
     string MemberStatusNote
+);
+
+public sealed record ApplicationRecordDispositionAuditSnapshot(
+    Guid Id,
+    string ApplicationNo,
+    string RecordDisposition,
+    string RecordDispositionNote,
+    string? RecordDispositionAt,
+    string RecordDispositionBy
 );

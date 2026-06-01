@@ -97,6 +97,15 @@ export async function GET(request: Request) {
       return NextResponse.json(response, { status: 404 });
     }
 
+    if (applications[0]?.recordDisposition === "voided") {
+      const response: ApplicationQueryResponse = {
+        success: false,
+        message: "记录已作废，请联系秘书处"
+      };
+
+      return NextResponse.json(response, { status: 410 });
+    }
+
     const paymentOrdersByApplicationNo = await listPublicPaymentOrdersByApplicationNos(applications.map((application) => application.applicationNo));
     applications = applications.map((application) => ({
       ...application,

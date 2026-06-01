@@ -38,6 +38,10 @@ public sealed record ApplicationAdminDto(
     bool PrivacyAccepted,
     string ConfirmedAt,
     string AdminNote,
+    string RecordDisposition,
+    string RecordDispositionNote,
+    string? RecordDispositionAt,
+    string RecordDispositionBy,
     JsonElement[] SupplementalSubmissions,
     string? SupplementSubmittedAt,
     string CreatedAt,
@@ -66,4 +70,9 @@ public sealed record ApplicationMemberValidityRequest(
     string? MemberRenewalStatus,
     string? LastRenewedAt,
     string? MemberStatusNote
+);
+
+public sealed record ApplicationRecordDispositionRequest(
+    string? RecordDisposition,
+    string? RecordDispositionNote
 );

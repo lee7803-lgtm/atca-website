@@ -1,14 +1,15 @@
 import "server-only";
 
-import { getApplicationById, listApplications, updateApplicationMemberValidity, updateApplicationReview } from "@/lib/supabase/server";
+import { getApplicationById, listApplications, updateApplicationMemberValidity, updateApplicationRecordDisposition, updateApplicationReview } from "@/lib/supabase/server";
 import type { AdminSession } from "@/lib/admin/auth";
-import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
+import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType, RecordDisposition } from "@/types/application";
 
 const DEFAULT_ITCA_API_BASE_URL = "http://localhost:5001";
 
 type ListAdminApplicationsFilters = {
   applicationType?: ApplicationType;
   status?: ApplicationStatus;
+  recordDisposition?: RecordDisposition | "all";
   keyword?: string;
   page?: number;
   pageSize?: number;
@@ -76,6 +77,14 @@ export type UpdateAdminMemberValidityValues = {
   userAgent?: string;
 };
 
+export type UpdateAdminApplicationRecordDispositionValues = {
+  recordDisposition: RecordDisposition;
+  recordDispositionNote?: string;
+  actor?: AdminSession;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
 export class AdminApiUnauthorizedError extends Error {
   constructor() {
     super("Admin API request is unauthorized.");
@@ -116,6 +125,7 @@ function buildAdminApplicationsPath(filters: ListAdminApplicationsFilters) {
   const params = new URLSearchParams();
   if (filters.applicationType) params.set("applicationType", filters.applicationType);
   if (filters.status) params.set("status", filters.status);
+  if (filters.recordDisposition) params.set("recordDisposition", filters.recordDisposition);
   if (filters.keyword) params.set("keyword", filters.keyword);
   if (filters.page) params.set("page", String(filters.page));
   if (filters.pageSize) params.set("pageSize", String(filters.pageSize));
@@ -144,7 +154,8 @@ export async function listAdminApplications(filters: ListAdminApplicationsFilter
       if (!result.success) {
         return listApplications({
           applicationType: filters.applicationType,
-          status: filters.status
+          status: filters.status,
+          recordDisposition: filters.recordDisposition
         });
       }
 
@@ -157,13 +168,15 @@ export async function listAdminApplications(filters: ListAdminApplicationsFilter
 
     return listApplications({
       applicationType: filters.applicationType,
-      status: filters.status
+      status: filters.status,
+      recordDisposition: filters.recordDisposition
     });
   }
 
   return listApplications({
     applicationType: filters.applicationType,
-    status: filters.status
+    status: filters.status,
+    recordDisposition: filters.recordDisposition
   });
 }
 
@@ -339,6 +352,69 @@ export async function updateAdminMemberValidity(id: string, values: UpdateAdminM
     memberRenewalStatus: values.memberRenewalStatus,
     lastRenewedAt: values.lastRenewedAt,
     memberStatusNote: values.memberStatusNote,
+    actorEmail: values.actor?.email || "",
+    actorName: values.actor?.displayName || "",
+    actorRole: values.actor?.role || "",
+    actorType: values.actor?.actorType || "legacy_admin",
+    ipAddress: values.ipAddress,
+    userAgent: values.userAgent
+  });
+}
+
+export async function updateAdminApplicationRecordDisposition(id: string, values: UpdateAdminApplicationRecordDispositionValues) {
+  try {
+    const response = await fetch(`${getItcaApiBaseUrl()}/api/admin/applications/${encodeURIComponent(id)}/record-disposition`, {
+      method: "PATCH",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAdminApiHeaders(),
+        ...getAdminActorHeaders(values.actor, values.ipAddress, values.userAgent)
+      },
+      body: JSON.stringify({
+        recordDisposition: values.recordDisposition,
+        recordDispositionNote: values.recordDispositionNote || ""
+      })
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      throw new AdminApiUnauthorizedError();
+    }
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (response.status === 400) {
+      const result = (await response.json().catch(() => null)) as AdminApplicationDetailResponse | null;
+      throw new AdminApiRequestError(400, result && !result.success ? result.message : "记录类型不正确。");
+    }
+
+    if (response.ok) {
+      const result = (await response.json()) as AdminApplicationDetailResponse;
+      if (result.success) return result.application;
+      throw new AdminApiRequestError(response.status, result.message || "记录治理状态未能保存。");
+    }
+  } catch (error) {
+    if (error instanceof AdminApiUnauthorizedError || error instanceof AdminApiRequestError) {
+      throw error;
+    }
+
+    return updateApplicationRecordDisposition(id, {
+      recordDisposition: values.recordDisposition,
+      recordDispositionNote: values.recordDispositionNote,
+      actorEmail: values.actor?.email || "",
+      actorName: values.actor?.displayName || "",
+      actorRole: values.actor?.role || "",
+      actorType: values.actor?.actorType || "legacy_admin",
+      ipAddress: values.ipAddress,
+      userAgent: values.userAgent
+    });
+  }
+
+  return updateApplicationRecordDisposition(id, {
+    recordDisposition: values.recordDisposition,
+    recordDispositionNote: values.recordDispositionNote,
     actorEmail: values.actor?.email || "",
     actorName: values.actor?.displayName || "",
     actorRole: values.actor?.role || "",

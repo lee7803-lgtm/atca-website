@@ -18,10 +18,12 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
         "rejected",
         "archived"
     ];
+    private static readonly HashSet<string> ValidRecordDispositions = ["normal", "test", "archived", "voided", "all"];
 
     public async Task<IReadOnlyList<ApplicationAdminDto>> ListApplicationsAsync(
         string? applicationType,
         string? status,
+        string? recordDisposition,
         string? keyword,
         int page,
         int pageSize,
@@ -42,6 +44,17 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
         {
             conditions.Add("status = @status");
             command.Parameters.AddWithValue("status", status);
+        }
+
+        var normalizedDisposition = string.IsNullOrWhiteSpace(recordDisposition) ? "normal" : recordDisposition.Trim();
+        if (!ValidRecordDispositions.Contains(normalizedDisposition))
+        {
+            normalizedDisposition = "normal";
+        }
+        if (normalizedDisposition != "all")
+        {
+            conditions.Add("record_disposition = @recordDisposition");
+            command.Parameters.AddWithValue("recordDisposition", normalizedDisposition);
         }
 
         if (!string.IsNullOrWhiteSpace(keyword))
@@ -85,6 +98,10 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
               privacy_accepted,
               confirmed_at,
               admin_note,
+              record_disposition,
+              record_disposition_note,
+              record_disposition_at,
+              record_disposition_by,
               supplemental_submissions,
               supplement_submitted_at,
               created_at,
@@ -143,6 +160,10 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
               privacy_accepted,
               confirmed_at,
               admin_note,
+              record_disposition,
+              record_disposition_note,
+              record_disposition_at,
+              record_disposition_by,
               supplemental_submissions,
               supplement_submitted_at,
               created_at,
@@ -202,10 +223,14 @@ public sealed class ApplicationAdminQueries(SupabaseDb database)
             GetNullableBool(reader, 25),
             GetTimestampString(reader, 26),
             GetNullableString(reader, 27),
-            GetJsonArray(reader, 28),
-            GetTimestampStringOrNull(reader, 29),
-            GetTimestampString(reader, 30),
-            GetTimestampString(reader, 31)
+            GetNullableString(reader, 28, "normal"),
+            GetNullableString(reader, 29),
+            GetTimestampStringOrNull(reader, 30),
+            GetNullableString(reader, 31),
+            GetJsonArray(reader, 32),
+            GetTimestampStringOrNull(reader, 33),
+            GetTimestampString(reader, 34),
+            GetTimestampString(reader, 35)
         );
     }
 

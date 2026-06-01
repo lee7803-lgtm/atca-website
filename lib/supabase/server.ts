@@ -1,4 +1,4 @@
-import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType } from "@/types/application";
+import type { ApplicationAdminRecord, ApplicationQueryResult, ApplicationRecord, ApplicationStatus, ApplicationType, OrganizationType, RecordDisposition } from "@/types/application";
 import { certificationLevelLabels } from "@/types/certification";
 import { getCertificateEffectiveValidity, getMemberEffectiveValidity } from "@/lib/validity";
 import type { PublicPaymentOrder, PublicPaymentStatus } from "@/types/payment";
@@ -9,6 +9,7 @@ import type {
   CertificationAttachment,
   CertificationApplicationAdminRecord,
   CertificationApplicationRecord,
+  CertificationRecordDisposition,
   CertificationLevel,
   CertificationPath,
   MaterialReview,
@@ -37,6 +38,11 @@ const publicNumberSuffixLength = 6;
 const publicNumberMaxAttempts = 10;
 const applicantCertificateSelect =
   "certificate_no,status,certificate_review_status,holder_name,taoist_name,certification_path,certification_level,taoist_rank,lineage_or_temple,sect,issued_date,valid_from,valid_until,certificate_photo_path,pdf_storage_path,pdf_generated_at,pdf_version,pdf_file_size,pdf_status";
+const applicationAdminSelect =
+  "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,record_disposition,record_disposition_note,record_disposition_at,record_disposition_by,supplemental_submissions,supplement_submitted_at,created_at,updated_at";
+const applicationQuerySelect =
+  "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,record_disposition,record_disposition_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at";
+const recordDispositions: Array<RecordDisposition | "all"> = ["normal", "test", "archived", "voided", "all"];
 
 type SupabaseApplicationRow = {
   id: string;
@@ -70,6 +76,10 @@ type SupabaseApplicationRow = {
   privacy_accepted: boolean | null;
   confirmed_at: string | null;
   admin_note: string | null;
+  record_disposition: string | null;
+  record_disposition_note: string | null;
+  record_disposition_at: string | null;
+  record_disposition_by: string | null;
   supplemental_submissions: unknown;
   supplement_submitted_at: string | null;
   created_at: string;
@@ -143,6 +153,10 @@ type SupabaseCertificationApplicationRow = {
   reviewed_at: string | null;
   delivery_status: string | null;
   delivered_at: string | null;
+  record_disposition: string | null;
+  record_disposition_note: string | null;
+  record_disposition_at: string | null;
+  record_disposition_by: string | null;
   supplemental_submissions: unknown;
   supplement_submitted_at: string | null;
   created_at: string;
@@ -469,7 +483,22 @@ function toApplicationQueryResult(
   row: Pick<SupabaseApplicationRow, "application_no" | "application_type" | "name" | "status" | "admin_note" | "created_at" | "updated_at"> &
     Partial<Pick<SupabaseApplicationRow, "member_no">> &
     Partial<Pick<SupabaseApplicationRow, "member_valid_from" | "member_valid_until" | "member_status" | "member_renewal_status">> &
-    Partial<Pick<SupabaseApplicationRow, "contact_name" | "phone" | "email" | "country" | "profile" | "purpose" | "organization_type" | "supplement_submitted_at" | "supplemental_submissions">>
+    Partial<
+      Pick<
+        SupabaseApplicationRow,
+        | "contact_name"
+        | "phone"
+        | "email"
+        | "country"
+        | "profile"
+        | "purpose"
+        | "organization_type"
+        | "record_disposition"
+        | "record_disposition_note"
+        | "supplement_submitted_at"
+        | "supplemental_submissions"
+      >
+    >
 ): ApplicationQueryResult {
   const supplementalSubmissions = normalizeSupplementalSubmissions(row.supplemental_submissions);
   const memberEffective = getMemberEffectiveValidity({
@@ -484,6 +513,8 @@ function toApplicationQueryResult(
     name: row.name,
     status: row.status as ApplicationQueryResult["status"],
     adminNote: row.admin_note ?? "",
+    recordDisposition: (row.record_disposition || "normal") as RecordDisposition,
+    recordDispositionNote: row.record_disposition_note ?? "",
     memberValidFrom: row.member_valid_from ?? null,
     memberValidUntil: row.member_valid_until ?? null,
     memberEffectiveStatus: memberEffective.effectiveStatus,
@@ -520,6 +551,8 @@ function toCertificationQueryResult(
     name: row.applicant_name,
     status: row.status as ApplicationQueryResult["status"],
     adminNote: row.applicant_feedback ?? row.review_note ?? "",
+    recordDisposition: (row.record_disposition || "normal") as RecordDisposition,
+    recordDispositionNote: row.record_disposition_note ?? "",
     certificateNo: certificate?.certificateNo,
     certificateDetailUrl: certificate?.certificateNo ? `/certificates/${encodeURIComponent(certificate.certificateNo)}` : undefined,
     certificateStatus: certificate?.certificateStatus,
@@ -618,6 +651,10 @@ function toApplicationAdminRecord(row: SupabaseApplicationRow): ApplicationAdmin
     privacyAccepted: row.privacy_accepted ?? false,
     confirmedAt: row.confirmed_at ?? "",
     adminNote: row.admin_note ?? "",
+    recordDisposition: (row.record_disposition || "normal") as RecordDisposition,
+    recordDispositionNote: row.record_disposition_note ?? "",
+    recordDispositionAt: row.record_disposition_at,
+    recordDispositionBy: row.record_disposition_by ?? "",
     supplementalSubmissions: normalizeSupplementalSubmissions(row.supplemental_submissions),
     supplementSubmittedAt: row.supplement_submitted_at,
     createdAt: row.created_at,
@@ -829,6 +866,10 @@ function toCertificationAdminRecord(row: SupabaseCertificationApplicationRow): C
     reviewedAt: row.reviewed_at,
     deliveryStatus: row.delivery_status === "delivered" ? "delivered" : "not_delivered",
     deliveredAt: row.delivered_at,
+    recordDisposition: (row.record_disposition || "normal") as CertificationRecordDisposition,
+    recordDispositionNote: row.record_disposition_note ?? "",
+    recordDispositionAt: row.record_disposition_at,
+    recordDispositionBy: row.record_disposition_by ?? "",
     supplementalSubmissions: normalizeSupplementalSubmissions(row.supplemental_submissions),
     supplementSubmittedAt: row.supplement_submitted_at,
     createdAt: row.created_at,
@@ -992,8 +1033,9 @@ export async function findApplicationByNoAndContact(applicationNo: string, conta
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
+    record_disposition: "neq.test",
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select: "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: applicationQuerySelect,
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -1021,8 +1063,9 @@ export async function findApplicationsByIdentity(filters: {
   const params = new URLSearchParams({
     application_type: `eq.${filters.applicationType}`,
     name: `eq.${filters.name}`,
+    record_disposition: "eq.normal",
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
-    select: "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: applicationQuerySelect,
     order: "created_at.desc",
     limit: "10"
   });
@@ -1048,8 +1091,9 @@ export async function findOpenApplicationByContact(filters: { applicationType: A
   const params = new URLSearchParams({
     application_type: `eq.${filters.applicationType}`,
     status: "in.(submitted,pending_review,under_review,need_more_info,approved)",
+    record_disposition: "eq.normal",
     or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
-    select: "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,created_at,updated_at",
+    select: applicationQuerySelect,
     order: "created_at.desc",
     limit: "1"
   });
@@ -1073,6 +1117,7 @@ export async function findCertificationByNoAndContact(applicationNo: string, con
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
+    record_disposition: "neq.test",
     or: `(email.eq.${contact},phone.eq.${contact})`,
     select: "*",
     limit: "1"
@@ -1100,6 +1145,7 @@ export async function getCertificationApplicationByNoAndContact(applicationNo: s
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
+    record_disposition: "neq.test",
     or: `(email.eq.${contact},phone.eq.${contact})`,
     select: "*",
     limit: "1"
@@ -1125,6 +1171,7 @@ export async function findCertificationsByIdentity(filters: { applicantName: str
   const params = new URLSearchParams({
     applicant_name: `eq.${filters.applicantName}`,
     taoist_name: `eq.${filters.taoistName}`,
+    record_disposition: "eq.normal",
     or: `(email.eq.${filters.contact},phone.eq.${filters.contact})`,
     select: "*",
     order: "created_at.desc",
@@ -1157,8 +1204,9 @@ export async function findOpenCertificationApplicationByContact(filters: { email
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     status: "in.(submitted,under_review,need_more_info,approved,certificate_issued,cert_issued)",
+    record_disposition: "eq.normal",
     or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
-    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: "id,application_no,applicant_name,status,review_note,applicant_feedback,certificate_photo_path,supporting_documents,delivery_status,delivered_at,record_disposition,record_disposition_note,record_disposition_at,record_disposition_by,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
     order: "created_at.desc",
     limit: "1"
   });
@@ -1178,16 +1226,17 @@ export async function findOpenCertificationApplicationByContact(filters: { email
   return row ? toCertificationQueryResult(row) : null;
 }
 
-export async function listApplications(filters: { applicationType?: ApplicationType; status?: ApplicationStatus } = {}) {
+export async function listApplications(filters: { applicationType?: ApplicationType; status?: ApplicationStatus; recordDisposition?: RecordDisposition | "all" } = {}) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
-    select:
-      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: applicationAdminSelect,
     order: "created_at.desc"
   });
 
   if (filters.applicationType) params.set("application_type", `eq.${filters.applicationType}`);
   if (filters.status) params.set("status", `eq.${filters.status}`);
+  const disposition = recordDispositions.includes(filters.recordDisposition || "normal") ? filters.recordDisposition || "normal" : "normal";
+  if (disposition !== "all") params.set("record_disposition", `eq.${disposition}`);
 
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
     method: "GET",
@@ -1208,8 +1257,7 @@ export async function getApplicationById(id: string) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     id: `eq.${id}`,
-    select:
-      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: applicationAdminSelect,
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -1453,7 +1501,7 @@ export async function insertCertificationApplication(application: CertificationA
   return application;
 }
 
-export async function listCertificationApplications(filters: { status?: CertificationStatus; q?: string } = {}) {
+export async function listCertificationApplications(filters: { status?: CertificationStatus; q?: string; recordDisposition?: CertificationRecordDisposition | "all" } = {}) {
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     select: "*",
@@ -1461,6 +1509,8 @@ export async function listCertificationApplications(filters: { status?: Certific
   });
 
   if (filters.status) params.set("status", `eq.${filters.status}`);
+  const disposition = recordDispositions.includes((filters.recordDisposition || "normal") as RecordDisposition | "all") ? filters.recordDisposition || "normal" : "normal";
+  if (disposition !== "all") params.set("record_disposition", `eq.${disposition}`);
   if (filters.q) {
     params.set(
       "or",
@@ -1561,6 +1611,7 @@ export async function findCertificationSupplementTarget(applicationNo: string, c
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
+    record_disposition: "neq.test",
     or: `(email.eq.${contact},phone.eq.${contact})`,
     select: "*",
     limit: "1"
@@ -1585,9 +1636,9 @@ export async function findApplicationSupplementTarget(applicationNo: string, con
   const config = getSupabaseConfig();
   const params = new URLSearchParams({
     application_no: `eq.${applicationNo}`,
+    record_disposition: "neq.test",
     or: `(email.eq.${contact},phone.eq.${contact})`,
-    select:
-      "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,supplemental_submissions,supplement_submitted_at,created_at,updated_at",
+    select: applicationAdminSelect,
     limit: "1"
   });
   const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
@@ -1724,6 +1775,140 @@ export async function updateApplicationSupplement(
   const row = rows[0];
 
   return row ? toApplicationAdminRecord(row) : null;
+}
+
+export async function updateApplicationRecordDisposition(
+  id: string,
+  values: {
+    recordDisposition: RecordDisposition;
+    recordDispositionNote?: string;
+  } & AuditActorValues
+) {
+  const before = await getApplicationById(id);
+  if (!before) return null;
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const actor = values.actorEmail || values.actorName || "next-admin-fallback";
+  const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      record_disposition: values.recordDisposition,
+      record_disposition_note: values.recordDispositionNote?.trim() || null,
+      record_disposition_at: now,
+      record_disposition_by: actor,
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+  const row = rows[0];
+  const updated = row ? toApplicationAdminRecord(row) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "application.record_disposition_update",
+      resourceType: "application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: {
+        id: before.id,
+        applicationNo: before.applicationNo,
+        recordDisposition: before.recordDisposition,
+        recordDispositionNote: before.recordDispositionNote,
+        recordDispositionAt: before.recordDispositionAt,
+        recordDispositionBy: before.recordDispositionBy
+      },
+      afterData: {
+        id: updated.id,
+        applicationNo: updated.applicationNo,
+        recordDisposition: updated.recordDisposition,
+        recordDispositionNote: updated.recordDispositionNote,
+        recordDispositionAt: updated.recordDispositionAt,
+        recordDispositionBy: updated.recordDispositionBy
+      },
+      summary: `会员申请 ${updated.applicationNo} 记录类型更新为 ${updated.recordDisposition}。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
+}
+
+export async function updateCertificationRecordDisposition(
+  id: string,
+  values: {
+    recordDisposition: CertificationRecordDisposition;
+    recordDispositionNote?: string;
+  } & AuditActorValues
+) {
+  const before = await getCertificationApplicationById(id);
+  if (!before) return null;
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const actor = values.actorEmail || values.actorName || "next-admin-fallback";
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      record_disposition: values.recordDisposition,
+      record_disposition_note: values.recordDispositionNote?.trim() || null,
+      record_disposition_at: now,
+      record_disposition_by: actor,
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
+  const row = rows[0];
+  const updated = row ? toCertificationAdminRecord(row) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "certification_application.record_disposition_update",
+      resourceType: "certification_application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: {
+        id: before.id,
+        applicationNo: before.applicationNo,
+        recordDisposition: before.recordDisposition,
+        recordDispositionNote: before.recordDispositionNote,
+        recordDispositionAt: before.recordDispositionAt,
+        recordDispositionBy: before.recordDispositionBy
+      },
+      afterData: {
+        id: updated.id,
+        applicationNo: updated.applicationNo,
+        recordDisposition: updated.recordDisposition,
+        recordDispositionNote: updated.recordDispositionNote,
+        recordDispositionAt: updated.recordDispositionAt,
+        recordDispositionBy: updated.recordDispositionBy
+      },
+      summary: `认证申请 ${updated.applicationNo} 记录类型更新为 ${updated.recordDisposition}。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
 }
 
 export async function deleteCertificateByNo(certificateNo: string) {

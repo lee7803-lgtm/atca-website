@@ -40,6 +40,9 @@ export async function POST(request: Request) {
   try {
     const application = await getCertificationApplicationByNoAndContact(applicationNo, contact);
     if (!application) return NextResponse.json({ success: false, message: "未查询到匹配的认证申请记录。" }, { status: 404 });
+    if (application.recordDisposition === "voided") {
+      return NextResponse.json({ success: false, message: "记录已作废，请联系秘书处" }, { status: 410 });
+    }
 
     const stored = await findCertificatePdfStorageByApplicationId(application.id);
     if (!stored) return NextResponse.json({ success: false, message: "正式证书 PDF 尚未生成，请等待协会完成证书下发。" }, { status: 404 });

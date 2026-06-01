@@ -258,6 +258,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
             from applications
             where application_type = @applicationType
               and status = any(@openStatuses)
+              and coalesce(record_disposition, 'normal') = 'normal'
               and (email = @email or phone = @phone)
             limit 1;
             """;

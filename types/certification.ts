@@ -10,6 +10,8 @@ export type CertificationStatus =
   | "archived"
   | "revoked";
 
+export type CertificationRecordDisposition = "normal" | "test" | "archived" | "voided";
+
 export type CertificateStatus = "pending" | "valid" | "revoked" | "expired";
 export type CertificateReviewStatus = "none" | "pending_renewal" | "renewal_in_progress" | "pending_review" | "reviewed" | "renewed" | "suspended";
 
@@ -150,6 +152,10 @@ export type CertificationApplicationRecord = CertificationApplicationPayload & {
   reviewedAt: string | null;
   deliveryStatus: "not_delivered" | "delivered";
   deliveredAt: string | null;
+  recordDisposition?: CertificationRecordDisposition;
+  recordDispositionNote?: string;
+  recordDispositionAt?: string | null;
+  recordDispositionBy?: string;
   supplementalSubmissions: SupplementalSubmission[];
   supplementSubmittedAt: string | null;
   createdAt: string;

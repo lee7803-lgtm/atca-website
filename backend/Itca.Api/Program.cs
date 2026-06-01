@@ -87,6 +87,7 @@ app.MapGet(
         string? type,
         string? applicationType,
         string? status,
+        string? recordDisposition,
         string? keyword,
         int? page,
         int? pageSize,
@@ -101,6 +102,7 @@ app.MapGet(
             var applications = await queries.ListApplicationsAsync(
                 string.IsNullOrWhiteSpace(applicationType) ? type?.Trim() : applicationType.Trim(),
                 status?.Trim(),
+                recordDisposition?.Trim(),
                 keyword?.Trim(),
                 page ?? 1,
                 pageSize ?? 100,
@@ -205,6 +207,43 @@ app.MapPatch(
             AdminGuard.RequireAdminToken(httpRequest);
 
             var application = await commands.UpdateMemberValidityAsync(id, request, GetAdminActorContext(httpRequest), cancellationToken);
+            if (application is null)
+            {
+                return Results.NotFound(new
+                {
+                    success = false,
+                    message = "未找到申请记录。"
+                });
+            }
+
+            return Results.Ok(new
+            {
+                success = true,
+                application
+            });
+        }
+        catch (Exception error)
+        {
+            return HandleAdminReadException(error);
+        }
+    }
+);
+
+app.MapPatch(
+    "/api/admin/applications/{id:guid}/record-disposition",
+    async (
+        HttpRequest httpRequest,
+        Guid id,
+        ApplicationRecordDispositionRequest? request,
+        ApplicationAdminCommands commands,
+        CancellationToken cancellationToken
+    ) =>
+    {
+        try
+        {
+            AdminGuard.RequireAdminToken(httpRequest);
+
+            var application = await commands.UpdateRecordDispositionAsync(id, request, GetAdminActorContext(httpRequest), cancellationToken);
             if (application is null)
             {
                 return Results.NotFound(new

@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { MemberStatusForm, ReviewForm } from "./ReviewForm";
 import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
+import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
@@ -149,6 +150,13 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <div className="scroll-mt-6" id="member-status-processing">
             <MemberStatusForm application={application} />
           </div>
+          <AdminRecordDispositionPanel
+            actionUrl={`/api/admin/applications/${application.id}/record-disposition`}
+            disposition={application.recordDisposition}
+            note={application.recordDispositionNote}
+            updatedAt={application.recordDispositionAt}
+            updatedBy={application.recordDispositionBy}
+          />
         </div>
       </div>
     </section>

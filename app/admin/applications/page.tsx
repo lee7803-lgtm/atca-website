@@ -7,7 +7,7 @@ import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
 import { isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
-import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
+import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType, RecordDisposition } from "@/types/application";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -43,6 +43,14 @@ const validityOptions = [
   { value: "ended", label: "已终止 / 已撤销" }
 ];
 
+const dispositionOptions: Array<{ value: RecordDisposition | "all"; label: string }> = [
+  { value: "normal", label: "正常记录" },
+  { value: "test", label: "测试记录" },
+  { value: "archived", label: "归档记录" },
+  { value: "voided", label: "作废记录" },
+  { value: "all", label: "全部记录类型" }
+];
+
 const typeText: Record<ApplicationType, string> = {
   personal_member: "个人会员",
   organization_member: "机构会员"
@@ -58,20 +66,28 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
-const csvHeaders = ["申请编号", "会员编号", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "推荐人姓名", "推荐人联系方式", "推荐说明", "申请类型", "统一状态", "会员有效期", "提交时间", "更新时间"];
+const dispositionText: Record<RecordDisposition, string> = {
+  normal: "正常",
+  test: "测试",
+  archived: "已归档",
+  voided: "已作废"
+};
 
-export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; validity?: string; q?: string } }) {
+const csvHeaders = ["申请编号", "会员编号", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "推荐人姓名", "推荐人联系方式", "推荐说明", "申请类型", "记录类型", "统一状态", "会员有效期", "提交时间", "更新时间"];
+
+export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; recordDisposition?: RecordDisposition | "all"; validity?: string; q?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   const applicationType = typeOptions.some((item) => item.value === searchParams?.applicationType) ? searchParams?.applicationType : undefined;
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
+  const recordDisposition = dispositionOptions.some((item) => item.value === searchParams?.recordDisposition) ? searchParams?.recordDisposition || "normal" : "normal";
   const validity = validityOptions.some((item) => item.value === searchParams?.validity) ? searchParams?.validity || "" : "";
   const q = searchParams?.q?.trim() || undefined;
   let applications: ApplicationAdminRecord[] = [];
   let databaseMessage = "";
 
   try {
-    applications = await listAdminApplications({ applicationType, status, keyword: q });
+    applications = await listAdminApplications({ applicationType, status, recordDisposition, keyword: q });
   } catch (error) {
     if (error instanceof AdminApiUnauthorizedError) {
       redirect("/admin");
@@ -101,6 +117,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
     item.referrerContact || "",
     item.referrerNote || "",
     typeText[item.applicationType] || item.applicationType || "",
+    dispositionText[item.recordDisposition] || item.recordDisposition || "正常",
     formatBusinessStatus(item),
     formatMemberValidity(item),
     item.createdAt || "",
@@ -134,11 +151,17 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
         </div>
       ) : null}
 
-      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_1fr_1fr_auto] md:items-end">
+      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_1fr_1fr_1fr_auto] md:items-end">
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">申请类型</span>
           <select className="form-input" defaultValue={applicationType || ""} name="applicationType">
             {typeOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
+          </select>
+        </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">记录类型</span>
+          <select className="form-input" defaultValue={recordDisposition} name="recordDisposition">
+            {dispositionOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <label className="grid gap-2">
@@ -183,6 +206,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
                   <td className="px-4 py-4 align-top">
                     <p className="break-all font-medium leading-6 text-[#7F1D1D]">{item.applicationNo}</p>
                     <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{item.memberNo || "审核通过后生成"}</p>
+                    {item.recordDisposition !== "normal" ? <span className="mt-2 inline-flex whitespace-nowrap rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-2.5 py-1 text-xs font-semibold text-[#7F1D1D]">{dispositionText[item.recordDisposition]}</span> : null}
                   </td>
                   <td className="px-4 py-4 align-top">
                     <p className="font-medium leading-6 text-porcelain">{item.name}</p>

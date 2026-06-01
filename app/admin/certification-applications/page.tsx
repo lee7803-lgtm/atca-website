@@ -7,7 +7,7 @@ import { AdminCsvExport } from "@/components/AdminCsvExport";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { checkCertificatesTableConfigured, findCertificateByApplicationId, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatCertificationApplicationStatus, hasSupplementRecord } from "@/lib/status-labels";
-import { certificationLevelLabels, certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord, type CertificationPath, type CertificationStatus } from "@/types/certification";
+import { certificationLevelLabels, certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord, type CertificationPath, type CertificationRecordDisposition, type CertificationStatus } from "@/types/certification";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
@@ -31,17 +31,33 @@ const statusOptions: Array<{ value: StatusFilter; label: string }> = [
   { value: "revoked", label: "已撤销" }
 ];
 
+const dispositionOptions: Array<{ value: CertificationRecordDisposition | "all"; label: string }> = [
+  { value: "normal", label: "正常记录" },
+  { value: "test", label: "测试记录" },
+  { value: "archived", label: "归档记录" },
+  { value: "voided", label: "作废记录" },
+  { value: "all", label: "全部记录类型" }
+];
+
+const dispositionText: Record<CertificationRecordDisposition, string> = {
+  normal: "正常",
+  test: "测试",
+  archived: "已归档",
+  voided: "已作废"
+};
+
 type CertificationApplicationExportRecord = CertificationApplicationAdminRecord & {
   certificateNoForExport: string;
 };
 
-const csvHeaders = ["申请编号", "推荐人姓名", "推荐人联系方式", "推荐关系 / 推荐说明", "申请人姓名", "道名 / 法名", "邮箱", "手机号 / WhatsApp", "道派 / 传承体系", "申报认证等级", "核定传承体系", "核定认证等级", "当前状态", "证书编号", "下发状态", "是否有附件", "附件数量", "提交时间", "更新时间"];
+const csvHeaders = ["申请编号", "推荐人姓名", "推荐人联系方式", "推荐关系 / 推荐说明", "申请人姓名", "道名 / 法名", "邮箱", "手机号 / WhatsApp", "道派 / 传承体系", "申报认证等级", "核定传承体系", "核定认证等级", "记录类型", "当前状态", "证书编号", "下发状态", "是否有附件", "附件数量", "提交时间", "更新时间"];
 
-export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: StatusFilter; q?: string } }) {
+export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: StatusFilter; recordDisposition?: CertificationRecordDisposition | "all"; q?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   const selectedStatus = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
   const status = selectedStatus === "supplement_review" ? "under_review" : selectedStatus || undefined;
+  const recordDisposition = dispositionOptions.some((item) => item.value === searchParams?.recordDisposition) ? searchParams?.recordDisposition || "normal" : "normal";
   const q = searchParams?.q?.trim() || undefined;
   let applications: CertificationApplicationAdminRecord[] = [];
   let exportRows: CertificationApplicationExportRecord[] = [];
@@ -50,7 +66,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
   let certificateDatabaseMessage = "";
 
   try {
-    applications = await listCertificationApplications({ status: status as CertificationStatus | undefined, q });
+    applications = await listCertificationApplications({ status: status as CertificationStatus | undefined, q, recordDisposition });
     if (selectedStatus === "supplement_review") {
       applications = applications.filter((item) => item.status === "under_review" && hasSupplementRecord(item));
     } else if (selectedStatus === "under_review") {
@@ -112,6 +128,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
     item.requestedLevel || "",
     item.approvedPath || "",
     item.approvedLevel || "",
+    dispositionText[item.recordDisposition || "normal"] || item.recordDisposition || "正常",
     formatCertificationApplicationStatus(item),
     item.certificateNoForExport || "",
     item.deliveryStatus === "delivered" ? "已下发" : "未下发",
@@ -137,11 +154,17 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         </div>
       </div>
 
-      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_auto] md:items-end">
+      <form className="mt-8 grid gap-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate md:grid-cols-[1fr_1fr_1fr_auto] md:items-end">
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">状态</span>
           <select className="form-input" defaultValue={selectedStatus || ""} name="status">
             {statusOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
+          </select>
+        </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">记录类型</span>
+          <select className="form-input" defaultValue={recordDisposition} name="recordDisposition">
+            {dispositionOptions.map((item) => <option key={item.label} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <label className="grid gap-2">
@@ -188,6 +211,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
                     <td className="px-4 py-4 align-top">
                       <p className="break-all font-medium leading-6 text-[#7F1D1D]">{item.applicationNo}</p>
                       <p className="mt-1 break-all text-xs leading-5 text-[#5f5b52]">{certificate?.certificateNo || "审核通过后生成"}</p>
+                      {item.recordDisposition && item.recordDisposition !== "normal" ? <span className="mt-2 inline-flex whitespace-nowrap rounded-full border border-[#e4ded0] bg-[#fbf8ef] px-2.5 py-1 text-xs font-semibold text-[#7F1D1D]">{dispositionText[item.recordDisposition]}</span> : null}
                     </td>
                     <td className="px-4 py-4 align-top">
                       <p className="font-medium leading-6 text-porcelain">{item.applicantName}</p>
