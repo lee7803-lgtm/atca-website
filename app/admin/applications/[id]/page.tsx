@@ -26,6 +26,15 @@ const statusText: Record<ApplicationStatus, string> = {
   archived: "已建档"
 };
 
+type StageGuide = {
+  stage: string;
+  statusDescription: string;
+  nextAction: string;
+  risk: string;
+  anchorHref: string;
+  anchorLabel: string;
+};
+
 function isValidUuid(value: string) {
   return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(value);
 }
@@ -58,7 +67,8 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
             <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
           </section>
-          <DetailSection title="基本信息">
+          <MemberStageCard guide={getMemberStageGuide(application)} />
+          <DetailSection id="basic-info" title="基本信息">
             <DetailItem label="申请编号" value={application.applicationNo} />
             <DetailItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
             <DetailItem label="申请类型" value={typeText[application.applicationType]} />
@@ -90,20 +100,158 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />
             <DetailItem className="md:col-span-2" label="申请理由 / 合作意向" value={application.purpose} />
           </DetailSection>
-          <DetailSection title="审核备注">
+          <DetailSection id="review-notes" title="审核备注">
             <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />
             <DetailItem className="md:col-span-2" label="状态备注" value={application.memberStatusNote || "暂无备注"} />
           </DetailSection>
         </div>
         <div className="grid gap-6">
-          <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
-          <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
+          <div className="scroll-mt-6" id="review-processing">
+            <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
+          </div>
+          <div className="scroll-mt-6" id="payment-processing">
+            <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
+          </div>
           <MemberValidityPanel application={application} />
-          <MemberStatusForm application={application} />
+          <div className="scroll-mt-6" id="member-status-processing">
+            <MemberStatusForm application={application} />
+          </div>
         </div>
       </div>
     </section>
   );
+}
+
+function MemberStageCard({ guide }: { guide: StageGuide }) {
+  return (
+    <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-7">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Current Stage</p>
+          <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">{guide.stage}</h2>
+          <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{guide.statusDescription}</p>
+        </div>
+        <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={guide.anchorHref}>
+          {guide.anchorLabel}
+        </a>
+      </div>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <StageGuideItem label="下一步建议动作" value={guide.nextAction} />
+        <StageGuideItem label="风险或阻断提示" value={guide.risk} />
+      </div>
+    </section>
+  );
+}
+
+function StageGuideItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3">
+      <p className="text-xs tracking-[0.2em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-porcelain">{value}</p>
+    </div>
+  );
+}
+
+function getMemberStageGuide(application: ApplicationAdminRecord): StageGuide {
+  const hasMemberNo = Boolean(application.memberNo);
+  const hasValidity = Boolean(application.memberValidFrom && application.memberValidUntil);
+
+  if (application.status === "archived") {
+    return {
+      stage: "已建档",
+      statusDescription: "该会员申请已进入归档状态，详情页主要用于复核历史资料和会员状态。",
+      nextAction: "按需查看基本资料、审核备注或会员有效期记录。",
+      risk: "归档申请原则上不再调整审核结论；如需后续维护，请先确认业务依据。",
+      anchorHref: "#basic-info",
+      anchorLabel: "查看基本信息"
+    };
+  }
+
+  if (application.status === "rejected") {
+    return {
+      stage: "已驳回",
+      statusDescription: "该会员申请当前为驳回状态，应重点确认审核备注是否足够清晰。",
+      nextAction: "检查审核备注，确保申请人可理解未通过或后续处理原因。",
+      risk: application.adminNote ? "暂无明显阻断；请避免在备注中记录敏感内部信息。" : "审核备注为空，建议补充驳回原因或处理说明。",
+      anchorHref: "#review-processing",
+      anchorLabel: "前往审核处理"
+    };
+  }
+
+  if (application.status === "need_more_info") {
+    return {
+      stage: "需补充资料",
+      statusDescription: "该会员申请正在等待申请人补充资料或秘书处线下确认。",
+      nextAction: "复核审核备注中的补充要求；收到补充资料后再继续审核。",
+      risk: application.adminNote ? "请确认补充要求具体、可执行，避免申请人无法判断需要提交什么。" : "缺少补充资料说明，申请人可能无法完成补充。",
+      anchorHref: "#review-processing",
+      anchorLabel: "前往审核处理"
+    };
+  }
+
+  if (application.status === "submitted" || application.status === "pending_review") {
+    return {
+      stage: application.status === "submitted" ? "已提交" : "待审核",
+      statusDescription: `该会员申请已进入后台，当前状态为${statusText[application.status]}。`,
+      nextAction: "核对基本资料、联系方式、申请信息和推荐信息后，进入审核处理区推进状态。",
+      risk: "请先确认申请类型、联系方式和资料真实性声明，再作出审核结论。",
+      anchorHref: "#review-processing",
+      anchorLabel: "前往审核处理"
+    };
+  }
+
+  if (application.status === "under_review") {
+    return {
+      stage: "审核中",
+      statusDescription: "该会员申请正在审核处理中，需继续确认资料完整性和审核结论。",
+      nextAction: "补齐审核备注，选择通过、驳回或要求补充资料。",
+      risk: "若资料仍不完整，不建议直接通过；应先要求补充资料。",
+      anchorHref: "#review-processing",
+      anchorLabel: "继续审核"
+    };
+  }
+
+  if (application.status === "approved" && !hasMemberNo) {
+    return {
+      stage: "已通过但会员编号未生成",
+      statusDescription: "该申请已审核通过，但会员编号仍为空。",
+      nextAction: "进入审核处理或会员状态区域，确认会员编号生成和后续状态维护。",
+      risk: hasValidity ? "会员有效期已记录，但会员编号缺失会影响后续查询和建档。" : "会员编号与有效期均未完整，暂不建议建档。",
+      anchorHref: "#review-processing",
+      anchorLabel: "前往审核处理"
+    };
+  }
+
+  if (application.status === "approved" && !hasValidity) {
+    return {
+      stage: "有效期未设置",
+      statusDescription: "该申请已通过且会员编号已生成，但会员有效期尚未完整设置。",
+      nextAction: "进入会员有效期区域，补齐有效期开始和截止日期。",
+      risk: "有效期未设置会影响会员状态判断、续期提醒和后台筛选。",
+      anchorHref: "#validity-processing",
+      anchorLabel: "设置有效期"
+    };
+  }
+
+  if (application.status === "approved" && hasMemberNo) {
+    return {
+      stage: "已通过且会员编号已生成",
+      statusDescription: "该会员申请已通过并具备会员编号，可继续确认有效期和会员业务状态。",
+      nextAction: "检查会员有效期、状态备注和是否需要创建支付订单或归档。",
+      risk: hasValidity ? "暂无明显阻断；归档前请确认支付和有效期记录符合秘书处要求。" : "有效期仍未完整设置，请先补齐。",
+      anchorHref: hasValidity ? "#member-status-processing" : "#validity-processing",
+      anchorLabel: hasValidity ? "查看会员状态" : "设置有效期"
+    };
+  }
+
+  return {
+    stage: statusText[application.status] || "待处理",
+    statusDescription: "该会员申请当前处于后台记录状态。",
+    nextAction: "查看基本资料和审核处理区，确认下一步动作。",
+    risk: "暂无自动识别的阻断提示。",
+    anchorHref: "#review-processing",
+    anchorLabel: "前往审核处理"
+  };
 }
 
 function DetailItem({ className = "", label, value }: { className?: string; label: string; value: string }) {
@@ -115,9 +263,9 @@ function DetailItem({ className = "", label, value }: { className?: string; labe
   );
 }
 
-function DetailSection({ children, title }: { children: ReactNode; title: string }) {
+function DetailSection({ children, id, title }: { children: ReactNode; id?: string; title: string }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7" id={id}>
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
     </section>
@@ -126,7 +274,7 @@ function DetailSection({ children, title }: { children: ReactNode; title: string
 
 function MemberValidityPanel({ application }: { application: ApplicationAdminRecord }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="validity-processing">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Validity</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">会员有效期</h2>
       <div className="mt-6 grid gap-4">

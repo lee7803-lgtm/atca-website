@@ -44,6 +44,15 @@ const photoMaterialFieldNames = new Set(["photo", "supplementPhoto"]);
 const lineageMaterialFieldNames = new Set(["lineageProof", "templeProof", "duDocument", "guanJinDocument", "jieDocument", "luDocument"]);
 const credentialMaterialFieldNames = new Set(["internalVoucher", "educationProof", "organizationLetter"]);
 
+type StageGuide = {
+  stage: string;
+  statusDescription: string;
+  nextAction: string;
+  risk: string;
+  anchorHref: string;
+  anchorLabel: string;
+};
+
 export default async function AdminCertificationApplicationDetailPage({ params }: { params: { id: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
@@ -269,6 +278,10 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       </section>
 
       <div className="mt-8">
+        <CertificationStageCard guide={getCertificationStageGuide(application, certificate, certificatePdf, certificateMessage)} />
+      </div>
+
+      <div className="mt-8">
         <CreatePaymentOrderForm sourceId={application.id} sourceType="certification_application" />
       </div>
 
@@ -302,6 +315,174 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       ) : null}
     </section>
   );
+}
+
+function CertificationStageCard({ guide }: { guide: StageGuide }) {
+  return (
+    <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-7">
+      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+        <div>
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Current Stage</p>
+          <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">{guide.stage}</h2>
+          <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{guide.statusDescription}</p>
+        </div>
+        <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={guide.anchorHref}>
+          {guide.anchorLabel}
+        </a>
+      </div>
+      <div className="mt-5 grid gap-4 md:grid-cols-2">
+        <StageGuideItem label="下一步建议动作" value={guide.nextAction} />
+        <StageGuideItem label="风险或阻断提示" value={guide.risk} />
+      </div>
+    </section>
+  );
+}
+
+function StageGuideItem({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3">
+      <p className="text-xs tracking-[0.2em] text-[#8a6b3e]">{label}</p>
+      <p className="mt-2 text-sm leading-7 text-porcelain">{value}</p>
+    </div>
+  );
+}
+
+function getCertificationStageGuide(
+  application: CertificationApplicationAdminRecord,
+  certificate: CertificateQueryResult | null,
+  certificatePdf: CertificatePdfMetadata | null,
+  certificateMessage: string
+): StageGuide {
+  const hasCertificate = Boolean(certificate);
+  const hasPdf = Boolean(certificatePdf?.hasPdf && certificatePdf.status === "generated");
+
+  if (application.status === "archived") {
+    return {
+      stage: "已归档",
+      statusDescription: "该认证申请已归档，详情页主要用于复核历史申请资料、证书状态和审核记录。",
+      nextAction: "按需查看证书状态、审核记录或正式证书预览。",
+      risk: "归档申请原则上不再推进审核、发证或下发流程；如需后续维护，请确认业务依据。",
+      anchorHref: "#certificate-status",
+      anchorLabel: "查看证书状态"
+    };
+  }
+
+  if (application.status === "revoked") {
+    return {
+      stage: "已撤销",
+      statusDescription: "该认证申请或相关证书已撤销，应重点查看证书状态和审核记录。",
+      nextAction: "复核撤销依据、证书业务状态和后台审核备注。",
+      risk: "撤销状态不应继续生成 PDF、下发或归档；请避免在公开说明中暴露内部敏感信息。",
+      anchorHref: "#certificate-status",
+      anchorLabel: "查看证书状态"
+    };
+  }
+
+  if (application.status === "rejected") {
+    return {
+      stage: "已驳回",
+      statusDescription: "该认证申请当前为驳回状态，应重点确认对申请人的反馈是否清晰。",
+      nextAction: "检查审核处理区的申请人反馈、内部备注和委员会意见。",
+      risk: application.applicantFeedback ? "暂无明显阻断；请确认反馈内容不包含内部敏感信息。" : "对申请人的反馈为空，建议补充驳回原因或后续说明。",
+      anchorHref: "#review-processing",
+      anchorLabel: "查看审核处理"
+    };
+  }
+
+  if (application.status === "need_more_info") {
+    return {
+      stage: "需补充资料",
+      statusDescription: "该认证申请正在等待申请人补充材料或秘书处线下确认。",
+      nextAction: "复核申请人反馈和材料审核项；收到补充材料后继续逐项审核。",
+      risk: application.applicantFeedback ? "请确认补充要求具体、可执行，避免申请人无法判断需要提交什么。" : "申请人反馈为空，补充资料要求可能无法传达。",
+      anchorHref: "#material-review",
+      anchorLabel: "查看材料审核"
+    };
+  }
+
+  if (application.status === "submitted") {
+    return {
+      stage: "已提交",
+      statusDescription: "该认证申请已进入后台，尚未完成材料审核和审核结论。",
+      nextAction: "从基本身份资料开始逐项核对材料，并在审核处理区推进状态。",
+      risk: "未完成材料审核前不应直接生成证书。",
+      anchorHref: "#material-review",
+      anchorLabel: "开始材料审核"
+    };
+  }
+
+  if (application.status === "under_review") {
+    return {
+      stage: "审核中",
+      statusDescription: "该认证申请正在审核处理中，需继续确认材料完整性、核定传承体系和认证等级。",
+      nextAction: "处理未通过或待补充的材料审核项，并在审核处理区保存结论。",
+      risk: formatCertificationBlocker(application),
+      anchorHref: "#review-processing",
+      anchorLabel: "继续审核"
+    };
+  }
+
+  if (application.status === "approved" && !hasCertificate) {
+    return {
+      stage: "已通过但证书未生成",
+      statusDescription: "该认证申请已审核通过，但尚未生成证书记录。",
+      nextAction: "确认核定传承体系、核定等级和材料审核均已通过，然后在审核处理区生成证书。",
+      risk: certificateMessage || formatCertificationBlocker(application),
+      anchorHref: "#review-processing",
+      anchorLabel: "前往发证操作"
+    };
+  }
+
+  if ((application.status === "certificate_issued" || application.status === "cert_issued") && hasCertificate && !hasPdf) {
+    return {
+      stage: "证书已生成但 PDF 未生成",
+      statusDescription: "该认证申请已有证书记录，但正式证书 PDF 尚未生成或状态不可用。",
+      nextAction: "进入正式证书预览区核对版式、照片和证书信息后生成 PDF。",
+      risk: certificateMessage || "PDF 未生成会影响证书文件下发；生成前请核对证书编号、姓名、等级和有效期。",
+      anchorHref: "#formal-certificate-preview",
+      anchorLabel: "查看证书预览"
+    };
+  }
+
+  if ((application.status === "certificate_issued" || application.status === "cert_issued") && hasCertificate && hasPdf && application.deliveryStatus !== "delivered") {
+    return {
+      stage: "PDF 已生成但未下发",
+      statusDescription: "该认证申请已有证书记录和正式 PDF，但后台下发状态仍为未下发。",
+      nextAction: "在审核处理区确认下发状态，必要时核对通知记录。",
+      risk: "未标记下发前，不建议进入归档；请先确认申请人已收到或已完成下发安排。",
+      anchorHref: "#delivery-status",
+      anchorLabel: "查看下发状态"
+    };
+  }
+
+  if (application.status === "delivered") {
+    return {
+      stage: "已下发但未归档",
+      statusDescription: "该认证申请已完成证书下发，但尚未进入归档状态。",
+      nextAction: "复核证书状态、下发时间、审核记录和正式 PDF 后归档。",
+      risk: "归档前请确认 PDF、下发记录和证书业务状态一致。",
+      anchorHref: "#review-processing",
+      anchorLabel: "前往归档操作"
+    };
+  }
+
+  return {
+    stage: formatCertificationApplicationStatus(application),
+    statusDescription: "该认证申请当前处于后台记录状态。",
+    nextAction: "查看审核处理区、证书状态和材料审核记录，确认下一步动作。",
+    risk: certificateMessage || "暂无自动识别的阻断提示。",
+    anchorHref: "#review-processing",
+    anchorLabel: "查看审核处理"
+  };
+}
+
+function formatCertificationBlocker(application: CertificationApplicationAdminRecord) {
+  const materialValues = Object.values(application.materialReview);
+  if (!application.approvedPath || !application.approvedLevel) return "核定传承体系或核定认证等级未填写，暂不建议生成证书。";
+  if (materialValues.some((status) => status === "questionable")) return "存在不通过的材料审核项，暂不建议审核通过或生成证书。";
+  if (materialValues.some((status) => status === "need_more_info")) return "存在需补充材料的审核项，应先等待或处理补充材料。";
+  if (materialValues.some((status) => status === "pending")) return "仍有未审核材料项，暂不建议生成证书。";
+  return "暂无明显阻断；请在生成证书前复核证书照片、核定信息和审核备注。";
 }
 
 async function getCertificatePhoto(application: CertificationApplicationAdminRecord, supportingDocuments: CertificationAttachment[]) {
