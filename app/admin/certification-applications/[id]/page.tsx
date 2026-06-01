@@ -5,12 +5,17 @@ import { cookies } from "next/headers";
 import QRCode from "qrcode";
 import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
 import { MaterialReviewField } from "./MaterialReviewField";
+import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
 import { CopyButton } from "@/components/CopyButton";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getCertificateVerificationUrl } from "@/lib/site-url";
+import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
+import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
+import { NotificationTableMissingError } from "@/lib/notifications/logger";
 import { createCertificationAttachmentSignedUrl, findCertificateByApplicationId, findCertificatePdfMetadataByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import type { NotificationLogRecord } from "@/lib/notifications/types";
 import {
   certificationLevelLabels,
   certificationPathLabels,
@@ -228,6 +233,31 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       </DetailSection>
     </div>
   );
+  let relatedPayments: PaymentOrderListItem[] = [];
+  let paymentMessage = "";
+  try {
+    relatedPayments = await listRelatedPaymentOrders({
+      certificationApplicationId: application.id,
+      applicationNo: application.applicationNo,
+      certificateNo: certificate?.certificateNo,
+      limit: 5
+    });
+  } catch (error) {
+    paymentMessage = error instanceof PaymentApiRequestError ? error.message : "关联支付记录暂时无法读取；申请详情主内容不受影响。";
+  }
+
+  let relatedNotifications: NotificationLogRecord[] = [];
+  let notificationMessage = "";
+  try {
+    relatedNotifications = await listRelatedNotificationLogs({
+      certificationApplicationId: application.id,
+      applicationNo: application.applicationNo,
+      certificateNo: certificate?.certificateNo,
+      limit: 5
+    });
+  } catch (error) {
+    notificationMessage = error instanceof NotificationTableMissingError ? "通知记录表尚未配置；申请详情主内容不受影响。" : "关联通知记录暂时无法读取；申请详情主内容不受影响。";
+  }
 
   return (
     <section className="mx-auto max-w-5xl px-5 py-12 sm:px-8 lg:py-16">
@@ -279,6 +309,14 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
       <div className="mt-8">
         <CertificationStageCard guide={getCertificationStageGuide(application, certificate, certificatePdf, certificateMessage)} />
+      </div>
+
+      <div className="mt-8">
+        <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
+      </div>
+
+      <div className="mt-8">
+        <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
       </div>
 
       <div className="mt-8">

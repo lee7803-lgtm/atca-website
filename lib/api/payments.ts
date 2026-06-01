@@ -111,6 +111,15 @@ export type PaymentOrderCreateInput = {
   userAgent?: string;
 };
 
+export type RelatedPaymentOrderFilters = {
+  applicationId?: string;
+  certificationApplicationId?: string;
+  applicationNo?: string;
+  memberNo?: string;
+  certificateNo?: string;
+  limit?: number;
+};
+
 type PaymentOrderCreateResponse =
   | {
       success: true;
@@ -212,6 +221,37 @@ export async function listPaymentOrders(filters: { status?: string; keyword?: st
   }
 
   return listPaymentOrdersFromSupabase(filters);
+}
+
+export async function listRelatedPaymentOrders(filters: RelatedPaymentOrderFilters) {
+  const config = getSupabaseRestConfig();
+  if (!config) throw new PaymentApiRequestError(500, "支付订单读取服务尚未完成 Supabase 配置。");
+
+  const orFilters = [
+    filters.applicationId ? `application_id.eq.${filters.applicationId}` : "",
+    filters.certificationApplicationId ? `certification_application_id.eq.${filters.certificationApplicationId}` : "",
+    filters.applicationNo ? `application_no.eq.${filters.applicationNo}` : "",
+    filters.memberNo ? `member_no.eq.${filters.memberNo}` : "",
+    filters.certificateNo ? `certificate_no.eq.${filters.certificateNo}` : ""
+  ].filter(Boolean);
+
+  if (orFilters.length === 0) return [];
+
+  const params = new URLSearchParams({
+    select: "id,order_no,business_type,application_no,member_no,certificate_no,business_id,payer_name,amount,currency,provider,payment_channel,status,paid_at,created_at,updated_at",
+    or: `(${orFilters.join(",")})`,
+    order: "updated_at.desc",
+    limit: String(Math.min(Math.max(filters.limit || 5, 1), 20))
+  });
+
+  const response = await fetch(`${config.url}/rest/v1/payment_orders?${params.toString()}`, {
+    cache: "no-store",
+    headers: getSupabaseHeaders(config)
+  });
+  if (!response.ok) throw new PaymentApiRequestError(response.status, "关联支付记录暂时无法读取。");
+
+  const rows = (await response.json()) as SupabasePaymentOrderRow[];
+  return rows.map(toPaymentOrderListItem);
 }
 
 export async function getPaymentOrder(id: string) {

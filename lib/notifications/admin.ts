@@ -60,6 +60,49 @@ export async function listNotificationLogs(params: ListNotificationLogsParams = 
   return rows.map(toNotificationLogRecord);
 }
 
+export async function listRelatedNotificationLogs(params: {
+  applicationId?: string;
+  certificationApplicationId?: string;
+  applicationNo?: string;
+  memberNo?: string;
+  certificateNo?: string;
+  limit?: number;
+}) {
+  const config = getSupabaseNotificationConfig();
+  const orFilters = [
+    params.applicationId ? `application_id.eq.${params.applicationId}` : "",
+    params.certificationApplicationId ? `certification_application_id.eq.${params.certificationApplicationId}` : "",
+    params.applicationNo ? `application_no.eq.${params.applicationNo}` : "",
+    params.memberNo ? `member_no.eq.${params.memberNo}` : "",
+    params.certificateNo ? `certificate_no.eq.${params.certificateNo}` : ""
+  ].filter(Boolean);
+
+  if (orFilters.length === 0) return [];
+
+  const searchParams = new URLSearchParams({
+    select:
+      "id,notification_type,channel,send_status,application_id,certification_application_id,certificate_id,application_no,member_no,certificate_no,source_type,source_action,recipient_name,recipient_email,recipient_phone,template_key,error_message,created_at,scheduled_at,sent_at,failed_at,skipped_at,updated_at",
+    or: `(${orFilters.join(",")})`,
+    order: "updated_at.desc",
+    limit: String(Math.min(Math.max(params.limit || 5, 1), 20))
+  });
+
+  const response = await fetch(`${config.url}/rest/v1/notification_logs?${searchParams.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config),
+    cache: "no-store"
+  });
+
+  if (!response.ok) {
+    const text = await response.text();
+    if (isMissingTableError(text, response.status)) throw new NotificationTableMissingError();
+    throw new Error("Related notification logs could not be read.");
+  }
+
+  const rows = (await response.json()) as Array<Record<string, string | null>>;
+  return rows.map(toNotificationLogRecord);
+}
+
 export async function getNotificationLogById(id: string) {
   const config = getSupabaseNotificationConfig();
   const searchParams = new URLSearchParams({

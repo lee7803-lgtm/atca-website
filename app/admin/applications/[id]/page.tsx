@@ -3,10 +3,15 @@ import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { MemberStatusForm, ReviewForm } from "./ReviewForm";
+import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
+import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
+import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
+import { NotificationTableMissingError } from "@/lib/notifications/logger";
 import { formatApplicationStatus } from "@/lib/status-labels";
+import type { NotificationLogRecord } from "@/lib/notifications/types";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
 export const dynamic = "force-dynamic";
@@ -51,6 +56,32 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
     throw error;
   }
   if (!application) notFound();
+
+  let relatedPayments: PaymentOrderListItem[] = [];
+  let paymentMessage = "";
+  try {
+    relatedPayments = await listRelatedPaymentOrders({
+      applicationId: application.id,
+      applicationNo: application.applicationNo,
+      memberNo: application.memberNo,
+      limit: 5
+    });
+  } catch (error) {
+    paymentMessage = error instanceof PaymentApiRequestError ? error.message : "关联支付记录暂时无法读取；申请详情主内容不受影响。";
+  }
+
+  let relatedNotifications: NotificationLogRecord[] = [];
+  let notificationMessage = "";
+  try {
+    relatedNotifications = await listRelatedNotificationLogs({
+      applicationId: application.id,
+      applicationNo: application.applicationNo,
+      memberNo: application.memberNo,
+      limit: 5
+    });
+  } catch (error) {
+    notificationMessage = error instanceof NotificationTableMissingError ? "通知记录表尚未配置；申请详情主内容不受影响。" : "关联通知记录暂时无法读取；申请详情主内容不受影响。";
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
@@ -104,6 +135,8 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />
             <DetailItem className="md:col-span-2" label="状态备注" value={application.memberStatusNote || "暂无备注"} />
           </DetailSection>
+          <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
+          <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
         </div>
         <div className="grid gap-6">
           <div className="scroll-mt-6" id="review-processing">
