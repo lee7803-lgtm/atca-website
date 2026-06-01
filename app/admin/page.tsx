@@ -48,32 +48,38 @@ export default function AdminPage() {
       ) : isAuthed ? (
         <div className="mt-8 grid gap-5 md:grid-cols-2">
           <AdminEntryCard
-            href="/admin/applications"
+            href="/admin/workbench"
             index="01"
+            title="审核工作台"
+            text="聚合会员申请、认证申请、支付订单与通知记录的待办事项，只读查看并跳转详情。"
+          />
+          <AdminEntryCard
+            href="/admin/applications"
+            index="02"
             title="会员申请管理"
             text="查看个人会员与机构会员申请，筛选状态，进入详情处理审核备注。"
           />
           <AdminEntryCard
             href="/admin/certification-applications"
-            index="02"
+            index="03"
             title="认证申请管理"
             text="查看道士资格认证申请，处理材料审核、审核反馈、证书生成与下发状态。"
           />
           <AdminEntryCard
             href="/admin/audit-logs"
-            index="03"
+            index="04"
             title="操作记录"
             text="查看后台关键写操作的基础审计记录，用于追踪审核状态修改和后续操作留痕。"
           />
           <AdminEntryCard
             href="/admin/notifications"
-            index="04"
+            index="05"
             title="通知记录"
             text="查看系统、邮件、WhatsApp 与人工处理通知记录，支持后续通知链路追踪。"
           />
           <AdminEntryCard
             href="/admin/payments"
-            index="05"
+            index="06"
             title="支付订单管理"
             text="查看人工确认 / 内部测试支付订单，处理待人工确认、已付款和已取消状态。"
           />
