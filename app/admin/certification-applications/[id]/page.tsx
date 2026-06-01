@@ -6,6 +6,7 @@ import QRCode from "qrcode";
 import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
 import { MaterialReviewField } from "./MaterialReviewField";
 import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
+import { AdminContactCorrectionPanel } from "@/components/AdminContactCorrectionPanel";
 import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
 import { CopyButton } from "@/components/CopyButton";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
@@ -319,6 +320,31 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           note={application.recordDispositionNote || ""}
           updatedAt={application.recordDispositionAt}
           updatedBy={application.recordDispositionBy || ""}
+        />
+      </div>
+
+      <div className="mt-8">
+        <AdminContactCorrectionPanel
+          actionUrl={`/api/admin/certification-applications/${application.id}/contact`}
+          disposition={application.recordDisposition || "normal"}
+          fields={[
+            { key: "applicantName", label: "申请人中文姓名", required: true },
+            { key: "applicantNameEn", label: "英文名 / 拼音" },
+            { key: "taoistName", label: "道名 / 法名" },
+            { key: "phone", label: "手机 / WhatsApp", required: true },
+            { key: "email", label: "邮箱", required: true, type: "email" },
+            { key: "residence", label: "现居地", required: true },
+            { key: "address", label: "地址" }
+          ]}
+          values={{
+            applicantName: application.applicantName,
+            applicantNameEn: application.applicantNameEn || "",
+            taoistName: application.taoistName || "",
+            phone: application.phone,
+            email: application.email,
+            residence: application.residence || "",
+            address: application.address || ""
+          }}
         />
       </div>
 

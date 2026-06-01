@@ -76,3 +76,13 @@ public sealed record ApplicationRecordDispositionRequest(
     string? RecordDisposition,
     string? RecordDispositionNote
 );
+
+public sealed record ApplicationContactUpdateRequest(
+    string? Name,
+    string? ContactName,
+    string? Phone,
+    string? Email,
+    string? Country,
+    string? OrganizationType,
+    string? CorrectionNote
+);

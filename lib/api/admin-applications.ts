@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getApplicationById, listApplications, updateApplicationMemberValidity, updateApplicationRecordDisposition, updateApplicationReview } from "@/lib/supabase/server";
+import { getApplicationById, listApplications, updateApplicationContactInfo, updateApplicationMemberValidity, updateApplicationRecordDisposition, updateApplicationReview } from "@/lib/supabase/server";
 import type { AdminSession } from "@/lib/admin/auth";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType, RecordDisposition } from "@/types/application";
 
@@ -80,6 +80,19 @@ export type UpdateAdminMemberValidityValues = {
 export type UpdateAdminApplicationRecordDispositionValues = {
   recordDisposition: RecordDisposition;
   recordDispositionNote?: string;
+  actor?: AdminSession;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
+export type UpdateAdminApplicationContactValues = {
+  name: string;
+  contactName: string;
+  phone: string;
+  email: string;
+  country: string;
+  organizationType?: string;
+  correctionNote: string;
   actor?: AdminSession;
   ipAddress?: string;
   userAgent?: string;
@@ -415,6 +428,84 @@ export async function updateAdminApplicationRecordDisposition(id: string, values
   return updateApplicationRecordDisposition(id, {
     recordDisposition: values.recordDisposition,
     recordDispositionNote: values.recordDispositionNote,
+    actorEmail: values.actor?.email || "",
+    actorName: values.actor?.displayName || "",
+    actorRole: values.actor?.role || "",
+    actorType: values.actor?.actorType || "legacy_admin",
+    ipAddress: values.ipAddress,
+    userAgent: values.userAgent
+  });
+}
+
+export async function updateAdminApplicationContact(id: string, values: UpdateAdminApplicationContactValues) {
+  try {
+    const response = await fetch(`${getItcaApiBaseUrl()}/api/admin/applications/${encodeURIComponent(id)}/contact`, {
+      method: "PATCH",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAdminApiHeaders(),
+        ...getAdminActorHeaders(values.actor, values.ipAddress, values.userAgent)
+      },
+      body: JSON.stringify({
+        name: values.name,
+        contactName: values.contactName,
+        phone: values.phone,
+        email: values.email,
+        country: values.country,
+        organizationType: values.organizationType || "",
+        correctionNote: values.correctionNote
+      })
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      throw new AdminApiUnauthorizedError();
+    }
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (response.status === 400) {
+      const result = (await response.json().catch(() => null)) as AdminApplicationDetailResponse | null;
+      throw new AdminApiRequestError(400, result && !result.success ? result.message : "联系方式修正资料不正确。");
+    }
+
+    if (response.ok) {
+      const result = (await response.json()) as AdminApplicationDetailResponse;
+      if (result.success) return result.application;
+      throw new AdminApiRequestError(response.status, result.message || "联系方式修正未能保存。");
+    }
+  } catch (error) {
+    if (error instanceof AdminApiUnauthorizedError || error instanceof AdminApiRequestError) {
+      throw error;
+    }
+
+    return updateApplicationContactInfo(id, {
+      name: values.name,
+      contactName: values.contactName,
+      phone: values.phone,
+      email: values.email,
+      country: values.country,
+      organizationType: values.organizationType,
+      correctionNote: values.correctionNote,
+      actorEmail: values.actor?.email || "",
+      actorName: values.actor?.displayName || "",
+      actorRole: values.actor?.role || "",
+      actorType: values.actor?.actorType || "legacy_admin",
+      ipAddress: values.ipAddress,
+      userAgent: values.userAgent
+    });
+  }
+
+  return updateApplicationContactInfo(id, {
+    name: values.name,
+    contactName: values.contactName,
+    phone: values.phone,
+    email: values.email,
+    country: values.country,
+    organizationType: values.organizationType,
+    correctionNote: values.correctionNote,
     actorEmail: values.actor?.email || "",
     actorName: values.actor?.displayName || "",
     actorRole: values.actor?.role || "",

@@ -20,6 +20,14 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
     private static readonly HashSet<string> ValidMemberStatuses = ["active", "suspended", "revoked", "terminated"];
     private static readonly HashSet<string> ValidMemberRenewalStatuses = ["none", "pending_renewal", "renewal_in_progress", "renewed"];
     private static readonly HashSet<string> ValidRecordDispositions = ["normal", "test", "archived", "voided"];
+    private static readonly string[] ContactConflictStatuses =
+    [
+        "submitted",
+        "pending_review",
+        "under_review",
+        "need_more_info",
+        "approved"
+    ];
 
     public async Task<ApplicationAdminReviewSummaryDto?> UpdateReviewAsync(
         Guid id,
@@ -444,6 +452,167 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         return updated;
     }
 
+    public async Task<ApplicationAdminDto?> UpdateContactAsync(
+        Guid id,
+        ApplicationContactUpdateRequest? request,
+        AdminActorContext actor,
+        CancellationToken cancellationToken
+    )
+    {
+        if (request is null)
+        {
+            throw new ApplicationAdminReviewValidationException("更新资料格式不正确。");
+        }
+
+        var name = NormalizeOrDefault(request.Name, string.Empty);
+        var contactName = NormalizeOrDefault(request.ContactName, string.Empty);
+        var phone = NormalizeOrDefault(request.Phone, string.Empty);
+        var email = NormalizeOrDefault(request.Email, string.Empty);
+        var country = NormalizeOrDefault(request.Country, string.Empty);
+        var organizationType = NormalizeOrDefault(request.OrganizationType, string.Empty);
+        var correctionNote = NormalizeOrDefault(request.CorrectionNote, string.Empty);
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            throw new ApplicationAdminReviewValidationException("请填写姓名 / 机构名称。");
+        }
+        if (string.IsNullOrWhiteSpace(phone))
+        {
+            throw new ApplicationAdminReviewValidationException("请填写手机或 WhatsApp。");
+        }
+        if (!IsEmail(email))
+        {
+            throw new ApplicationAdminReviewValidationException("请填写有效邮箱。");
+        }
+        if (string.IsNullOrWhiteSpace(country))
+        {
+            throw new ApplicationAdminReviewValidationException("请填写国家 / 地区。");
+        }
+        if (string.IsNullOrWhiteSpace(correctionNote))
+        {
+            throw new ApplicationAdminReviewValidationException("请填写修正原因。");
+        }
+
+        await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        var before = await GetContactSnapshotAsync(connection, id, cancellationToken);
+        if (before is null)
+        {
+            return null;
+        }
+        if (before.RecordDisposition == "voided")
+        {
+            throw new ApplicationAdminReviewValidationException("记录已作废，不允许修改联系方式。");
+        }
+        if (before.RecordDisposition == "normal" && await HasContactConflictAsync(connection, id, before.ApplicationType, email, phone, cancellationToken))
+        {
+            throw new ApplicationAdminReviewValidationException("邮箱或手机号已被其他正常有效记录占用。");
+        }
+
+        var updatedAt = DateTimeOffset.UtcNow;
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            update applications
+            set
+              name = @name,
+              contact_name = @contactName,
+              phone = @phone,
+              email = @email,
+              country = @country,
+              organization_type = @organizationType,
+              updated_at = @updatedAt
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            returning
+              id,
+              application_no,
+              member_no,
+              member_no_issued_at,
+              member_no_issued_by,
+              member_valid_from,
+              member_valid_until,
+              member_status,
+              member_renewal_status,
+              last_renewed_at,
+              member_status_note,
+              application_no_scheme,
+              application_type,
+              status,
+              name,
+              contact_name,
+              phone,
+              email,
+              country,
+              organization_type,
+              profile,
+              purpose,
+              receive_notice,
+              truth_confirmed,
+              terms_accepted,
+              privacy_accepted,
+              confirmed_at,
+              admin_note,
+              record_disposition,
+              record_disposition_note,
+              record_disposition_at,
+              record_disposition_by,
+              supplemental_submissions,
+              supplement_submitted_at,
+              created_at,
+              updated_at;
+            """;
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("name", name);
+        command.Parameters.AddWithValue("contactName", string.IsNullOrWhiteSpace(contactName) ? name : contactName);
+        command.Parameters.AddWithValue("phone", phone);
+        command.Parameters.AddWithValue("email", email);
+        command.Parameters.AddWithValue("country", country);
+        AddNullableTextParameter(command, "organizationType", organizationType);
+        command.Parameters.AddWithValue("updatedAt", updatedAt);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var updated = ApplicationAdminQueries.ReadApplicationForCommand(reader);
+        await reader.DisposeAsync();
+
+        await auditLogs.WriteAsync(
+            new AuditLogEntry(
+                actor.AdminId,
+                actor.Email,
+                actor.Name,
+                actor.Role,
+                string.IsNullOrWhiteSpace(actor.ActorType) ? "legacy_admin" : actor.ActorType,
+                "application.contact_update",
+                "application",
+                updated.Id.ToString(),
+                updated.ApplicationNo,
+                before,
+                new ApplicationContactAuditSnapshot(
+                    updated.Id,
+                    updated.ApplicationNo,
+                    updated.ApplicationType,
+                    updated.Name,
+                    updated.ContactName,
+                    updated.Phone,
+                    updated.Email,
+                    updated.Country,
+                    updated.OrganizationType,
+                    updated.RecordDisposition,
+                    correctionNote
+                ),
+                $"会员申请 {updated.ApplicationNo} 基础联系方式已修正。",
+                actor.IpAddress,
+                actor.UserAgent
+            ),
+            cancellationToken
+        );
+
+        return updated;
+    }
+
     private static async Task<ApplicationReviewAuditSnapshot?> GetReviewSnapshotAsync(
         NpgsqlConnection connection,
         Guid id,
@@ -570,6 +739,83 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         );
     }
 
+    private static async Task<ApplicationContactAuditSnapshot?> GetContactSnapshotAsync(
+        NpgsqlConnection connection,
+        Guid id,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            select
+              id,
+              application_no,
+              application_type,
+              name,
+              contact_name,
+              phone,
+              email,
+              country,
+              organization_type,
+              coalesce(record_disposition, 'normal')
+            from applications
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            limit 1;
+            """;
+        command.Parameters.AddWithValue("id", id);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        return new ApplicationContactAuditSnapshot(
+            reader.GetGuid(0),
+            reader.GetString(1),
+            reader.GetString(2),
+            reader.GetString(3),
+            reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+            reader.GetString(5),
+            reader.GetString(6),
+            reader.GetString(7),
+            reader.IsDBNull(8) ? null : reader.GetString(8),
+            reader.IsDBNull(9) ? "normal" : reader.GetString(9),
+            string.Empty
+        );
+    }
+
+    private static async Task<bool> HasContactConflictAsync(
+        NpgsqlConnection connection,
+        Guid id,
+        string applicationType,
+        string email,
+        string phone,
+        CancellationToken cancellationToken
+    )
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            select 1
+            from applications
+            where id <> @id
+              and application_type = @applicationType
+              and coalesce(record_disposition, 'normal') = 'normal'
+              and status = any(@statuses)
+              and (email = @email or phone = @phone)
+            limit 1;
+            """;
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("applicationType", applicationType);
+        command.Parameters.AddWithValue("statuses", ContactConflictStatuses);
+        command.Parameters.AddWithValue("email", email);
+        command.Parameters.AddWithValue("phone", phone);
+
+        var result = await command.ExecuteScalarAsync(cancellationToken);
+        return result is not null;
+    }
+
     private static string NormalizeOrDefault(string? value, string fallback)
     {
         return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
@@ -603,6 +849,14 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         }
 
         throw new ApplicationAdminReviewValidationException(errorMessage);
+    }
+
+    private static bool IsEmail(string value)
+    {
+        if (string.IsNullOrWhiteSpace(value)) return false;
+        var at = value.IndexOf('@');
+        var dot = value.LastIndexOf('.');
+        return at > 0 && dot > at + 1 && dot < value.Length - 1 && !value.Any(char.IsWhiteSpace);
     }
 
     private static void AddNullableDateParameter(NpgsqlCommand command, string name, DateOnly? value)
@@ -667,4 +921,18 @@ public sealed record ApplicationRecordDispositionAuditSnapshot(
     string RecordDispositionNote,
     string? RecordDispositionAt,
     string RecordDispositionBy
+);
+
+public sealed record ApplicationContactAuditSnapshot(
+    Guid Id,
+    string ApplicationNo,
+    string ApplicationType,
+    string Name,
+    string ContactName,
+    string Phone,
+    string Email,
+    string Country,
+    string? OrganizationType,
+    string RecordDisposition,
+    string CorrectionNote
 );

@@ -43,6 +43,8 @@ const applicationAdminSelect =
 const applicationQuerySelect =
   "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,record_disposition,record_disposition_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at";
 const recordDispositions: Array<RecordDisposition | "all"> = ["normal", "test", "archived", "voided", "all"];
+const memberContactConflictStatuses = ["submitted", "pending_review", "under_review", "need_more_info", "approved"];
+const certificationContactConflictStatuses = ["submitted", "under_review", "need_more_info", "approved", "certificate_issued", "cert_issued"];
 
 type SupabaseApplicationRow = {
   id: string;
@@ -1402,6 +1404,97 @@ function toDateOnlyString(value: Date) {
   return value.toISOString().slice(0, 10);
 }
 
+function isEmail(value: string) {
+  const at = value.indexOf("@");
+  const dot = value.lastIndexOf(".");
+  return at > 0 && dot > at + 1 && dot < value.length - 1 && !/\s/.test(value);
+}
+
+function validateContactCorrection(values: { name: string; phone: string; email: string; country: string; correctionNote: string }) {
+  if (!values.name.trim()) throw new SupabaseRequestError("请填写姓名 / 机构名称。", 400);
+  if (!values.phone.trim()) throw new SupabaseRequestError("请填写手机或 WhatsApp。", 400);
+  if (!isEmail(values.email.trim())) throw new SupabaseRequestError("请填写有效邮箱。", 400);
+  if (!values.country.trim()) throw new SupabaseRequestError("请填写国家 / 地区。", 400);
+  if (!values.correctionNote.trim()) throw new SupabaseRequestError("请填写修正原因。", 400);
+}
+
+function validateCertificationContactCorrection(values: { applicantName: string; phone: string; email: string; residence: string; correctionNote: string }) {
+  if (!values.applicantName.trim()) throw new SupabaseRequestError("请填写申请人姓名。", 400);
+  if (!values.phone.trim()) throw new SupabaseRequestError("请填写手机或 WhatsApp。", 400);
+  if (!isEmail(values.email.trim())) throw new SupabaseRequestError("请填写有效邮箱。", 400);
+  if (!values.residence.trim()) throw new SupabaseRequestError("请填写现居地。", 400);
+  if (!values.correctionNote.trim()) throw new SupabaseRequestError("请填写修正原因。", 400);
+}
+
+function pickApplicationContactAudit(application: ApplicationAdminRecord, correctionNote: string) {
+  return {
+    id: application.id,
+    applicationNo: application.applicationNo,
+    applicationType: application.applicationType,
+    name: application.name,
+    contactName: application.contactName,
+    phone: application.phone,
+    email: application.email,
+    country: application.country,
+    organizationType: application.organizationType,
+    recordDisposition: application.recordDisposition,
+    correctionNote
+  };
+}
+
+function pickCertificationContactAudit(application: CertificationApplicationAdminRecord, correctionNote: string) {
+  return {
+    id: application.id,
+    applicationNo: application.applicationNo,
+    applicantName: application.applicantName,
+    applicantNameEn: application.applicantNameEn,
+    taoistName: application.taoistName,
+    phone: application.phone,
+    email: application.email,
+    residence: application.residence,
+    address: application.address,
+    recordDisposition: application.recordDisposition || "normal",
+    correctionNote
+  };
+}
+
+async function findApplicationContactConflict(filters: { id: string; applicationType: ApplicationType; email: string; phone: string }) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    application_type: `eq.${filters.applicationType}`,
+    status: `in.(${memberContactConflictStatuses.join(",")})`,
+    or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
+    select: "id,record_disposition",
+    limit: "5"
+  });
+  const response = await fetch(`${config.url}/rest/v1/applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+  if (!response.ok) throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+
+  const rows = (await response.json()) as Array<{ id: string; record_disposition: string | null }>;
+  return rows.some((row) => row.id !== filters.id && (row.record_disposition || "normal") === "normal");
+}
+
+async function findCertificationContactConflict(filters: { id: string; email: string; phone: string }) {
+  const config = getSupabaseConfig();
+  const params = new URLSearchParams({
+    status: `in.(${certificationContactConflictStatuses.join(",")})`,
+    or: `(email.eq.${filters.email},phone.eq.${filters.phone})`,
+    select: "id,record_disposition",
+    limit: "5"
+  });
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?${params.toString()}`, {
+    method: "GET",
+    headers: getHeaders(config)
+  });
+  if (!response.ok) throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+
+  const rows = (await response.json()) as Array<{ id: string; record_disposition: string | null }>;
+  return rows.some((row) => row.id !== filters.id && (row.record_disposition || "normal") === "normal");
+}
+
 export async function updateApplicationMemberValidity(
   id: string,
   values: {
@@ -1775,6 +1868,154 @@ export async function updateApplicationSupplement(
   const row = rows[0];
 
   return row ? toApplicationAdminRecord(row) : null;
+}
+
+export async function updateApplicationContactInfo(
+  id: string,
+  values: {
+    name: string;
+    contactName: string;
+    phone: string;
+    email: string;
+    country: string;
+    organizationType?: string;
+    correctionNote: string;
+  } & AuditActorValues
+) {
+  const before = await getApplicationById(id);
+  if (!before) return null;
+  if (before.recordDisposition === "voided") {
+    throw new SupabaseRequestError("记录已作废，不允许修改联系方式。", 400);
+  }
+  validateContactCorrection(values);
+
+  if (before.recordDisposition === "normal") {
+    const conflict = await findApplicationContactConflict({
+      id,
+      applicationType: before.applicationType,
+      email: values.email.trim(),
+      phone: values.phone.trim()
+    });
+    if (conflict) throw new SupabaseRequestError("邮箱或手机号已被其他正常有效记录占用。", 400);
+  }
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const body = {
+    name: values.name.trim(),
+    contact_name: values.contactName.trim() || values.name.trim(),
+    phone: values.phone.trim(),
+    email: values.email.trim(),
+    country: values.country.trim(),
+    organization_type: values.organizationType?.trim() || null,
+    updated_at: now
+  };
+  const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify(body)
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+  const row = rows[0];
+  const updated = row ? toApplicationAdminRecord(row) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "application.contact_update",
+      resourceType: "application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: pickApplicationContactAudit(before, values.correctionNote),
+      afterData: pickApplicationContactAudit(updated, values.correctionNote),
+      summary: `会员申请 ${updated.applicationNo} 基础联系方式已修正。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
+}
+
+export async function updateCertificationContactInfo(
+  id: string,
+  values: {
+    applicantName: string;
+    applicantNameEn?: string;
+    taoistName?: string;
+    phone: string;
+    email: string;
+    residence: string;
+    address?: string;
+    correctionNote: string;
+  } & AuditActorValues
+) {
+  const before = await getCertificationApplicationById(id);
+  if (!before) return null;
+  if (before.recordDisposition === "voided") {
+    throw new SupabaseRequestError("记录已作废，不允许修改联系方式。", 400);
+  }
+  validateCertificationContactCorrection(values);
+
+  if ((before.recordDisposition || "normal") === "normal") {
+    const conflict = await findCertificationContactConflict({
+      id,
+      email: values.email.trim(),
+      phone: values.phone.trim()
+    });
+    if (conflict) throw new SupabaseRequestError("邮箱或手机号已被其他正常有效记录占用。", 400);
+  }
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(`${config.url}/rest/v1/certification_applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      applicant_name: values.applicantName.trim(),
+      applicant_name_en: values.applicantNameEn?.trim() || "",
+      taoist_name: values.taoistName?.trim() || "",
+      phone: values.phone.trim(),
+      email: values.email.trim(),
+      residence: values.residence.trim(),
+      address: values.address?.trim() || "",
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseCertificationApplicationRow[];
+  const row = rows[0];
+  const updated = row ? toCertificationAdminRecord(row) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "certification_application.contact_update",
+      resourceType: "certification_application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: pickCertificationContactAudit(before, values.correctionNote),
+      afterData: pickCertificationContactAudit(updated, values.correctionNote),
+      summary: `认证申请 ${updated.applicationNo} 基础联系方式已修正。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
 }
 
 export async function updateApplicationRecordDisposition(

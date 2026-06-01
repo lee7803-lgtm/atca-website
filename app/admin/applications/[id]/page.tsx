@@ -4,6 +4,7 @@ import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { MemberStatusForm, ReviewForm } from "./ReviewForm";
 import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
+import { AdminContactCorrectionPanel } from "@/components/AdminContactCorrectionPanel";
 import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
@@ -150,6 +151,26 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <div className="scroll-mt-6" id="member-status-processing">
             <MemberStatusForm application={application} />
           </div>
+          <AdminContactCorrectionPanel
+            actionUrl={`/api/admin/applications/${application.id}/contact`}
+            disposition={application.recordDisposition}
+            fields={[
+              { key: "name", label: "姓名 / 机构名称", required: true },
+              { key: "contactName", label: "联系人", required: true },
+              { key: "phone", label: "手机 / WhatsApp", required: true },
+              { key: "email", label: "邮箱", required: true, type: "email" },
+              { key: "country", label: "国家 / 地区", required: true },
+              { key: "organizationType", label: "机构类型" }
+            ]}
+            values={{
+              name: application.name,
+              contactName: application.contactName || application.name,
+              phone: application.phone,
+              email: application.email,
+              country: application.country,
+              organizationType: application.organizationType || ""
+            }}
+          />
           <AdminRecordDispositionPanel
             actionUrl={`/api/admin/applications/${application.id}/record-disposition`}
             disposition={application.recordDisposition}
