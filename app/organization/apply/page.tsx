@@ -6,6 +6,8 @@ import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { PageHero } from "@/components/PageHero";
 import { submitOrganizationApplication } from "@/lib/api/applications";
+import { hasValidLength, organizationNameLengthMessage, personNameLengthMessage } from "@/lib/validation/names";
+import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 
 const organizationTypes = ["宫观道堂及文化场所", "传统文化机构", "教育研究机构", "社团组织", "合作单位"];
 
@@ -44,8 +46,6 @@ const cooperationTemplate = `本机构希望与 ITCA 在以下方向建立联系
 
 本机构确认以上内容真实，并愿意配合后续沟通和资料补充。`;
 
-const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
-
 const organizationNotices = [
   ["机构会员申请说明", "机构会员申请用于提交机构资料、负责人信息、所在地区、机构类型与合作意向，服务协会审核、建档与联系。"],
   ["真实性与责任说明", "申请人须确认所提交的机构名称、联系方式、身份资料、机构资料及相关说明真实、完整、合法，且为本人或经合法授权提交。协会有权对申请资料进行人工核验；对于资料不完整、无法核验、疑似冒用、伪造、虚假陈述或恶意提交的申请，协会有权要求补充材料、暂停审核、驳回申请，或在建档后撤销相关记录。"],
@@ -59,11 +59,11 @@ function validateValues(values: FormValues) {
   const errors: Partial<Record<keyof FormValues, string>> = {};
 
   if (!values.organizationName.trim()) errors.organizationName = "请填写机构名称。";
-  else if (values.organizationName.trim().length < 2 || values.organizationName.trim().length > 80) errors.organizationName = "机构名称长度需为 2–80 个字符。";
+  else if (!hasValidLength(values.organizationName, 2, 80)) errors.organizationName = organizationNameLengthMessage;
   if (!values.principalName.trim()) errors.principalName = "请填写负责人姓名。";
-  else if (values.principalName.trim().length < 2 || values.principalName.trim().length > 50) errors.principalName = "联系人姓名长度需为 2–50 个字符。";
+  else if (!hasValidLength(values.principalName, 2, 50)) errors.principalName = personNameLengthMessage;
   if (!values.contact.trim()) errors.contact = "请填写联系电话。";
-  else if (!phonePattern.test(values.contact.trim())) errors.contact = "请填写有效联系电话。";
+  else if (!isInternationalPhone(values.contact)) errors.contact = internationalPhoneMessage;
   if (!values.email.trim()) errors.email = "请填写邮箱。";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errors.email = "请输入有效邮箱地址。";
   if (!values.region.trim()) errors.region = "请选择所在国家或地区。";
@@ -202,7 +202,7 @@ export default function OrganizationApplyPage() {
                 <input className="form-input" required value={values.principalName} onChange={(event) => updateValue("principalName", event.target.value)} />
               </Field>
               <Field error={fieldErrors.contact} label="手机 / WhatsApp" required>
-                <input className="form-input" required value={values.contact} onChange={(event) => updateValue("contact", event.target.value)} />
+                <input className="form-input" placeholder="+60 12 345 6789" required value={values.contact} onChange={(event) => updateValue("contact", event.target.value)} />
               </Field>
               <Field error={fieldErrors.email} label="邮箱" required>
                 <input className="form-input" required type="email" value={values.email} onChange={(event) => updateValue("email", event.target.value)} />

@@ -626,13 +626,13 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
         {isCertification ? (
           <>
             <SupplementGroup title="基本资料">
-              <SupplementInput defaultValue={data.applicantNameEn} label="英文名" name="applicantNameEn" />
-              <SupplementInput defaultValue={data.gender} label="性别" name="gender" />
-              <SupplementInput defaultValue={data.birthDate} label="出生日期" name="birthDate" type="date" />
+              <SupplementInput defaultValue={data.applicantNameEn} label="英文名" name="applicantNameEn" required />
+              <SupplementInput defaultValue={data.gender} label="性别" name="gender" required />
+              <SupplementInput defaultValue={data.birthDate} label="出生日期" name="birthDate" required type="date" />
               <SupplementInput defaultValue={data.nationality} label="国籍" name="nationality" />
               <SupplementInput defaultValue={data.residence} label="现居地" name="residence" />
               <SupplementInput defaultValue={data.address} label="地址" name="address" />
-              <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" />
+              <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" placeholder="+60 12 345 6789" />
               <SupplementInput defaultValue={data.email} label="邮箱" name="email" type="email" />
             </SupplementGroup>
             <SupplementGroup title="师承 / 传承资料">
@@ -650,7 +650,7 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
             <SupplementGroup title="经历与补充说明">
               <SupplementInput defaultValue={data.practiceYears} label="修行年限" name="practiceYears" />
               <SupplementTextarea defaultValue={data.experienceSummary} label="经历说明" name="experienceSummary" />
-              <SupplementTextarea defaultValue={data.applicationReason} label="申请理由" name="applicationReason" />
+              <SupplementTextarea defaultValue={data.applicationReason} label="申请理由" name="applicationReason" required />
               <SupplementTextarea defaultValue={data.additionalNote} label="补充备注" name="additionalNote" />
             </SupplementGroup>
           </>
@@ -659,7 +659,7 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
               <SupplementInput defaultValue={data.name} label="姓名 / 机构名称" name="name" />
               <SupplementInput defaultValue={data.contactName} label="联系人" name="contactName" />
               <SupplementInput defaultValue={data.email} label="邮箱" name="email" type="email" />
-              <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" />
+              <SupplementInput defaultValue={data.phone} label="电话 / WhatsApp" name="phone" placeholder="+60 12 345 6789" />
               <SupplementInput defaultValue={data.country} label="地址 / 国家地区" name="country" />
               <SupplementTextarea defaultValue={data.profile} label="资料说明" name="profile" />
               <SupplementTextarea defaultValue={data.purpose} label="申请说明" name="purpose" />
@@ -670,12 +670,13 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
           <label className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 sm:col-span-2">
             <span className="text-sm font-medium text-porcelain">补充材料</span>
             <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" multiple name="supplementFiles" type="file" />
-            <span className="text-xs leading-5 text-[#8a6b3e]">支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB，单次最多 5 个文件。重新上传道装证件照时，请使用下方照片控件。</span>
+            <span className="text-xs leading-5 text-[#8a6b3e]">支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB，单次最多 5 个文件。请上传清晰、完整、来源可核验的材料；重新上传道装证件照时，请使用下方照片控件。</span>
           </label>
           {isCertification ? (
             <label className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 sm:col-span-2">
               <span className="text-sm font-medium text-porcelain">重新上传道装证件照</span>
               <input accept=".jpg,.jpeg,.png,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" name="photo" type="file" />
+              <span className="text-xs leading-5 text-[#8a6b3e]">照片需清晰、正面、无遮挡，可用于证书记录。</span>
             </label>
           ) : null}
         </SupplementGroup>
@@ -689,11 +690,11 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
   );
 }
 
-function SupplementInput({ defaultValue = "", label, name, required = false, type = "text" }: { defaultValue?: string; label: string; name: string; required?: boolean; type?: string }) {
+function SupplementInput({ defaultValue = "", label, name, placeholder, required = false, type = "text" }: { defaultValue?: string; label: string; name: string; placeholder?: string; required?: boolean; type?: string }) {
   return (
     <label className="grid gap-2 rounded-2xl bg-white/55 p-3">
       <span className="text-sm font-medium text-porcelain">{label}{required ? <span className="text-[#7F1D1D]"> *</span> : null}</span>
-      <input className="form-input" defaultValue={defaultValue} name={name} required={required} type={type} />
+      <input className="form-input" defaultValue={defaultValue} name={name} placeholder={placeholder} required={required} type={type} />
     </label>
   );
 }

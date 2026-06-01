@@ -6,6 +6,8 @@ import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { PageHero } from "@/components/PageHero";
 import { submitMemberApplication } from "@/lib/api/applications";
+import { hasValidLength, personNameLengthMessage } from "@/lib/validation/names";
+import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 
 type FormValues = {
   memberType: string;
@@ -40,8 +42,6 @@ const supplementalTemplate = `补充说明如下：
 
 如以上内容仍需补充，本人愿意配合 ITCA 后续审核要求。`;
 
-const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
-
 const memberNotices = [
   ["会员申请说明", "个人会员申请用于提交基础资料、联系方式、学习经历与参与意向，服务协会会员审核、建档与后续联系。"],
   ["真实性与责任说明", "申请人须确认所提交的姓名、联系方式、身份资料及相关说明真实、完整、合法，且为本人或经合法授权提交。协会有权对申请资料进行人工核验；对于资料不完整、无法核验、疑似冒用、伪造、虚假陈述或恶意提交的申请，协会有权要求补充材料、暂停审核、驳回申请，或在建档后撤销相关记录。"],
@@ -56,9 +56,9 @@ function validateValues(values: FormValues) {
 
   if (!memberTypes.includes(values.memberType)) errors.memberType = "请选择会员类型。";
   if (!values.name.trim()) errors.name = "请填写姓名。";
-  else if (values.name.trim().length < 2 || values.name.trim().length > 50) errors.name = "姓名长度需为 2–50 个字符。";
+  else if (!hasValidLength(values.name, 2, 50)) errors.name = personNameLengthMessage;
   if (!values.contact.trim()) errors.contact = "请填写联系电话。";
-  else if (!phonePattern.test(values.contact.trim())) errors.contact = "请填写有效联系电话。";
+  else if (!isInternationalPhone(values.contact)) errors.contact = internationalPhoneMessage;
   if (!values.email.trim()) errors.email = "请填写邮箱。";
   else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email.trim())) errors.email = "请输入有效邮箱地址。";
   if (!values.region.trim()) errors.region = "请选择所在国家或地区。";
@@ -198,7 +198,7 @@ export default function MemberApplyPage() {
                 <input className="form-input" required value={values.name} onChange={(event) => updateValue("name", event.target.value)} />
               </Field>
               <Field error={fieldErrors.contact} label="手机 / WhatsApp" required>
-                <input className="form-input" required value={values.contact} onChange={(event) => updateValue("contact", event.target.value)} />
+                <input className="form-input" placeholder="+60 12 345 6789" required value={values.contact} onChange={(event) => updateValue("contact", event.target.value)} />
               </Field>
               <Field error={fieldErrors.email} label="邮箱" required>
                 <input className="form-input" required type="email" value={values.email} onChange={(event) => updateValue("email", event.target.value)} />

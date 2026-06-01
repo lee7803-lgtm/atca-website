@@ -2,11 +2,12 @@ import { NextResponse } from "next/server";
 import { generateApplicationNo } from "@/lib/application-number";
 import { recordMemberApplicationSubmittedNotification } from "@/lib/notifications/workflows";
 import { findOpenApplicationByContact, generateItcaNumber, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { hasValidLength, organizationNameLengthMessage, personNameLengthMessage } from "@/lib/validation/names";
+import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 import type { ApplicationRecord, ApplicationSubmitPayload, ApplicationSubmitResponse, ApplicationType, OrganizationType } from "@/types/application";
 
 const validApplicationTypes: ApplicationType[] = ["personal_member", "organization_member"];
 const validOrganizationTypes: OrganizationType[] = ["宫观道堂及文化场所", "传统文化机构", "教育研究机构", "社团组织", "合作单位", "宫观", "文化机构", "培训机构", "企业", "其他"];
-const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === "object" && value !== null;
@@ -18,10 +19,6 @@ function asString(value: unknown) {
 
 function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-}
-
-function isValidLength(value: string, min: number, max: number) {
-  return value.length >= min && value.length <= max;
 }
 
 function validatePayload(payload: unknown) {
@@ -55,9 +52,11 @@ function validatePayload(payload: unknown) {
   if (honeypot) fieldErrors.request = "申请资料未通过基础校验，请稍后重试。";
   if (!validApplicationTypes.includes(values.applicationType)) fieldErrors.applicationType = "申请类型不正确。";
   if (!values.name) fieldErrors.name = values.applicationType === "organization_member" ? "请填写机构名称。" : "请填写姓名。";
-  if (values.name && !isValidLength(values.name, 2, 80)) fieldErrors.name = values.applicationType === "organization_member" ? "机构名称长度需为 2–80 个字符。" : "姓名长度需为 2–50 个字符。";
+  if (values.name && !hasValidLength(values.name, 2, values.applicationType === "organization_member" ? 80 : 50)) {
+    fieldErrors.name = values.applicationType === "organization_member" ? organizationNameLengthMessage : personNameLengthMessage;
+  }
   if (!values.phone) fieldErrors.phone = "请填写手机或 WhatsApp。";
-  if (values.phone && !phonePattern.test(values.phone)) fieldErrors.phone = "请填写有效联系电话。";
+  if (values.phone && !isInternationalPhone(values.phone)) fieldErrors.phone = internationalPhoneMessage;
   if (!values.email) fieldErrors.email = "请填写邮箱。";
   if (values.email && !isEmail(values.email)) fieldErrors.email = "请输入有效邮箱地址。";
   if (!values.country) fieldErrors.country = "请选择所在国家或地区。";
@@ -68,16 +67,16 @@ function validatePayload(payload: unknown) {
 
   if (values.applicationType === "organization_member") {
     if (!values.contactName) fieldErrors.contactName = "请填写负责人姓名。";
-    if (values.contactName && !isValidLength(values.contactName, 2, 50)) fieldErrors.contactName = "联系人姓名长度需为 2–50 个字符。";
+    if (values.contactName && !hasValidLength(values.contactName, 2, 50)) fieldErrors.contactName = personNameLengthMessage;
     if (!values.organizationType || !validOrganizationTypes.includes(values.organizationType)) fieldErrors.organizationType = "请选择机构类型。";
     if (!values.profile) fieldErrors.profile = "请填写机构介绍。";
-    if (values.profile && !isValidLength(values.profile, 30, 2000)) fieldErrors.profile = "请填写机构介绍，且不少于 30 字、不超过 2000 字。";
+    if (values.profile && !hasValidLength(values.profile, 30, 2000)) fieldErrors.profile = "请填写机构介绍，且不少于 30 字、不超过 2000 字。";
     if (values.purpose && values.purpose.length > 1500) fieldErrors.purpose = "合作意向说明不能超过 1500 字。";
   }
 
   if (values.applicationType === "personal_member") {
-    if (values.name && !isValidLength(values.name, 2, 50)) fieldErrors.name = "姓名长度需为 2–50 个字符。";
-    if (values.purpose && !isValidLength(values.purpose, 20, 1500)) fieldErrors.purpose = "请填写会员申请说明，且不少于 20 字、不超过 1500 字。";
+    if (values.name && !hasValidLength(values.name, 2, 50)) fieldErrors.name = personNameLengthMessage;
+    if (values.purpose && !hasValidLength(values.purpose, 20, 1500)) fieldErrors.purpose = "请填写会员申请说明，且不少于 20 字、不超过 1500 字。";
     if (values.profile && values.profile.length > 1000) fieldErrors.profile = "补充备注不能超过 1000 字。";
     values.contactName = values.name;
     delete values.organizationType;

@@ -2,15 +2,15 @@ import { NextResponse } from "next/server";
 import { generateCertificationApplicationNo } from "@/lib/application-number";
 import { recordCertificationApplicationSubmittedNotification } from "@/lib/notifications/workflows";
 import { defaultMaterialReview, findOpenCertificationApplicationByContact, insertCertificationApplication, SupabaseConfigError, SupabaseRequestError, uploadCertificationAttachment } from "@/lib/supabase/server";
+import { getAdultBirthDateError } from "@/lib/validation/age";
+import { getUploadFileError } from "@/lib/validation/files";
+import { chineseNameMessage, isChinesePersonName, isLatinName, latinNameMessage } from "@/lib/validation/names";
+import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 import type { CertificationApplicationPayload, CertificationApplicationRecord, CertificationSubmitResponse, CertificationAttachment, CertificationLevel, CertificationPath } from "@/types/certification";
 
 const validCertificationTypes = ["taoist_priest"];
 const validCertificationPaths: CertificationPath[] = ["zhengyi", "quanzhen", "other_international"];
 const validCertificationLevels: CertificationLevel[] = ["refuge_entry", "transmission_or_crowning", "register_or_precept", "senior_taoist", "special_lineage"];
-const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
-const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
-const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
-const maxFileSize = 2 * 1024 * 1024;
 const allowedUploadFields = new Set([
   "luDocument",
   "jieDocument",
@@ -61,7 +61,16 @@ function isValidLength(value: string, min: number, max: number) {
 
 function validateFiles(formData: FormData | null) {
   const fieldErrors: Record<string, string> = {};
-  if (!formData) return fieldErrors;
+  if (!formData) {
+    fieldErrors.idProof = "请上传身份证明材料。";
+    fieldErrors.photo = "请上传道装证件照。";
+    return fieldErrors;
+  }
+
+  const idProof = formData.get("idProof");
+  const photo = formData.get("photo");
+  if (!(idProof instanceof File) || idProof.size === 0) fieldErrors.idProof = "请上传身份证明材料。";
+  if (!(photo instanceof File) || photo.size === 0) fieldErrors.photo = "请上传道装证件照。";
 
   formData.forEach((value, key) => {
     if (!(value instanceof File) || value.size === 0) return;
@@ -71,16 +80,8 @@ function validateFiles(formData: FormData | null) {
       return;
     }
 
-    const lowerName = value.name.toLowerCase();
-    const hasAllowedExtension = allowedFileExtensions.some((extension) => lowerName.endsWith(extension));
-    if (!allowedFileTypes.includes(value.type) && !hasAllowedExtension) {
-      fieldErrors[key] = "文件格式不支持，请上传 PDF、JPG、JPEG 或 PNG 文件。";
-      return;
-    }
-
-    if (value.size > maxFileSize) {
-      fieldErrors[key] = "文件大小超过限制，请上传不超过 2MB 的文件。";
-    }
+    const fileError = getUploadFileError(value);
+    if (fileError) fieldErrors[key] = fileError;
   });
 
   return fieldErrors;
@@ -132,14 +133,22 @@ function validatePayload(payload: unknown) {
   const honeypot = asString(payload.companyWebsite) || asString(payload.websiteUrl);
   if (honeypot) fieldErrors.request = "认证申请资料未通过基础校验，请稍后重试。";
   if (!validCertificationTypes.includes(values.certificationType)) fieldErrors.certificationType = "请选择申请认证类型。";
-  if (values.certificationPath && !validCertificationPaths.includes(values.certificationPath)) fieldErrors.certificationPath = "请选择有效的传承体系。";
-  if (values.requestedLevel && !validCertificationLevels.includes(values.requestedLevel)) fieldErrors.requestedLevel = "请选择有效的申报认证等级。";
+  if (!values.certificationPath || !validCertificationPaths.includes(values.certificationPath)) fieldErrors.certificationPath = "请选择有效的传承体系。";
+  if (!values.requestedLevel || !validCertificationLevels.includes(values.requestedLevel)) fieldErrors.requestedLevel = "请选择有效的申报认证等级。";
   if (!values.applicantName) fieldErrors.applicantName = "请填写中文姓名。";
-  if (values.applicantName && !isValidLength(values.applicantName, 2, 50)) fieldErrors.applicantName = "姓名长度需为 2–50 个字符。";
+  if (values.applicantName && !isChinesePersonName(values.applicantName)) fieldErrors.applicantName = chineseNameMessage;
+  if (!values.applicantNameEn) fieldErrors.applicantNameEn = "请填写英文名 / 拼音。";
+  if (values.applicantNameEn && !isLatinName(values.applicantNameEn)) fieldErrors.applicantNameEn = latinNameMessage;
   if (!values.taoistName) fieldErrors.taoistName = "请填写道名 / 法名。";
+  if (!values.gender) fieldErrors.gender = "请选择性别。";
+  if (!values.birthDate) fieldErrors.birthDate = "请填写出生日期。";
+  if (values.birthDate) {
+    const birthDateError = getAdultBirthDateError(values.birthDate);
+    if (birthDateError) fieldErrors.birthDate = birthDateError;
+  }
   if (!values.nationality && !values.residence) fieldErrors.nationality = "请选择所在国家或地区。";
   if (!values.phone) fieldErrors.phone = "请填写联系电话。";
-  if (values.phone && !phonePattern.test(values.phone)) fieldErrors.phone = "请填写有效联系电话。";
+  if (values.phone && !isInternationalPhone(values.phone)) fieldErrors.phone = internationalPhoneMessage;
   if (!values.email) fieldErrors.email = "请填写邮箱。";
   if (values.email && !isEmail(values.email)) fieldErrors.email = "请输入有效邮箱地址。";
   if (!values.masterName || !values.masterTaoistName || !values.lineage || !values.templeOrOrganization || !values.sect) {
@@ -149,7 +158,7 @@ function validatePayload(payload: unknown) {
     fieldErrors.recommenderName = "请填写推荐人姓名、联系方式及推荐关系说明。";
   }
   if (!values.experienceSummary || !isValidLength(values.experienceSummary, 30, 2000)) fieldErrors.experienceSummary = "请填写道教履历说明，且不少于 30 字、不超过 2000 字。";
-  if (values.applicationReason && !isValidLength(values.applicationReason, 20, 1500)) fieldErrors.applicationReason = "申请理由需不少于 20 字、不超过 1500 字。";
+  if (!values.applicationReason || !isValidLength(values.applicationReason, 20, 1500)) fieldErrors.applicationReason = "申请理由需不少于 20 字、不超过 1500 字。";
   if (values.additionalNote && values.additionalNote.length > 1000) fieldErrors.additionalNote = "补充备注不能超过 1000 字。";
   if (!values.declarationAccepted || !values.dataUseAccepted || !values.certificatePublicAccepted || !values.termsAccepted || !values.privacyAccepted) {
     fieldErrors.declarationAccepted = "请确认声明承诺后再提交。";

@@ -9,20 +9,16 @@ import {
   updateCertificationSupplement,
   uploadCertificationAttachment
 } from "@/lib/supabase/server";
+import { getAdultBirthDateError } from "@/lib/validation/age";
+import { getUploadFileError, isAllowedUploadFile, maxUploadFileSize } from "@/lib/validation/files";
+import { hasValidLength, isLatinName, latinNameMessage, personNameLengthMessage } from "@/lib/validation/names";
+import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 import type { CertificationApplicationAdminRecord, CertificationAttachment, SupplementalSubmission } from "@/types/certification";
 
-const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
-const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
-const maxFileSize = 2 * 1024 * 1024;
 const maxFiles = 5;
 
 function asString(value: FormDataEntryValue | null) {
   return typeof value === "string" ? value.trim() : "";
-}
-
-function isAllowedFile(file: File) {
-  const lowerName = file.name.toLowerCase();
-  return allowedFileTypes.includes(file.type) || allowedFileExtensions.some((extension) => lowerName.endsWith(extension));
 }
 
 function collectFiles(formData: FormData) {
@@ -59,28 +55,64 @@ function validateCertificationRequired(values: Record<string, string>) {
   return "";
 }
 
+function validateSupplementContactFields(values: Record<string, string>) {
+  if (values.phone && !isInternationalPhone(values.phone)) return internationalPhoneMessage;
+  if (values.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values.email)) return "请输入有效邮箱地址。";
+  return "";
+}
+
+function validateCertificationSupplementFields(values: Record<string, string>) {
+  const contactError = validateSupplementContactFields(values);
+  if (contactError) return contactError;
+  if (!values.applicantNameEn) return "请填写英文名 / 拼音。";
+  if (values.applicantNameEn && !isLatinName(values.applicantNameEn)) return latinNameMessage;
+  if (!values.gender) return "请选择性别。";
+  if (!values.birthDate) return "请填写出生日期。";
+  if (values.birthDate) {
+    const birthDateError = getAdultBirthDateError(values.birthDate);
+    if (birthDateError) return birthDateError;
+  }
+  if (values.experienceSummary && !hasValidLength(values.experienceSummary, 30, 2000)) return "请填写道教履历说明，且不少于 30 字、不超过 2000 字。";
+  if (!values.applicationReason || !hasValidLength(values.applicationReason, 20, 1500)) return "申请理由需不少于 20 字、不超过 1500 字。";
+  if (values.additionalNote && values.additionalNote.length > 1000) return "补充备注不能超过 1000 字。";
+  return "";
+}
+
+function validateMemberSupplementFields(values: Record<string, string>, applicationType: string) {
+  const contactError = validateSupplementContactFields(values);
+  if (contactError) return contactError;
+  const isOrganization = applicationType === "organization_member";
+  if (values.name && !hasValidLength(values.name, 2, isOrganization ? 80 : 50)) return isOrganization ? "请填写机构名称，长度 2-80 个字符。" : personNameLengthMessage;
+  if (values.contactName && !hasValidLength(values.contactName, 2, 50)) return personNameLengthMessage;
+  if (isOrganization && values.profile && !hasValidLength(values.profile, 30, 2000)) return "请填写机构介绍，且不少于 30 字、不超过 2000 字。";
+  if (!isOrganization && values.profile && values.profile.length > 1000) return "补充备注不能超过 1000 字。";
+  if (isOrganization && values.purpose && values.purpose.length > 1500) return "合作意向说明不能超过 1500 字。";
+  if (!isOrganization && values.purpose && !hasValidLength(values.purpose, 20, 1500)) return "请填写会员申请说明，且不少于 20 字、不超过 1500 字。";
+  return "";
+}
+
 function certificationCurrent(application: CertificationApplicationAdminRecord) {
   return {
-    applicantNameEn: application.applicantNameEn,
-    gender: application.gender,
-    birthDate: application.birthDate,
-    nationality: application.nationality,
-    residence: application.residence,
-    address: application.address,
-    phone: application.phone,
-    email: application.email,
-    masterName: application.masterName,
-    masterTaoistName: application.masterTaoistName,
-    lineage: application.lineage,
-    templeOrOrganization: application.templeOrOrganization,
-    sect: application.sect,
-    practiceYears: application.practiceYears,
-    experienceSummary: application.experienceSummary,
-    applicationReason: application.applicationReason,
-    additionalNote: application.additionalNote,
-    recommenderName: application.recommenderName,
-    recommenderContact: application.recommenderContact,
-    recommenderRelation: application.recommenderRelation
+    applicantNameEn: application.applicantNameEn ?? "",
+    gender: application.gender ?? "",
+    birthDate: application.birthDate ?? "",
+    nationality: application.nationality ?? "",
+    residence: application.residence ?? "",
+    address: application.address ?? "",
+    phone: application.phone ?? "",
+    email: application.email ?? "",
+    masterName: application.masterName ?? "",
+    masterTaoistName: application.masterTaoistName ?? "",
+    lineage: application.lineage ?? "",
+    templeOrOrganization: application.templeOrOrganization ?? "",
+    sect: application.sect ?? "",
+    practiceYears: application.practiceYears ?? "",
+    experienceSummary: application.experienceSummary ?? "",
+    applicationReason: application.applicationReason ?? "",
+    additionalNote: application.additionalNote ?? "",
+    recommenderName: application.recommenderName ?? "",
+    recommenderContact: application.recommenderContact ?? "",
+    recommenderRelation: application.recommenderRelation ?? ""
   };
 }
 
@@ -108,8 +140,8 @@ export async function POST(request: Request) {
   if (files.length > maxFiles) return NextResponse.json({ success: false, message: "单次最多上传 5 个补充文件。" }, { status: 400 });
   for (const { file } of files) {
     if (file.size <= 0) return NextResponse.json({ success: false, message: "请勿上传空文件。" }, { status: 400 });
-    if (!isAllowedFile(file)) return NextResponse.json({ success: false, message: "文件格式不支持，请上传 PDF、JPG、JPEG 或 PNG 文件。" }, { status: 400 });
-    if (file.size > maxFileSize) return NextResponse.json({ success: false, message: "文件大小超过限制，请上传不超过 2MB 的文件。" }, { status: 400 });
+    if (!isAllowedUploadFile(file)) return NextResponse.json({ success: false, message: getUploadFileError(file) }, { status: 400 });
+    if (file.size > maxUploadFileSize) return NextResponse.json({ success: false, message: getUploadFileError(file) }, { status: 400 });
   }
 
   try {
@@ -137,6 +169,8 @@ export async function POST(request: Request) {
 
       const requiredMessage = validateCertificationRequired(next);
       if (requiredMessage) return NextResponse.json({ success: false, message: requiredMessage }, { status: 400 });
+      const certificationFieldMessage = validateCertificationSupplementFields(next);
+      if (certificationFieldMessage) return NextResponse.json({ success: false, message: certificationFieldMessage }, { status: 400 });
 
       const now = new Date().toISOString();
       const supplementRound = certification.supplementalSubmissions.length + 1;
@@ -246,6 +280,9 @@ export async function POST(request: Request) {
       const value = asString(formData.get(field));
       if (value) next[field as keyof typeof next] = value;
     });
+
+    const memberFieldMessage = validateMemberSupplementFields(next, application.applicationType);
+    if (memberFieldMessage) return NextResponse.json({ success: false, message: memberFieldMessage }, { status: 400 });
 
     const now = new Date().toISOString();
     const supplementRound = application.supplementalSubmissions.length + 1;

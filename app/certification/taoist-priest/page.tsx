@@ -6,6 +6,10 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
+import { getAdultBirthDateError } from "@/lib/validation/age";
+import { certificatePhotoUploadHint, getUploadFileError, idProofUploadHint, lineageMaterialUploadHint, uploadFileGeneralHint } from "@/lib/validation/files";
+import { chineseNameMessage, isChinesePersonName, isLatinName, latinNameMessage } from "@/lib/validation/names";
+import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 import { certificationLevelLabels, certificationPathLabels, type CertificationLevel, type CertificationPath, type CertificationSubmitResponse } from "@/types/certification";
 
 type Field = {
@@ -15,6 +19,7 @@ type Field = {
   required?: boolean;
   badge?: "选填" | "按情况提交" | "建议提交" | "按协会要求提交" | "适用于国际申请情形";
   options?: Array<string | { label: string; value: string }>;
+  placeholder?: string;
 };
 
 type Step = {
@@ -62,7 +67,7 @@ const steps: Step[] = [
           { id: "birthDate", label: "出生日期", kind: "date", required: true },
           { id: "nationality", label: "国家 / 地区", required: true },
           { id: "residence", label: "现居地", required: true },
-          { id: "phone", label: "电话", required: true },
+          { id: "phone", label: "电话", required: true, placeholder: "+60 12 345 6789" },
           { id: "email", label: "邮箱", kind: "email", required: true },
           { id: "address", label: "地址", badge: "按情况提交" }
         ]
@@ -245,18 +250,13 @@ const textareaTemplates: Record<string, { hint: string; template: string }> = {
   }
 };
 
-const allowedFileTypes = ["application/pdf", "image/jpeg", "image/png"];
-const allowedFileExtensions = [".pdf", ".jpg", ".jpeg", ".png"];
-const maxFileSize = 2 * 1024 * 1024;
-const phonePattern = /^[+\d][\d\s().-]{5,29}$/;
-
 const applicationNotices = [
   ["申请须知", "本认证将根据申请人的传承体系、资质凭证、实践经历、推荐材料、伦理承诺及资料完整性进行综合审核。"],
   ["传承体系", "申请人可根据自身情况选择正一、全真或其他传承，并提交对应师承与资质说明。"],
   ["申报认证等级", "申报认证等级仅作为审核参考，最终核定等级将根据资料完整性、师承证明、资质凭证、实践经历、推荐材料及认证委员会审核意见确定。"],
   ["证书说明", "申请通过后，申请人可继续使用申请编号及联系方式查询申请结果，并查看证书生成和打印信息；申请编号不会因证书核发而失效。"],
   ["照片用途", "申请时上传的“道装证件照”将用于认证审核、证书生成及申请人证书查看与打印；公众证书公开核验页默认不展示该照片。"],
-  ["重要提示", "附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。上传材料仅用于申请审核与认证建档。"]
+  ["重要提示", "附件仅支持 PDF、JPG、JPEG、PNG，单文件不超过 2MB。身份材料需信息清晰且与申请人姓名一致；道装证件照需正面、无遮挡，可用于证书记录。"]
 ];
 
 const lineageMaterialGuides = [
@@ -295,6 +295,35 @@ function ApplicationIcon({ name }: { name: IconBadgeName }) {
       className="border-gold/45 bg-[#fffaf0] text-[#7F1D1D] shadow-[0_16px_34px_rgba(176,138,69,0.13)] [&_svg]:h-8 [&_svg]:w-8 [&_svg]:[stroke-width:1.75]"
     />
   );
+}
+
+function getRequiredMessage(field: Field) {
+  if (field.kind === "file") return `请上传${field.label}。`;
+  if (field.kind === "select") return `请选择${field.label}。`;
+  if (field.kind === "checkbox") return "请确认此项声明承诺后再继续。";
+  return `请填写${field.label}。`;
+}
+
+function getFieldValidationError(field: Field, value: string) {
+  const trimmed = value.trim();
+
+  if (field.kind === "email" && trimmed && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) return "请输入有效邮箱地址。";
+  if (field.id === "phone" && trimmed && !isInternationalPhone(trimmed)) return internationalPhoneMessage;
+  if (field.id === "nameCn" && trimmed && !isChinesePersonName(trimmed)) return chineseNameMessage;
+  if (field.id === "nameEn" && trimmed && !isLatinName(trimmed)) return latinNameMessage;
+  if (field.id === "birthDate" && trimmed) return getAdultBirthDateError(trimmed);
+  if (field.id === "practiceHistory" && trimmed && (trimmed.length < 30 || trimmed.length > 2000)) return "请填写道教履历说明，且不少于 30 字、不超过 2000 字。";
+  if (field.id === "applicationReason" && trimmed && (trimmed.length < 20 || trimmed.length > 1500)) return "申请理由需不少于 20 字、不超过 1500 字。";
+  if (field.id === "additionalNote" && trimmed && trimmed.length > 1000) return "补充备注不能超过 1000 字。";
+
+  return "";
+}
+
+function getFileHint(fieldId: string) {
+  if (fieldId === "idProof") return idProofUploadHint;
+  if (fieldId === "photo") return certificatePhotoUploadHint;
+  if (["luDocument", "jieDocument", "duDocument", "guanJinDocument", "lineageProof", "templeProof", "internalVoucher"].includes(fieldId)) return lineageMaterialUploadHint;
+  return uploadFileGeneralHint;
 }
 
 export default function TaoistPriestCertificationPage() {
@@ -352,14 +381,9 @@ export default function TaoistPriestCertificationPage() {
       return next;
     });
     if (file) {
-      const lowerName = file.name.toLowerCase();
-      const hasAllowedExtension = allowedFileExtensions.some((extension) => lowerName.endsWith(extension));
-      if (!allowedFileTypes.includes(file.type) && !hasAllowedExtension) {
-        setErrors((prev) => ({ ...prev, [id]: "文件格式不支持，请上传 PDF、JPG、JPEG 或 PNG 文件" }));
-        return;
-      }
-      if (file.size > maxFileSize) {
-        setErrors((prev) => ({ ...prev, [id]: "文件大小超过限制，请上传不超过 2MB 的文件" }));
+      const fileError = getUploadFileError(file);
+      if (fileError) {
+        setErrors((prev) => ({ ...prev, [id]: fileError }));
         return;
       }
     }
@@ -375,27 +399,12 @@ export default function TaoistPriestCertificationPage() {
   const validateStep = () => {
     const nextErrors: Record<string, string> = {};
     requiredIds.forEach((id) => {
-      if (!values[id]) nextErrors[id] = "此项为必填";
+      const field = step.groups.flatMap((group) => group.fields).find((item) => item.id === id);
+      if (!values[id] && field) nextErrors[id] = getRequiredMessage(field);
     });
     step.groups.flatMap((group) => group.fields).forEach((field) => {
-      if (field.kind === "email" && values[field.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values[field.id])) {
-        nextErrors[field.id] = "请输入有效邮箱地址";
-      }
-      if (field.id === "phone" && values[field.id] && !phonePattern.test(values[field.id])) {
-        nextErrors[field.id] = "请填写有效联系电话";
-      }
-      if (field.id === "nameCn" && values[field.id] && (values[field.id].length < 2 || values[field.id].length > 50)) {
-        nextErrors[field.id] = "姓名长度需为 2–50 个字符";
-      }
-      if (field.id === "practiceHistory" && values[field.id] && (values[field.id].length < 30 || values[field.id].length > 2000)) {
-        nextErrors[field.id] = "请填写道教履历说明，且不少于 30 字、不超过 2000 字";
-      }
-      if (field.id === "applicationReason" && values[field.id] && (values[field.id].length < 20 || values[field.id].length > 1500)) {
-        nextErrors[field.id] = "申请理由需不少于 20 字、不超过 1500 字";
-      }
-      if (field.id === "additionalNote" && values[field.id] && values[field.id].length > 1000) {
-        nextErrors[field.id] = "补充备注不能超过 1000 字";
-      }
+      const fieldError = getFieldValidationError(field, values[field.id] || "");
+      if (fieldError) nextErrors[field.id] = fieldError;
     });
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) requestAnimationFrame(scrollToStepTop);
@@ -408,38 +417,13 @@ export default function TaoistPriestCertificationPage() {
 
     allFields.forEach((field) => {
       if (field.required && !values[field.id]) {
-        const message = "此项为必填";
+        const message = getRequiredMessage(field);
         nextErrors[field.id] = message;
         issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
       }
 
-      if (field.kind === "email" && values[field.id] && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(values[field.id])) {
-        const message = "请输入有效邮箱地址";
-        nextErrors[field.id] = message;
-        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
-      }
-      if (field.id === "phone" && values[field.id] && !phonePattern.test(values[field.id])) {
-        const message = "请填写有效联系电话";
-        nextErrors[field.id] = message;
-        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
-      }
-      if (field.id === "nameCn" && values[field.id] && (values[field.id].length < 2 || values[field.id].length > 50)) {
-        const message = "姓名长度需为 2–50 个字符";
-        nextErrors[field.id] = message;
-        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
-      }
-      if (field.id === "practiceHistory" && values[field.id] && (values[field.id].length < 30 || values[field.id].length > 2000)) {
-        const message = "请填写道教履历说明，且不少于 30 字、不超过 2000 字";
-        nextErrors[field.id] = message;
-        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
-      }
-      if (field.id === "applicationReason" && values[field.id] && (values[field.id].length < 20 || values[field.id].length > 1500)) {
-        const message = "申请理由需不少于 20 字、不超过 1500 字";
-        nextErrors[field.id] = message;
-        issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
-      }
-      if (field.id === "additionalNote" && values[field.id] && values[field.id].length > 1000) {
-        const message = "补充备注不能超过 1000 字";
+      const message = getFieldValidationError(field, values[field.id] || "");
+      if (message) {
         nextErrors[field.id] = message;
         issues.push({ stepIndex: field.stepIndex, fieldId: field.id, fieldLabel: field.label, message });
       }
@@ -450,7 +434,7 @@ export default function TaoistPriestCertificationPage() {
     if (issues.length > 0) {
       setCurrent(issues[0].stepIndex);
       setErrorMessage(
-        ["请补充以下必填资料后再提交：", ...issues.map((issue) => `- 第 ${issue.stepIndex + 1} 步：${issue.fieldLabel}`), "请返回对应步骤补充资料后重新提交。"].join("\n")
+        ["请补充或修正以下资料后再提交：", ...issues.map((issue) => `- 第 ${issue.stepIndex + 1} 步：${issue.fieldLabel}（${issue.message}）`), "请返回对应步骤补充资料后重新提交。"].join("\n")
       );
       requestAnimationFrame(scrollToStepTop);
       return false;
@@ -745,7 +729,7 @@ function FormField({
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
           <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setFileValue(field.id, event.target.files?.[0] ?? null)} />
-          <span className="block text-xs leading-5 text-[#8a6b3e]">请上传 PDF、JPG、JPEG 或 PNG 文件，单个文件不超过 2MB。上传材料仅用于申请审核，不公开展示；请确保材料清晰、完整、可读，且不得上传与申请无关的文件。</span>
+          <span className="block text-xs leading-5 text-[#8a6b3e]">{getFileHint(field.id)} 上传材料不公开展示，且不得上传与申请无关的文件。</span>
         </span>
       ) : field.kind === "checkbox" ? (
         <span className="flex items-center gap-3 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3">
@@ -753,7 +737,7 @@ function FormField({
           <span className="text-sm text-[#5f5148]">确认</span>
         </span>
       ) : (
-        <input className={commonClass} type={field.kind ?? "text"} value={value} onChange={(event) => setValue(field.id, event.target.value)} />
+        <input className={commonClass} placeholder={field.placeholder} type={field.kind ?? "text"} value={value} onChange={(event) => setValue(field.id, event.target.value)} />
       )}
       {errors[field.id] ? <span className="text-xs text-[#7F1D1D]">{errors[field.id]}</span> : null}
     </label>

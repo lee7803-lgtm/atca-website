@@ -6,6 +6,8 @@ namespace Itca.Api.Features.Applications;
 
 public sealed class ApplicationSubmissionService(SupabaseDb database, ApplicationNotificationLogWriter notificationLogs)
 {
+    private const string InternationalPhoneMessage = "请填写包含国际区号的联系电话，例如 +60 12 345 6789 或 +86 138 0000 0000。";
+
     private static readonly string[] OpenStatuses =
     [
         "submitted",
@@ -127,7 +129,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
         }
         else if (!IsValidLength(name, 2, expectedApplicationType == "organization_member" ? 80 : 50))
         {
-            fieldErrors["name"] = expectedApplicationType == "organization_member" ? "机构名称长度需为 2–80 个字符。" : "姓名长度需为 2–50 个字符。";
+            fieldErrors["name"] = expectedApplicationType == "organization_member" ? "请填写机构名称，长度 2-80 个字符。" : "请填写姓名，长度 2-50 个字符。";
         }
 
         if (string.IsNullOrWhiteSpace(phone))
@@ -136,7 +138,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
         }
         else if (!IsValidPhone(phone))
         {
-            fieldErrors["phone"] = "请填写有效联系电话。";
+            fieldErrors["phone"] = InternationalPhoneMessage;
         }
 
         if (string.IsNullOrWhiteSpace(email))
@@ -196,7 +198,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
             }
             else if (!IsValidLength(contactName, 2, 50))
             {
-                fieldErrors["contactName"] = "联系人姓名长度需为 2–50 个字符。";
+                fieldErrors["contactName"] = "请填写姓名，长度 2-50 个字符。";
             }
 
             if (string.IsNullOrWhiteSpace(organizationType) || !ValidOrganizationTypes.Contains(organizationType))
@@ -377,12 +379,28 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
             return false;
         }
 
-        if (!(value[0] == '+' || char.IsDigit(value[0])))
+        if (value[0] != '+')
         {
             return false;
         }
 
-        return value.All(character => char.IsDigit(character) || character is ' ' or '(' or ')' or '.' or '-');
+        if (value.Length < 2 || !IsAsciiDigit(value[1]))
+        {
+            return false;
+        }
+
+        if (value.Skip(1).Any(character => !(IsAsciiDigit(character) || character is ' ' or '(' or ')' or '.' or '-')))
+        {
+            return false;
+        }
+
+        var digitCount = value.Count(IsAsciiDigit);
+        return digitCount is >= 8 and <= 15;
+    }
+
+    private static bool IsAsciiDigit(char value)
+    {
+        return value is >= '0' and <= '9';
     }
 
     private sealed record ValidatedApplicationSubmission(
