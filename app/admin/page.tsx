@@ -35,15 +35,15 @@ export default async function AdminPage() {
       />
       {!isConfigured ? (
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-5 text-sm leading-7 text-[#7F1D1D]">
-          后台密码尚未配置，请先在本地环境变量中设置 ADMIN_PASSWORD。
+          后台密码尚未配置，请先完成服务端后台密码环境配置。
         </div>
       ) : isAuthed ? (
         <>
           <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <AdminStatCard label="会员待审核" note={stats?.memberMessage || "submitted / pending / under_review / need_more_info"} value={stats?.memberPending ?? "—"} />
-            <AdminStatCard label="认证待审核" note={stats?.certificationMessage || "submitted / under_review / need_more_info"} value={stats?.certificationPending ?? "—"} />
-            <AdminStatCard label="支付待处理" note={stats?.paymentMessage || "pending / manual / failed"} value={stats?.paymentPending ?? "—"} />
-            <AdminStatCard label="通知待处理" note={stats?.notificationMessage || "pending / failed"} value={stats?.notificationPending ?? "—"} />
+            <AdminStatCard label="会员待审核" note={stats?.memberMessage || "已提交 / 待处理 / 审核中 / 需补充资料"} value={stats?.memberPending ?? "—"} />
+            <AdminStatCard label="认证待审核" note={stats?.certificationMessage || "已提交 / 审核中 / 需补充资料"} value={stats?.certificationPending ?? "—"} />
+            <AdminStatCard label="支付待处理" note={stats?.paymentMessage || "待付款 / 人工确认 / 支付失败"} value={stats?.paymentPending ?? "—"} />
+            <AdminStatCard label="通知待处理" note={stats?.notificationMessage || "待发送 / 发送失败"} value={stats?.notificationPending ?? "—"} />
           </div>
           <AdminSectionCard title="优先处理入口">
             <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">

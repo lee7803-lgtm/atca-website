@@ -2,6 +2,16 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+  mergeMemberMaterialReview,
+  memberMaterialReviewLabels,
+  memberMaterialReviewStatusLabels,
+  parseMemberMaterialReview,
+  stripMemberMaterialReview,
+  type MemberMaterialReviewKey,
+  type MemberMaterialReviewState,
+  type MemberMaterialReviewStatus
+} from "@/lib/member-material-review";
 import type { ApplicationAdminRecord, ApplicationStatus } from "@/types/application";
 
 const statusOptions: Array<{ value: ApplicationStatus; label: string }> = [
@@ -21,15 +31,32 @@ const reviewTemplates = [
   { label: "建议不通过", text: "当前资料暂不符合会员申请要求，建议暂不通过。" }
 ];
 
-export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: { applicationId: string; initialAdminNote: string; initialStatus: ApplicationStatus }) {
+export function ReviewForm({
+  applicationId,
+  approveBlockers = [],
+  hiddenAdminNoteSuffix = "",
+  initialAdminNote,
+  initialStatus
+}: {
+  applicationId: string;
+  approveBlockers?: string[];
+  hiddenAdminNoteSuffix?: string;
+  initialAdminNote: string;
+  initialStatus: ApplicationStatus;
+}) {
   const router = useRouter();
   const [status, setStatus] = useState<ApplicationStatus>(initialStatus);
-  const [adminNote, setAdminNote] = useState(initialAdminNote);
+  const [adminNote, setAdminNote] = useState(stripMemberMaterialReview(initialAdminNote));
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const save = async () => {
+    if (status === "approved" && approveBlockers.length > 0) {
+      setMessageTone("error");
+      setMessage(`暂不能复审通过：${approveBlockers.join("；")}。`);
+      return;
+    }
     if (status === "need_more_info" && !adminNote.trim()) {
       setMessageTone("error");
       setMessage("请填写需要申请人补充或修正的资料说明。");
@@ -42,7 +69,7 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
       const response = await fetch(`/api/admin/applications/${applicationId}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ status, adminNote })
+        body: JSON.stringify({ status, adminNote: [adminNote.trim(), hiddenAdminNoteSuffix.trim()].filter(Boolean).join("\n\n") })
       });
       const result = (await response.json()) as { success: boolean; message?: string };
 
@@ -71,7 +98,7 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">当前状态</span>
           <select className="form-input" value={status} onChange={(event) => setStatus(event.target.value as ApplicationStatus)}>
-            {statusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
+            {statusOptions.map((item) => <option disabled={item.value === "approved" && approveBlockers.length > 0} key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <label className="grid gap-3">
@@ -96,8 +123,180 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
           {message}
         </div>
       ) : null}
+      {approveBlockers.length > 0 ? (
+        <div className="mt-5 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#7F1D1D]">
+          复审通过暂不可用：{approveBlockers.join("；")}。
+        </div>
+      ) : null}
       <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
         {isSaving ? "正在保存..." : "保存审核结果"}
+      </button>
+    </section>
+  );
+}
+
+export function MemberMaterialReviewField({
+  adminNote,
+  applicationId,
+  currentStatus,
+  disabled,
+  disabledReason,
+  itemKey,
+  review
+}: {
+  adminNote: string;
+  applicationId: string;
+  currentStatus: ApplicationStatus;
+  disabled: boolean;
+  disabledReason?: string;
+  itemKey: MemberMaterialReviewKey;
+  review: MemberMaterialReviewState;
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState<MemberMaterialReviewStatus>(review[itemKey].status);
+  const [note, setNote] = useState(review[itemKey].note);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const save = async () => {
+    const currentReview = parseMemberMaterialReview(adminNote);
+    const nextReview: MemberMaterialReviewState = {
+      ...currentReview,
+      [itemKey]: { status, note: note.trim() }
+    };
+    setIsSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/applications/${applicationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_member_material_review",
+          status: currentStatus,
+          adminNote: mergeMemberMaterialReview(adminNote, nextReview)
+        })
+      });
+      const result = (await response.json()) as { success: boolean; message?: string };
+      if (!response.ok || !result.success) {
+        setMessage(result.message || "资料审核状态未能保存。");
+        return;
+      }
+      setMessage("已保存");
+      router.refresh();
+    } catch {
+      setMessage("资料审核状态暂时无法保存。");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="grid gap-3 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-porcelain">{memberMaterialReviewLabels[itemKey]}审核状态</span>
+        <select className="form-input" disabled={disabled || isSaving} value={status} onChange={(event) => setStatus(event.target.value as MemberMaterialReviewStatus)}>
+          {Object.entries(memberMaterialReviewStatusLabels).map(([value, label]) => (
+            <option key={value} value={value}>{label}</option>
+          ))}
+        </select>
+      </label>
+      <label className="grid gap-2">
+        <span className="text-sm font-medium text-porcelain">审核说明</span>
+        <textarea className="form-input min-h-24 resize-y" disabled={disabled || isSaving} value={note} onChange={(event) => setNote(event.target.value)} />
+      </label>
+      {disabled && disabledReason ? <p className="text-sm leading-6 text-[#7F1D1D]">{disabledReason}</p> : null}
+      {message ? <p className={`text-sm ${message === "已保存" ? "text-[#8a6b3e]" : "text-[#7F1D1D]"}`}>{message}</p> : null}
+      <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={disabled || isSaving} onClick={save} type="button">
+        {isSaving ? "正在保存..." : "保存本组审核"}
+      </button>
+    </div>
+  );
+}
+
+export function MemberInitialReviewForm({
+  adminNote,
+  applicationId,
+  blockers,
+  currentStatus,
+  review
+}: {
+  adminNote: string;
+  applicationId: string;
+  blockers: string[];
+  currentStatus: ApplicationStatus;
+  review: MemberMaterialReviewState;
+}) {
+  const router = useRouter();
+  const [status, setStatus] = useState<MemberMaterialReviewStatus>(review.initialReview.status);
+  const [note, setNote] = useState(review.initialReview.note);
+  const [isSaving, setIsSaving] = useState(false);
+  const [message, setMessage] = useState("");
+
+  const save = async () => {
+    if (status === "approved" && blockers.length > 0) {
+      setMessage(`暂不能初审通过：${blockers.join("；")}。`);
+      return;
+    }
+
+    const currentReview = parseMemberMaterialReview(adminNote);
+    const nextReview: MemberMaterialReviewState = {
+      ...currentReview,
+      initialReview: { status, note: note.trim() }
+    };
+    setIsSaving(true);
+    setMessage("");
+
+    try {
+      const response = await fetch(`/api/admin/applications/${applicationId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "update_member_material_review",
+          status: currentStatus,
+          adminNote: mergeMemberMaterialReview(adminNote, nextReview)
+        })
+      });
+      const result = (await response.json()) as { success: boolean; message?: string };
+      if (!response.ok || !result.success) {
+        setMessage(result.message || "初审记录未能保存。");
+        return;
+      }
+      setMessage("已保存");
+      router.refresh();
+    } catch {
+      setMessage("初审记录暂时无法保存。");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
+      <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Initial Review</p>
+      <h2 className="mt-3 font-serif text-3xl text-porcelain">初审处理</h2>
+      <div className="mt-6 grid gap-5">
+        <label className="grid gap-3">
+          <span className="text-sm font-medium text-porcelain">初审结论</span>
+          <select className="form-input" disabled={isSaving} value={status} onChange={(event) => setStatus(event.target.value as MemberMaterialReviewStatus)}>
+            {Object.entries(memberMaterialReviewStatusLabels).map(([value, label]) => (
+              <option disabled={value === "approved" && blockers.length > 0} key={value} value={value}>{label}</option>
+            ))}
+          </select>
+        </label>
+        <label className="grid gap-3">
+          <span className="text-sm font-medium text-porcelain">初审说明</span>
+          <textarea className="form-input min-h-28 resize-y" value={note} onChange={(event) => setNote(event.target.value)} />
+        </label>
+      </div>
+      {blockers.length > 0 ? (
+        <div className="mt-5 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#7F1D1D]">
+          初审通过暂不可用：{blockers.join("；")}。
+        </div>
+      ) : null}
+      {message ? <p className={`mt-5 text-sm ${message === "已保存" ? "text-[#8a6b3e]" : "text-[#7F1D1D]"}`}>{message}</p> : null}
+      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
+        {isSaving ? "正在保存..." : "保存初审记录"}
       </button>
     </section>
   );
@@ -115,7 +314,7 @@ const memberBusinessStatusOptions: Array<{ value: MemberBusinessStatus; label: s
   { value: "revoked", label: "已撤销" }
 ];
 
-export function MemberStatusForm({ application }: { application: ApplicationAdminRecord }) {
+export function MemberStatusForm({ application, disabled = false, disabledReason = "" }: { application: ApplicationAdminRecord; disabled?: boolean; disabledReason?: string }) {
   const router = useRouter();
   const [memberValidFrom, setMemberValidFrom] = useState(application.memberValidFrom || "");
   const [memberValidUntil, setMemberValidUntil] = useState(application.memberValidUntil || "");
@@ -126,6 +325,11 @@ export function MemberStatusForm({ application }: { application: ApplicationAdmi
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const save = async () => {
+    if (disabled) {
+      setMessageTone("error");
+      setMessage(disabledReason || "复审通过后才能维护会员编号、有效期和会员业务状态。");
+      return;
+    }
     setIsSaving(true);
     setMessage("");
 
@@ -169,31 +373,34 @@ export function MemberStatusForm({ application }: { application: ApplicationAdmi
       <div className="mt-6 grid gap-5">
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">会员业务状态</span>
-          <select className="form-input" value={businessStatus} onChange={(event) => setBusinessStatus(event.target.value as MemberBusinessStatus)}>
+          <select className="form-input" disabled={disabled} value={businessStatus} onChange={(event) => setBusinessStatus(event.target.value as MemberBusinessStatus)}>
             {memberBusinessStatusOptions.map((item) => <option key={item.value} value={item.value}>{item.label}</option>)}
           </select>
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
           <label className="grid gap-3">
             <span className="text-sm font-medium text-porcelain">有效期开始</span>
-            <input className="form-input" type="date" value={memberValidFrom} onChange={(event) => setMemberValidFrom(event.target.value)} />
+            <input className="form-input" disabled={disabled} type="date" value={memberValidFrom} onChange={(event) => setMemberValidFrom(event.target.value)} />
           </label>
           <label className="grid gap-3">
             <span className="text-sm font-medium text-porcelain">有效期截止</span>
-            <input className="form-input" type="date" value={memberValidUntil} onChange={(event) => setMemberValidUntil(event.target.value)} />
+            <input className="form-input" disabled={disabled} type="date" value={memberValidUntil} onChange={(event) => setMemberValidUntil(event.target.value)} />
           </label>
         </div>
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">状态备注</span>
-          <textarea className="form-input min-h-24 resize-y" value={memberStatusNote} onChange={(event) => setMemberStatusNote(event.target.value)} />
+          <textarea className="form-input min-h-24 resize-y" disabled={disabled} value={memberStatusNote} onChange={(event) => setMemberStatusNote(event.target.value)} />
         </label>
       </div>
+      {disabled && disabledReason ? (
+        <div className="mt-5 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#7F1D1D]">{disabledReason}</div>
+      ) : null}
       {message ? (
         <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>
           {message}
         </div>
       ) : null}
-      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
+      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={disabled || isSaving} onClick={save} type="button">
         {isSaving ? "正在保存..." : "保存会员状态"}
       </button>
     </section>

@@ -2,7 +2,7 @@ import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationReview } from "@/lib/api/admin-applications";
 import { recordMemberApplicationReviewNotification } from "@/lib/notifications/workflows";
-import { getApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
+import { getApplicationById, SupabaseConfigError, SupabaseRequestError, updateApplicationAdminNote } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/application";
 
 const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "under_review", "need_more_info", "approved", "rejected", "archived"];
@@ -46,12 +46,43 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   const adminCookie = getAdminCookie(request);
   if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
-  let body: { status?: ApplicationStatus; adminNote?: string };
+  let body: { action?: "update_member_material_review"; status?: ApplicationStatus; adminNote?: string };
 
   try {
-    body = (await request.json()) as { status?: ApplicationStatus; adminNote?: string };
+    body = (await request.json()) as { action?: "update_member_material_review"; status?: ApplicationStatus; adminNote?: string };
   } catch {
     return NextResponse.json({ success: false, message: "更新资料格式不正确。" }, { status: 400 });
+  }
+
+  if (body.action === "update_member_material_review") {
+    try {
+      const actor = getAdminSession(adminCookie) || undefined;
+      const application = await updateApplicationAdminNote(params.id, {
+        adminNote: body.adminNote?.trim() || "",
+        actorEmail: actor?.email || "",
+        actorName: actor?.displayName || "",
+        actorRole: actor?.role || "",
+        actorType: actor?.actorType || "legacy_admin",
+        ipAddress: getRequestIp(request),
+        userAgent: request.headers.get("user-agent") || ""
+      });
+
+      if (!application) {
+        return NextResponse.json({ success: false, message: "未找到申请记录。" }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true, application });
+    } catch (error) {
+      if (error instanceof SupabaseConfigError) {
+        return NextResponse.json({ success: false, message: "会员资料审核服务尚未完成系统配置，请联系网站管理员处理。" }, { status: 500 });
+      }
+
+      if (error instanceof SupabaseRequestError) {
+        return NextResponse.json({ success: false, message: "无法保存资料审核记录，请稍后重试。" }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: false, message: "资料审核保存服务暂时不可用。" }, { status: 500 });
+    }
   }
 
   if (!body.status || !validStatuses.includes(body.status)) {

@@ -41,11 +41,11 @@ export function AdminLoginForm() {
     <form className="mt-8 max-w-lg rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submit}>
       <label className="grid gap-3">
         <span className="text-sm font-medium text-porcelain">管理员邮箱</span>
-        <input className="form-input" type="email" value={email} onChange={(event) => setEmail(event.target.value)} />
+        <input className="form-input" type="email" autoComplete="username" value={email} onChange={(event) => setEmail(event.target.value)} />
       </label>
       <label className="mt-5 grid gap-3">
         <span className="text-sm font-medium text-porcelain">后台密码</span>
-        <input className="form-input" type="password" value={password} onChange={(event) => setPassword(event.target.value)} required />
+        <input className="form-input" type="password" autoComplete="current-password" value={password} onChange={(event) => setPassword(event.target.value)} required />
       </label>
       {message ? <div className="mt-5 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]">{message}</div> : null}
       <button className="mt-6 rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">

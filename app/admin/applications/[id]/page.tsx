@@ -3,7 +3,7 @@ import type { ReactNode } from "react";
 import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
-import { MemberStatusForm, ReviewForm } from "./ReviewForm";
+import { MemberInitialReviewForm, MemberMaterialReviewField, MemberStatusForm, ReviewForm } from "./ReviewForm";
 import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/AdminRelatedRecords";
 import { AdminContactCorrectionPanel } from "@/components/AdminContactCorrectionPanel";
 import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
@@ -14,6 +14,7 @@ import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-
 import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
 import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
+import { getMemberMaterialReviewBlockers, memberMaterialReviewKeys, memberMaterialReviewLabels, mergeMemberMaterialReview, parseMemberMaterialReview, stripMemberMaterialReview } from "@/lib/member-material-review";
 import { formatApplicationStatus } from "@/lib/status-labels";
 import { createMasterDataEntry } from "@/lib/master-data";
 import type { NotificationLogRecord } from "@/lib/notifications/types";
@@ -121,8 +122,24 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
     notificationMessage = error instanceof NotificationTableMissingError ? "通知记录表尚未配置；申请详情主内容不受影响。" : "关联通知记录暂时无法读取；申请详情主内容不受影响。";
   }
 
+  const materialReview = parseMemberMaterialReview(application.adminNote);
+  const materialReviewMarker = mergeMemberMaterialReview("", materialReview);
+  const visibleAdminNote = stripMemberMaterialReview(application.adminNote);
+  const materialReviewBlockers = getMemberMaterialReviewBlockers(materialReview);
+  const initialReviewApproved = materialReview.initialReview.status === "approved";
+  const hasPaymentOrder = relatedPayments.length > 0;
+  const hasPaidPayment = relatedPayments.some((order) => order.status === "paid");
+  const paymentOrderBlockers = initialReviewApproved ? [] : ["初审尚未通过"];
+  const finalReviewBlockers = [
+    ...(!initialReviewApproved ? ["初审尚未通过"] : []),
+    ...(!hasPaymentOrder ? ["尚未生成支付订单"] : []),
+    ...(!hasPaidPayment ? ["等待财务确认"] : [])
+  ];
+  const memberMaintenanceBlocked = application.status !== "approved" && !application.memberNo;
+  const memberMaintenanceReason = memberMaintenanceBlocked ? "复审通过后才能生成正式会员编号，并维护有效期和会员业务状态。" : "";
+
   return (
-    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
+    <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/applications">返回申请管理</Link>
         <div className="flex flex-col gap-3 sm:flex-row">
@@ -135,25 +152,57 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
             <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
-            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-              <StageGuideItem label="统一状态" value={formatApplicationStatus(application)} />
+            <div className="mt-5 grid gap-3">
+              <StageGuideItem label="申请编号" value={application.applicationNo} />
               <StageGuideItem label="申请类型" value={typeText[application.applicationType]} />
-              <StageGuideItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
+              <StageGuideItem label="申请状态" value={formatApplicationStatus(application)} />
+              <StageGuideItem label="记录治理状态" value={formatRecordDisposition(application.recordDisposition)} />
+              <StageGuideItem label="会员编号" value={application.memberNo || "复审通过后生成"} />
               <StageGuideItem label="付款状态" value={formatPaymentFlowStatus(relatedPayments)} />
+              <StageGuideItem label="通知状态" value={formatNotificationFlowStatus(relatedNotifications, notificationMessage)} />
             </div>
           </section>
           <MemberStageCard guide={getMemberStageGuide(application)} />
-          <DetailSection id="basic-info" title="申请人基础资料">
-            <DetailItem label="申请编号" value={application.applicationNo} />
-            <DetailItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
-            <DetailItem label="申请类型" value={typeText[application.applicationType]} />
-            <DetailItem label="当前状态" value={formatApplicationStatus(application)} />
+          <DetailSection id="basic-info" title="基础身份资料">
             <DetailItem label="姓名 / 机构名称" value={application.name} />
             <DetailItem label="联系人" value={application.contactName || application.name} />
             <DetailItem label="国家 / 地区" value={application.country} />
             <DetailItem label="机构类型" value={application.organizationType || "不适用"} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={false} itemKey="identity" review={materialReview} />
+          </DetailSection>
+          <DetailSection title="联系方式资料">
+            <DetailItem label="手机 / WhatsApp" value={application.phone} />
+            <DetailItem label="邮箱" value={application.email} />
+            <details className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+              <summary className="cursor-pointer text-sm font-semibold text-[#7F1D1D]">修改 / 更正联系方式</summary>
+              <div className="mt-4">
+                <AdminContactCorrectionPanel
+                  actionUrl={`/api/admin/applications/${application.id}/contact`}
+                  disposition={application.recordDisposition}
+                  fields={[
+                    { key: "name", label: "姓名 / 机构名称", required: true },
+                    { key: "contactName", label: "联系人", required: true },
+                    { key: "phone", label: "手机 / WhatsApp", required: true },
+                    { key: "email", label: "邮箱", required: true, type: "email" },
+                    { key: "country", label: "国家 / 地区", required: true, optionKind: "country" },
+                    { key: "organizationType", label: "机构类型", optionKind: "organizationType" }
+                  ]}
+                  title="联系方式更正"
+                  values={{
+                    name: application.name,
+                    contactName: application.contactName || application.name,
+                    phone: application.phone,
+                    email: application.email,
+                    country: application.country,
+                    organizationType: application.organizationType || ""
+                  }}
+                />
+              </div>
+            </details>
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.identity.status !== "approved"} disabledReason="请先通过基础身份资料审核。" itemKey="contact" review={materialReview} />
           </DetailSection>
           <DetailSection title="会员类型与申请信息">
+            <DetailItem label="申请类型" value={typeText[application.applicationType]} />
             <DetailItem label="是否接收通知" value={application.receiveNotice ? "是" : "否"} />
             <DetailItem label="资料真实性确认" value={application.truthConfirmed ? "已确认" : "未确认"} />
             <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
@@ -161,41 +210,16 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
             <DetailItem label="提交时间" value={formatDateTime(application.createdAt)} />
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
-            <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
-            <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
+            <DetailItem label="个人简介 / 机构简介" value={application.profile} />
+            <DetailItem label="申请理由 / 合作意向" value={application.purpose} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.contact.status !== "approved"} disabledReason="请先通过联系方式资料审核。" itemKey="membership" review={materialReview} />
           </DetailSection>
-          <DetailSection title="联系方式与可维护更正入口">
-            <DetailItem label="手机 / WhatsApp" value={application.phone} />
-            <DetailItem label="邮箱" value={application.email} />
-            <div className="md:col-span-2">
-              <AdminContactCorrectionPanel
-                actionUrl={`/api/admin/applications/${application.id}/contact`}
-                disposition={application.recordDisposition}
-                fields={[
-                  { key: "name", label: "姓名 / 机构名称", required: true },
-                  { key: "contactName", label: "联系人", required: true },
-                  { key: "phone", label: "手机 / WhatsApp", required: true },
-                  { key: "email", label: "邮箱", required: true, type: "email" },
-                  { key: "country", label: "国家 / 地区", required: true, optionKind: "country" },
-                  { key: "organizationType", label: "机构类型", optionKind: "organizationType" }
-                ]}
-                values={{
-                  name: application.name,
-                  contactName: application.contactName || application.name,
-                  phone: application.phone,
-                  email: application.email,
-                  country: application.country,
-                  organizationType: application.organizationType || ""
-                }}
-              />
-            </div>
-          </DetailSection>
-          <DetailSection title="基础资料">
+          <DetailSection title="引荐人 / 所属宫观 / 机构信息">
             <DetailItem label="引荐人 / 推荐人" value={application.referrerName || "未填写"} />
             <DetailItem label="引荐人联系方式" value={application.referrerContact || "未填写"} />
-            <DetailItem className="md:col-span-2" label="推荐说明" value={application.referrerNote || "未填写"} />
+            <DetailItem label="推荐说明" value={application.referrerNote || "未填写"} />
             {application.referrerName ? (
-              <form action={collectMemberMasterDataAction} className="md:col-span-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+              <form action={collectMemberMasterDataAction} className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
                 <input name="name" type="hidden" value={application.referrerName} />
                 <input name="contact" type="hidden" value={application.referrerContact} />
                 <input name="note" type="hidden" value={`来自会员申请 ${application.applicationNo}。${application.referrerNote || ""}`} />
@@ -204,39 +228,53 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
                 </button>
               </form>
             ) : null}
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.membership.status !== "approved"} disabledReason="请先通过会员类型与申请信息审核。" itemKey="referral" review={materialReview} />
           </DetailSection>
-          <DetailSection title="材料 / 附件信息">
+          <DetailSection title="上传材料 / 附件资料">
             <DetailItem label="附件状态" value="会员申请当前未启用独立附件上传；如需材料补充，请通过“需补充资料”流程引导申请人在线补交。" />
             <DetailItem label="补充资料" value={application.supplementSubmittedAt ? `已补充：${formatDateTime(application.supplementSubmittedAt)}` : "暂无补充资料记录"} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.referral.status !== "approved"} disabledReason="请先通过引荐人 / 所属宫观 / 机构信息审核。" itemKey="materials" review={materialReview} />
           </DetailSection>
+          {memberMaterialReviewKeys.some((key) => materialReview[key].status === "need_more_info") ? (
+            <DetailSection title="补充资料要求">
+              <DetailItem label="当前需补充项目" value={memberMaterialReviewKeys.filter((key) => materialReview[key].status === "need_more_info").map((key) => memberMaterialReviewLabels[key]).join("、") || "暂无"} />
+              <DetailItem label="补充说明" value={memberMaterialReviewKeys.map((key) => materialReview[key].note).filter(Boolean).join("\n") || "请在对应资料组填写具体补充说明。"} />
+            </DetailSection>
+          ) : null}
           <DetailSection title="补充说明">
             <DetailItem label="会员有效期" value={formatMemberValidityRange(application)} />
             <DetailItem label="统一状态" value={formatMemberValidityStatus(application)} />
             <DetailItem label="最近续期时间" value={application.lastRenewedAt ? formatDateTime(application.lastRenewedAt) : "未记录"} />
-            <DetailItem className="md:col-span-2" label="个人简介 / 机构简介" value={application.profile} />
-            <DetailItem className="md:col-span-2" label="申请理由 / 合作意向" value={application.purpose} />
+            <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
+            <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
           </DetailSection>
           <DetailSection id="review-notes" title="审核备注">
-            <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />
-            <DetailItem className="md:col-span-2" label="状态备注" value={application.memberStatusNote || "暂无备注"} />
+            <DetailItem label="审核备注" value={visibleAdminNote || "暂无备注"} />
+            <DetailItem label="状态备注" value={application.memberStatusNote || "暂无备注"} />
           </DetailSection>
           <DetailSection id="review-processing" title="初审处理区">
-            <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
+            <MemberInitialReviewForm adminNote={application.adminNote} applicationId={application.id} blockers={materialReviewBlockers} currentStatus={application.status} review={materialReview} />
           </DetailSection>
           <DetailSection id="payment-processing" title="付费通知 / 支付订单区">
-            <p className="mb-5 text-sm leading-7 text-[#5f5b52]">初审通过后生成银行电汇支付订单，申请人通过申请查询页查看付款说明并上传银行回执。</p>
-            <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
+            <p className="text-sm leading-7 text-[#5f5b52]">付款方式：银行电汇 / Bank Transfer。初审通过后才能生成支付订单。</p>
+            {paymentOrderBlockers.length > 0 ? (
+              <BlockingNotice items={paymentOrderBlockers} title="暂不能生成支付订单" />
+            ) : (
+              <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
+            )}
           </DetailSection>
-          <DetailSection title="财务付款审核区">
-            <DetailItem label="付款闭环" value={formatPaymentFlowStatus(relatedPayments)} />
-            <DetailItem label="复审提示" value={relatedPayments.some((order) => order.status === "paid") ? "付款已确认，可进入复审或会员状态维护。" : "待银行电汇付款凭证通过并确认收款后，再进入复审。"} />
-          </DetailSection>
+          {hasPaymentOrder ? (
+            <DetailSection title="财务付款审核区">
+              <DetailItem label="付款闭环" value={formatPaymentFlowStatus(relatedPayments)} />
+              <DetailItem label="复审提示" value={hasPaidPayment ? "付款已确认，可进入复审。" : "等待财务确认。支付未确认前，复审处理区不可通过。"} />
+            </DetailSection>
+          ) : null}
           <DetailSection title="复审处理区">
-            <DetailItem label="复审说明" value="当前会员复审仍沿用审核状态和后台备注处理；财务确认后由秘书处在初审处理区推进通过、驳回、补资料或归档。" />
+            <ReviewForm approveBlockers={finalReviewBlockers} hiddenAdminNoteSuffix={materialReviewMarker} applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
           </DetailSection>
           <MemberValidityPanel application={application} />
           <DetailSection id="member-status-processing" title="会员编号 / 有效期 / 状态维护">
-            <MemberStatusForm application={application} />
+            <MemberStatusForm application={application} disabled={memberMaintenanceBlocked} disabledReason={memberMaintenanceReason} />
           </DetailSection>
           <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
           <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
@@ -268,7 +306,7 @@ function formatPaymentFlowStatus(orders: PaymentOrderListItem[]) {
 function MemberStageCard({ guide }: { guide: StageGuide }) {
   return (
     <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 shadow-aureate sm:p-7">
-      <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
+      <div className="grid gap-5">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Current Stage</p>
           <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">{guide.stage}</h2>
@@ -278,7 +316,7 @@ function MemberStageCard({ guide }: { guide: StageGuide }) {
           {guide.anchorLabel}
         </a>
       </div>
-      <div className="mt-5 grid gap-4 md:grid-cols-2">
+      <div className="mt-5 grid gap-4">
         <StageGuideItem label="下一步建议动作" value={guide.nextAction} />
         <StageGuideItem label="风险或阻断提示" value={guide.risk} />
       </div>
@@ -293,6 +331,35 @@ function StageGuideItem({ label, value }: { label: string; value: string }) {
       <p className="mt-2 break-words text-sm leading-7 text-porcelain">{value}</p>
     </div>
   );
+}
+
+function BlockingNotice({ items, title }: { items: string[]; title: string }) {
+  return (
+    <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#7F1D1D]">
+      <p className="font-semibold">{title}</p>
+      <ul className="mt-2 list-disc space-y-1 pl-5">
+        {items.map((item) => <li key={item}>{item}</li>)}
+      </ul>
+    </div>
+  );
+}
+
+function formatRecordDisposition(disposition: ApplicationAdminRecord["recordDisposition"]) {
+  const labels: Record<ApplicationAdminRecord["recordDisposition"], string> = {
+    normal: "正常记录",
+    test: "测试记录",
+    archived: "归档记录",
+    voided: "作废记录"
+  };
+  return labels[disposition] || "正常记录";
+}
+
+function formatNotificationFlowStatus(logs: NotificationLogRecord[], message: string) {
+  if (message) return message;
+  if (logs.some((log) => log.sendStatus === "failed")) return "存在发送失败通知";
+  if (logs.some((log) => log.sendStatus === "pending")) return "存在待发送通知";
+  if (logs.length > 0) return "已有通知记录";
+  return "暂无关联通知";
 }
 
 function getMemberStageGuide(application: ApplicationAdminRecord): StageGuide {
@@ -410,7 +477,7 @@ function DetailSection({ children, id, title }: { children: ReactNode; id?: stri
   return (
     <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-7" id={id}>
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
-      <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
+      <div className="mt-5 grid gap-4">{children}</div>
     </section>
   );
 }

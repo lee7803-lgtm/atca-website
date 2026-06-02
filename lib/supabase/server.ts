@@ -1399,6 +1399,71 @@ export async function updateApplicationReview(
   return updated;
 }
 
+export async function updateApplicationAdminNote(
+  id: string,
+  values: {
+    adminNote: string;
+    actorEmail?: string;
+    actorName?: string;
+    actorRole?: string;
+    actorType?: string;
+    ipAddress?: string;
+    userAgent?: string;
+  }
+) {
+  const before = await getApplicationById(id);
+  if (!before) return null;
+
+  const config = getSupabaseConfig();
+  const now = new Date().toISOString();
+  const response = await fetch(`${config.url}/rest/v1/applications?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: getHeaders(config, "return=representation"),
+    body: JSON.stringify({
+      admin_note: values.adminNote,
+      updated_at: now
+    })
+  });
+
+  if (!response.ok) {
+    throw new SupabaseRequestError(await readSupabaseError(response), response.status);
+  }
+
+  const rows = (await response.json()) as SupabaseApplicationRow[];
+  const updated = rows[0] ? toApplicationAdminRecord(rows[0]) : null;
+  if (updated) {
+    await writeAuditLog({
+      action: "member_application.material_review_update",
+      resourceType: "application",
+      resourceId: updated.id,
+      resourceNo: updated.applicationNo,
+      actorEmail: values.actorEmail || "",
+      actorName: values.actorName || "",
+      actorRole: values.actorRole || "",
+      actorType: values.actorType || "legacy_admin",
+      beforeData: {
+        id: before.id,
+        applicationNo: before.applicationNo,
+        status: before.status,
+        adminNote: before.adminNote,
+        updatedAt: before.updatedAt
+      },
+      afterData: {
+        id: updated.id,
+        applicationNo: updated.applicationNo,
+        status: updated.status,
+        adminNote: updated.adminNote,
+        updatedAt: updated.updatedAt
+      },
+      summary: `会员申请 ${updated.applicationNo} 资料审核记录已更新。`,
+      ipAddress: values.ipAddress || "",
+      userAgent: values.userAgent || ""
+    });
+  }
+
+  return updated;
+}
+
 function getDefaultMemberValidity(now: Date, memberValidFrom?: string | null, memberValidUntil?: string | null) {
   const approvedDate = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate()));
   const validUntilDate = new Date(approvedDate);

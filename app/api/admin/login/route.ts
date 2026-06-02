@@ -49,7 +49,7 @@ export async function POST(request: Request) {
     return response;
   } catch (error) {
     if (error instanceof AdminConfigError) {
-      return NextResponse.json({ success: false, message: "后台密码尚未配置，请先设置 ADMIN_PASSWORD。" }, { status: 500 });
+      return NextResponse.json({ success: false, message: "后台密码尚未配置，请先完成服务端后台密码环境配置。" }, { status: 500 });
     }
 
     return NextResponse.json({ success: false, message: "后台登录服务暂时不可用。" }, { status: 500 });
