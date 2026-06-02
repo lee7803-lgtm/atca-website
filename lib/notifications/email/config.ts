@@ -176,6 +176,8 @@ export function isValidEmailAddress(value?: string) {
 function getEmailAllowedTestRecipientsEnv() {
   return (
     process.env.ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS ||
+    process.env.EMAIL_ALLOWED_TEST_RECIPIENTS ||
+    process.env.ALLOWED_TEST_RECIPIENTS ||
     process.env.ITCA_RESEND_ALLOWED_TEST_RECIPIENTS ||
     process.env.RESEND_ALLOWED_TEST_RECIPIENTS ||
     ""

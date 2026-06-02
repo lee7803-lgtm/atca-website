@@ -110,6 +110,9 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
         var country = Trim(request.Country);
         var profile = Trim(request.Profile);
         var purpose = Trim(request.Purpose);
+        var referrerName = Trim(request.ReferrerName);
+        var referrerContact = Trim(request.ReferrerContact);
+        var referrerNote = Trim(request.ReferrerNote);
         var organizationType = Trim(request.OrganizationType);
         var honeypot = Trim(request.CompanyWebsite) + Trim(request.WebsiteUrl);
 
@@ -238,6 +241,9 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
             country,
             profile,
             purpose,
+            referrerName,
+            referrerContact,
+            referrerNote,
             string.IsNullOrWhiteSpace(organizationType) ? null : organizationType,
             request.ReceiveNotice,
             request.TruthConfirmed,
@@ -296,6 +302,9 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
               organization_type,
               profile,
               purpose,
+              referrer_name,
+              referrer_contact,
+              referrer_note,
               receive_notice,
               truth_confirmed,
               terms_accepted,
@@ -319,6 +328,9 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
               @organizationType,
               @profile,
               @purpose,
+              @referrerName,
+              @referrerContact,
+              @referrerNote,
               @receiveNotice,
               @truthConfirmed,
               @termsAccepted,
@@ -342,6 +354,9 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
         command.Parameters.AddWithValue("organizationType", (object?)values.OrganizationType ?? DBNull.Value);
         command.Parameters.AddWithValue("profile", values.Profile);
         command.Parameters.AddWithValue("purpose", values.Purpose);
+        command.Parameters.AddWithValue("referrerName", values.ReferrerName);
+        command.Parameters.AddWithValue("referrerContact", values.ReferrerContact);
+        command.Parameters.AddWithValue("referrerNote", values.ReferrerNote);
         command.Parameters.AddWithValue("receiveNotice", values.ReceiveNotice);
         command.Parameters.AddWithValue("truthConfirmed", values.TruthConfirmed);
         command.Parameters.AddWithValue("termsAccepted", values.TermsAccepted);
@@ -374,6 +389,8 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
     private static HashSet<string> GetAllowedTestRecipientEmails()
     {
         var configured = Environment.GetEnvironmentVariable("ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS")
+            ?? Environment.GetEnvironmentVariable("EMAIL_ALLOWED_TEST_RECIPIENTS")
+            ?? Environment.GetEnvironmentVariable("ALLOWED_TEST_RECIPIENTS")
             ?? Environment.GetEnvironmentVariable("ITCA_RESEND_ALLOWED_TEST_RECIPIENTS")
             ?? Environment.GetEnvironmentVariable("RESEND_ALLOWED_TEST_RECIPIENTS")
             ?? string.Empty;
@@ -443,6 +460,9 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
         string Country,
         string Profile,
         string Purpose,
+        string ReferrerName,
+        string ReferrerContact,
+        string ReferrerNote,
         string? OrganizationType,
         bool ReceiveNotice,
         bool TruthConfirmed,

@@ -834,6 +834,7 @@ static async Task<IResult> SubmitApplicationAsync(Func<Task<ApplicationSubmissio
         {
             success = false,
             message = error.Message,
+            errorType = "validation_failed",
             fieldErrors = error.FieldErrors
         });
     }
@@ -843,7 +844,8 @@ static async Task<IResult> SubmitApplicationAsync(Func<Task<ApplicationSubmissio
             new
             {
                 success = false,
-                message = "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。"
+                message = "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。",
+                errorType = "duplicate_application"
             },
             statusCode: StatusCodes.Status409Conflict
         );
@@ -855,6 +857,7 @@ static async Task<IResult> SubmitApplicationAsync(Func<Task<ApplicationSubmissio
             {
                 success = false,
                 message = "申请提交服务尚未完成数据库配置，请联系协会秘书处。",
+                errorType = "dotnet_submit_failed",
                 missingConfiguration = error.EnvironmentVariable
             },
             statusCode: StatusCodes.Status503ServiceUnavailable
@@ -866,7 +869,8 @@ static async Task<IResult> SubmitApplicationAsync(Func<Task<ApplicationSubmissio
             new
             {
                 success = false,
-                message = "申请提交服务的数据库连接配置格式无效。"
+                message = "申请提交服务的数据库连接配置格式无效。",
+                errorType = "dotnet_submit_failed"
             },
             statusCode: StatusCodes.Status503ServiceUnavailable
         );
@@ -877,7 +881,8 @@ static async Task<IResult> SubmitApplicationAsync(Func<Task<ApplicationSubmissio
             new
             {
                 success = false,
-                message = "申请提交服务暂时无法连接数据库，请稍后再试。"
+                message = "申请提交服务暂时无法连接数据库，请稍后再试。",
+                errorType = "dotnet_submit_failed"
             },
             statusCode: StatusCodes.Status503ServiceUnavailable
         );

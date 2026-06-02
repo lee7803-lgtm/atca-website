@@ -112,6 +112,7 @@ export async function POST(request: Request) {
     const response: ApplicationSubmitResponse = {
       success: false,
       message: "申请资料未通过基础校验，请补充或修正后重新提交。",
+      errorType: "validation_failed",
       fieldErrors
     };
 
@@ -128,7 +129,8 @@ export async function POST(request: Request) {
       if (existingOpenApplication) {
         const response: ApplicationSubmitResponse = {
           success: false,
-          message: "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。"
+          message: "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。",
+          errorType: "duplicate_application"
         };
         return NextResponse.json(response, { status: 409 });
       }
@@ -192,7 +194,8 @@ export async function POST(request: Request) {
     if (error instanceof SupabaseRequestError) {
       const response: ApplicationSubmitResponse = {
         success: false,
-        message: `申请资料未能写入数据库（后端状态 ${error.status}），系统将尝试备用提交服务；如仍失败请联系协会秘书处。`
+        message: "申请提交服务暂时无法写入资料，系统将尝试备用提交服务；如仍失败请联系协会秘书处。",
+        errorType: "next_submit_failed"
       };
 
       return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });
@@ -200,7 +203,8 @@ export async function POST(request: Request) {
 
     const response: ApplicationSubmitResponse = {
       success: false,
-      message: "申请提交服务暂时不可用，请稍后重试。"
+      message: "申请提交服务暂时不可用，请稍后重试。",
+      errorType: "next_submit_failed"
     };
 
     return NextResponse.json(response, { status: 500 });

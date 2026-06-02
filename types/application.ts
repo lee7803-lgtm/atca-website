@@ -107,6 +107,7 @@ export type ApplicationSubmitResponse =
   | {
       success: false;
       message: string;
+      errorType?: "validation_failed" | "duplicate_application" | "next_submit_failed" | "dotnet_submit_failed" | "all_submit_paths_failed";
       fieldErrors?: Record<string, string>;
     };
 
