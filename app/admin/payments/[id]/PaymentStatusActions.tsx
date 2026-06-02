@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminTemplateButtons } from "@/components/admin/AdminTemplateButtons";
 import type { PaymentStatus } from "@/lib/api/payments";
 
 type ActionStatus = "manual_review" | "paid" | "cancelled";
@@ -11,6 +12,13 @@ const actionLabels: Record<ActionStatus, string> = {
   paid: "确认已收款",
   cancelled: "标记为已取消"
 };
+
+const paymentStatusNoteTemplates = [
+  { label: "人工复核", text: "付款金额或付款信息与订单不一致，需人工复核。" },
+  { label: "确认收款", text: "已收到银行电汇付款凭证，金额与订单基本匹配，建议确认收款。" },
+  { label: "取消订单", text: "该支付订单已取消，原因已由后台记录。" },
+  { label: "财务确认", text: "已完成财务确认，可进入后续复审流程。" }
+];
 
 function getAllowedActions(status: PaymentStatus): ActionStatus[] {
   if (status === "pending_payment") return ["manual_review", "paid", "cancelled"];
@@ -66,6 +74,9 @@ export function PaymentStatusActions({ orderId, status }: { orderId: string; sta
         <span className="text-sm font-medium text-porcelain">后台备注</span>
         <textarea className="form-input min-h-24 resize-y" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />
       </label>
+      <div className="mt-3">
+        <AdminTemplateButtons disabled={Boolean(isSaving)} onSelect={setAdminNote} templates={paymentStatusNoteTemplates} />
+      </div>
       {actions.length > 0 ? (
         <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           {actions.map((action) => (

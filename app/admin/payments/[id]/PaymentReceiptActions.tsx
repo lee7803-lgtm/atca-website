@@ -2,6 +2,14 @@
 
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { AdminTemplateButtons } from "@/components/admin/AdminTemplateButtons";
+
+const receiptReviewTemplates = [
+  { label: "确认收款", text: "已收到银行电汇付款凭证，金额与订单基本匹配，建议确认收款。" },
+  { label: "凭证不清晰", text: "付款凭证信息不清晰，需申请人重新上传银行回执。" },
+  { label: "信息不一致", text: "付款金额或付款信息与订单不一致，需人工复核。" },
+  { label: "进入复审", text: "已完成财务确认，可进入后续复审流程。" }
+];
 
 export function PaymentReceiptActions({ orderId, hasReceipt, reviewStatus }: { orderId: string; hasReceipt: boolean; reviewStatus: string }) {
   const router = useRouter();
@@ -69,6 +77,9 @@ export function PaymentReceiptActions({ orderId, hasReceipt, reviewStatus }: { o
         <span className="text-sm font-medium text-porcelain">财务审核备注</span>
         <textarea className="form-input min-h-24 resize-y" value={note} onChange={(event) => setNote(event.target.value)} />
       </label>
+      <div className="mt-3">
+        <AdminTemplateButtons disabled={!hasReceipt || Boolean(isSaving)} onSelect={setNote} templates={receiptReviewTemplates} />
+      </div>
       <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
         <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" disabled={!hasReceipt || Boolean(isSaving)} onClick={() => submit("approve")} type="button">
           {isSaving === "approve" ? "正在确认..." : "确认已收款"}

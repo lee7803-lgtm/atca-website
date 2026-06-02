@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { generateApplicationNo } from "@/lib/application-number";
+import { isEmailAllowedTestRecipient } from "@/lib/notifications/email/config";
 import { recordMemberApplicationSubmittedNotification } from "@/lib/notifications/workflows";
 import { findOpenApplicationByContact, generateItcaNumber, insertApplication, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { hasValidLength, organizationNameLengthMessage, personNameLengthMessage } from "@/lib/validation/names";
@@ -118,17 +119,19 @@ export async function POST(request: Request) {
   }
 
   try {
-    const existingOpenApplication = await findOpenApplicationByContact({
-      applicationType: values.applicationType,
-      email: values.email,
-      phone: values.phone
-    });
-    if (existingOpenApplication) {
-      const response: ApplicationSubmitResponse = {
-        success: false,
-        message: "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。"
-      };
-      return NextResponse.json(response, { status: 409 });
+    if (!isEmailAllowedTestRecipient(values.email)) {
+      const existingOpenApplication = await findOpenApplicationByContact({
+        applicationType: values.applicationType,
+        email: values.email,
+        phone: values.phone
+      });
+      if (existingOpenApplication) {
+        const response: ApplicationSubmitResponse = {
+          success: false,
+          message: "系统检测到您已提交过相关申请，请使用申请编号查询进度。如需补充或更正资料，请联系协会秘书处。"
+        };
+        return NextResponse.json(response, { status: 409 });
+      }
     }
 
     const nowDate = new Date();

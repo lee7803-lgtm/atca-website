@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { AdminTemplateButtons } from "@/components/admin/AdminTemplateButtons";
 import type { PaymentOrderDetail } from "@/lib/api/payments";
 
 type CreatePaymentOrderFormProps = {
@@ -21,6 +22,12 @@ type CreatePaymentOrderResponse =
       success: false;
       message: string;
     };
+
+const paymentOrderNoteTemplates = [
+  { label: "银行电汇", text: "已按当前申请流程生成银行电汇支付订单，待申请人上传银行回执。" },
+  { label: "人工复核", text: "付款金额或付款信息需人工复核，请财务确认后再进入后续流程。" },
+  { label: "后续复审", text: "支付订单用于当前申请审核流程，确认收款后仍需按流程完成复审。" }
+];
 
 export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成支付订单" }: CreatePaymentOrderFormProps) {
   const [amount, setAmount] = useState("");
@@ -101,6 +108,7 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
           后台备注
           <textarea className="min-h-28 rounded-xl border border-[#d8d0bf] bg-white px-4 py-3 text-sm leading-7 text-ink outline-none focus:border-[#7F1D1D]" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />
         </label>
+        <AdminTemplateButtons disabled={isSaving} onSelect={setAdminNote} templates={paymentOrderNoteTemplates} />
         <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:bg-[#a89b89] sm:w-auto" disabled={isSaving} type="submit">
           {isSaving ? "生成中..." : "生成支付订单"}
         </button>

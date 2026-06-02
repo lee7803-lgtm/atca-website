@@ -52,6 +52,12 @@ const certificateStatusNoteTemplates = [
   { label: "已撤销", text: "因资料不实、资格不符或其他严重问题，证书状态已撤销。撤销后不再作为有效认证凭证。" }
 ];
 
+const certificateIssueNoteTemplates = [
+  { label: "可生成下发", text: "证书信息已核对，符合生成与下发条件。" },
+  { label: "需复核", text: "证书信息需复核后再生成。" },
+  { label: "状态已记录", text: "证书状态变更已记录，原因见后台备注。" }
+];
+
 const internalReviewTemplates = [
   { label: "已核对", text: "已核对基本身份资料、师承 / 传承信息、推荐人资料及上传材料，待进一步审核确认。" },
   { label: "需继续审核", text: "该申请仍需人工核验材料真实性、传承信息与资质证明。" },
@@ -409,6 +415,7 @@ export function CertificationReviewForm({
               <span className="text-sm font-medium text-porcelain">证书项目备注</span>
               <textarea className="form-input min-h-24 resize-y" disabled={isReadonlyStatus} value={reviewNote} onChange={(event) => setReviewNote(event.target.value)} />
             </label>
+            <TemplateButtons disabled={isReadonlyStatus} onSelect={setReviewNote} templates={certificateIssueNoteTemplates} />
           </div>
         </div>
       </div>

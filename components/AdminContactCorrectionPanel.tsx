@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminTemplateButtons } from "@/components/admin/AdminTemplateButtons";
 import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
 import { countryRegionOptions, memberOrganizationTypeOptions } from "@/lib/select-options";
 import type { RecordDisposition } from "@/types/application";
@@ -20,6 +21,12 @@ const dispositionLabels: Record<RecordDisposition, string> = {
   archived: "归档记录",
   voided: "作废记录"
 };
+
+const contactCorrectionTemplates = [
+  { label: "申请人要求", text: "申请人主动要求更正联系方式，已按后台记录更新。" },
+  { label: "补充后修正", text: "后台核对发现联系方式填写不完整，已根据申请人补充信息修正。" },
+  { label: "确保送达", text: "为确保通知送达，按申请人确认信息修正联系方式。" }
+];
 
 export function AdminContactCorrectionPanel({
   actionUrl,
@@ -126,6 +133,7 @@ export function AdminContactCorrectionPanel({
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">修正原因 <span className="text-[#7F1D1D]">*</span></span>
           <textarea className="form-input min-h-24 resize-y" disabled={disabled} value={correctionNote} onChange={(event) => setCorrectionNote(event.target.value)} />
+          <AdminTemplateButtons disabled={disabled} onSelect={setCorrectionNote} templates={contactCorrectionTemplates} />
           <span className="text-xs leading-5 text-[#5f5b52]">仅记录在后台审计日志，不会在前台申请查询中展示。</span>
         </label>
       </div>

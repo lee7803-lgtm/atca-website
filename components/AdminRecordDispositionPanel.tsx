@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminTemplateButtons } from "@/components/admin/AdminTemplateButtons";
 import type { RecordDisposition } from "@/types/application";
 
 const dispositionOptions: Array<{ value: RecordDisposition; label: string; description: string }> = [
@@ -17,6 +18,13 @@ const dispositionLabels: Record<RecordDisposition, string> = {
   archived: "归档记录",
   voided: "作废记录"
 };
+
+const recordDispositionNoteTemplates = [
+  { label: "测试记录", text: "该记录用于流程测试，标记为测试记录，不占用正常申请查询与重复申请限制。" },
+  { label: "归档记录", text: "该记录已完成阶段性处理，标记为归档保留记录。" },
+  { label: "作废记录", text: "该记录因重复、误提交或线下确认不再使用，标记为作废并保留审计记录。" },
+  { label: "恢复正常", text: "资料已复核，恢复为正常记录，继续按现有流程处理。" }
+];
 
 export function AdminRecordDispositionPanel({
   actionUrl,
@@ -88,6 +96,7 @@ export function AdminRecordDispositionPanel({
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">治理备注</span>
           <textarea className="form-input min-h-24 resize-y" value={recordDispositionNote} onChange={(event) => setRecordDispositionNote(event.target.value)} />
+          <AdminTemplateButtons disabled={isSaving} onSelect={setRecordDispositionNote} templates={recordDispositionNoteTemplates} />
           <span className="text-xs leading-5 text-[#5f5b52]">建议填写调整原因、依据或线下处理说明，避免将作废、归档误认为删除。</span>
         </label>
       </div>

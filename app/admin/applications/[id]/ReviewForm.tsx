@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { AdminTemplateButtons } from "@/components/admin/AdminTemplateButtons";
 import {
   mergeMemberMaterialReview,
   memberMaterialReviewLabels,
@@ -24,11 +25,31 @@ const statusOptions: Array<{ value: ApplicationStatus; label: string }> = [
   { value: "archived", label: "已建档" }
 ];
 
-const reviewTemplates = [
-  { label: "资料完整", text: "资料完整，建议审核通过。" },
-  { label: "需补充资料", text: "资料基本完整，但仍需申请人补充联系方式、身份证明或相关说明后再复核。" },
-  { label: "暂不完整", text: "申请资料暂不完整，请申请人补充必要资料后再继续审核。" },
-  { label: "建议不通过", text: "当前资料暂不符合会员申请要求，建议暂不通过。" }
+const materialReviewNoteTemplates = [
+  { label: "资料完整", text: "资料完整，内容清晰，符合当前审核要求。" },
+  { label: "需补充说明", text: "资料基本完整，但仍需申请人补充说明。" },
+  { label: "信息不一致", text: "资料信息不一致，需申请人重新提交或补充证明。" },
+  { label: "建议不通过", text: "资料暂不符合审核要求，建议不通过。" }
+];
+
+const initialReviewNoteTemplates = [
+  { label: "进入付款", text: "资料组审核均已通过，建议进入付款通知流程。" },
+  { label: "待补充", text: "资料仍有缺失，需申请人补充后再进入下一阶段。" },
+  { label: "建议驳回", text: "资料存在不一致或不符合要求，建议驳回。" }
+];
+
+const memberFinalReviewTemplates = [
+  { label: "建议通过", text: "初审、付款及资料复核均已完成，建议通过。" },
+  { label: "暂缓通过", text: "仍需进一步核对资料或付款信息，暂缓通过。" },
+  { label: "建议不通过", text: "复审发现资料或流程存在问题，建议不通过。" },
+  { label: "要求补充", text: "需申请人补充资料或说明后再继续审核。" }
+];
+
+const memberStatusNoteTemplates = [
+  { label: "状态有效", text: "会员资料与有效期已核对，会员状态维持有效。" },
+  { label: "续期中", text: "会员续期处理中，待进一步核对资料与有效期信息。" },
+  { label: "暂停", text: "会员状态暂时暂停，待相关情况核实后再恢复或进一步处理。" },
+  { label: "撤销", text: "会员状态变更已记录，原因见后台备注。" }
 ];
 
 export function ReviewForm({
@@ -105,18 +126,7 @@ export function ReviewForm({
           <span className="text-sm font-medium text-porcelain">审核备注</span>
           <textarea className="form-input min-h-36 resize-y" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />
         </label>
-        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-          {reviewTemplates.map((template) => (
-            <button
-              className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D] sm:w-auto"
-              key={template.label}
-              onClick={() => setAdminNote(template.text)}
-              type="button"
-            >
-              {template.label}
-            </button>
-          ))}
-        </div>
+        <AdminTemplateButtons onSelect={setAdminNote} templates={memberFinalReviewTemplates} />
       </div>
       {message ? (
         <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>
@@ -205,6 +215,7 @@ export function MemberMaterialReviewField({
         <span className="text-sm font-medium text-porcelain">审核说明</span>
         <textarea className="form-input min-h-24 resize-y" disabled={disabled || isSaving} value={note} onChange={(event) => setNote(event.target.value)} />
       </label>
+      <AdminTemplateButtons disabled={disabled || isSaving} onSelect={setNote} templates={materialReviewNoteTemplates} />
       {disabled && disabledReason ? <p className="text-sm leading-6 text-[#7F1D1D]">{disabledReason}</p> : null}
       {message ? <p className={`text-sm ${message === "已保存" ? "text-[#8a6b3e]" : "text-[#7F1D1D]"}`}>{message}</p> : null}
       <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={disabled || isSaving} onClick={save} type="button">
@@ -288,6 +299,7 @@ export function MemberInitialReviewForm({
           <span className="text-sm font-medium text-porcelain">初审说明</span>
           <textarea className="form-input min-h-28 resize-y" value={note} onChange={(event) => setNote(event.target.value)} />
         </label>
+        <AdminTemplateButtons disabled={isSaving} onSelect={setNote} templates={initialReviewNoteTemplates} />
       </div>
       {blockers.length > 0 ? (
         <div className="mt-5 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#7F1D1D]">
@@ -391,6 +403,7 @@ export function MemberStatusForm({ application, disabled = false, disabledReason
           <span className="text-sm font-medium text-porcelain">状态备注</span>
           <textarea className="form-input min-h-24 resize-y" disabled={disabled} value={memberStatusNote} onChange={(event) => setMemberStatusNote(event.target.value)} />
         </label>
+        <AdminTemplateButtons disabled={disabled} onSelect={setMemberStatusNote} templates={memberStatusNoteTemplates} />
       </div>
       {disabled && disabledReason ? (
         <div className="mt-5 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#7F1D1D]">{disabledReason}</div>
