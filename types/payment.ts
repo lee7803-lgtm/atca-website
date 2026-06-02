@@ -10,6 +10,10 @@ export type PublicPaymentOrder = {
   paymentChannel: string;
   provider: "none" | "manual" | string;
   status: PublicPaymentStatus;
+  receiptFileName?: string;
+  receiptUploadedAt?: string | null;
+  receiptReviewStatus?: "not_uploaded" | "pending_review" | "approved" | "rejected" | string;
+  receiptReviewNote?: string;
   paidAt: string | null;
   cancelledAt: string | null;
   createdAt: string;

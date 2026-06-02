@@ -12,9 +12,10 @@ import { AdminRecordDispositionPanel } from "@/components/AdminRecordDisposition
 import { CopyButton } from "@/components/CopyButton";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getCertificateVerificationUrl } from "@/lib/site-url";
 import { createMasterDataEntry } from "@/lib/master-data";
+import { createAuditLog } from "@/lib/admin/audit-logs";
 import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
 import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
@@ -69,7 +70,7 @@ async function collectCertificationMasterDataAction(formData: FormData) {
   const kind = String(formData.get("kind") || "");
   const name = String(formData.get("name") || "").trim();
   if (!["referee", "organization"].includes(kind) || !name) return;
-  await createMasterDataEntry({
+  const entry = await createMasterDataEntry({
     kind: kind as "referee" | "organization",
     name,
     displayName: name,
@@ -79,6 +80,19 @@ async function collectCertificationMasterDataAction(formData: FormData) {
     status: "active",
     reviewStatus: "approved"
   });
+  const actor = getAdminSession(cookies().get(adminSessionCookieName)?.value);
+  await createAuditLog({
+    actorAdminId: actor?.adminId,
+    actorEmail: actor?.email,
+    actorName: actor?.displayName || "Legacy Admin",
+    actorRole: actor?.role || "admin",
+    actorType: actor?.actorType || "legacy_admin",
+    action: "master_data.collect_from_certification",
+    resourceType: "master_data_entry",
+    resourceId: entry?.id || "",
+    resourceNo: name,
+    summary: `从认证申请收录基础资料 ${name}。`
+  }).catch(() => undefined);
   revalidatePath("/admin/master-data");
 }
 
@@ -355,7 +369,7 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             { key: "taoistName", label: "道名 / 法名" },
             { key: "phone", label: "手机 / WhatsApp", required: true },
             { key: "email", label: "邮箱", required: true, type: "email" },
-            { key: "residence", label: "现居地", required: true },
+            { key: "residence", label: "现居地", required: true, optionKind: "country" },
             { key: "address", label: "地址" }
           ]}
           values={{

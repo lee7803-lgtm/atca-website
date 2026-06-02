@@ -5,12 +5,14 @@ import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { MasterDataSelector } from "@/components/MasterDataSelector";
+import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
+import { countryRegionOptions, memberOrganizationTypeOptions } from "@/lib/select-options";
 import { PageHero } from "@/components/PageHero";
 import { submitOrganizationApplication } from "@/lib/api/applications";
 import { hasValidLength, organizationNameLengthMessage, personNameLengthMessage } from "@/lib/validation/names";
 import { internationalPhoneMessage, isInternationalPhone } from "@/lib/validation/phone";
 
-const organizationTypes = ["宫观道堂及文化场所", "传统文化机构", "教育研究机构", "社团组织", "合作单位"];
+const organizationTypes = memberOrganizationTypeOptions;
 
 type FormValues = {
   organizationName: string;
@@ -223,17 +225,8 @@ export default function OrganizationApplyPage() {
               <Field error={fieldErrors.email} label="邮箱" required>
                 <input className="form-input" required type="email" value={values.email} onChange={(event) => updateValue("email", event.target.value)} />
               </Field>
-              <Field error={fieldErrors.region} label="所在国家 / 地区" required>
-                <input className="form-input" required value={values.region} onChange={(event) => updateValue("region", event.target.value)} />
-              </Field>
-              <Field error={fieldErrors.organizationType} label="机构类型" required>
-                <select className="form-input" required value={values.organizationType} onChange={(event) => updateValue("organizationType", event.target.value)}>
-                  <option value="">请选择机构类型</option>
-                  {organizationTypes.map((item) => (
-                    <option key={item} value={item}>{item}</option>
-                  ))}
-                </select>
-              </Field>
+              <SearchableSelectWithOther error={fieldErrors.region} label="所在国家 / 地区" options={countryRegionOptions} required value={values.region} onChange={(value) => updateValue("region", value)} />
+              <SearchableSelectWithOther error={fieldErrors.organizationType} label="机构类型" options={memberOrganizationTypeOptions} required value={values.organizationType} onChange={(value) => updateValue("organizationType", value)} />
               <Field error={fieldErrors.profile} className="md:col-span-2" label="机构介绍" required>
                 <textarea className="form-input min-h-32 resize-y" maxLength={2000} required value={values.profile} onChange={(event) => updateValue("profile", event.target.value)} />
                 <FormTemplateHelper hint="请说明机构基本情况、业务方向和相关文化交流基础，30–2000 字。" template={organizationProfileTemplate} onApply={() => updateValue("profile", organizationProfileTemplate)} />

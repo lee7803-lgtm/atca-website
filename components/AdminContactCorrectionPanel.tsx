@@ -2,6 +2,8 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
+import { countryRegionOptions, memberOrganizationTypeOptions } from "@/lib/select-options";
 import type { RecordDisposition } from "@/types/application";
 
 type ContactField = {
@@ -9,6 +11,7 @@ type ContactField = {
   label: string;
   required?: boolean;
   type?: "email" | "text";
+  optionKind?: "country" | "organizationType";
 };
 
 const dispositionLabels: Record<RecordDisposition, string> = {
@@ -97,16 +100,28 @@ export function AdminContactCorrectionPanel({
       </div>
       <div className="mt-5 grid gap-4">
         {fields.map((field) => (
-          <label className="grid gap-3" key={field.key}>
-            <span className="text-sm font-medium text-porcelain">{field.label}{field.required ? <span className="text-[#7F1D1D]"> *</span> : null}</span>
-            <input
-              className="form-input"
-              disabled={disabled}
-              type={field.type || "text"}
-              value={formValues[field.key] || ""}
-              onChange={(event) => setFormValues((current) => ({ ...current, [field.key]: event.target.value }))}
-            />
-          </label>
+          field.optionKind ? (
+            <div className={disabled ? "pointer-events-none opacity-60" : ""} key={field.key}>
+              <SearchableSelectWithOther
+                label={field.label}
+                options={field.optionKind === "country" ? countryRegionOptions : memberOrganizationTypeOptions}
+                required={field.required}
+                value={formValues[field.key] || ""}
+                onChange={(value) => setFormValues((current) => ({ ...current, [field.key]: value }))}
+              />
+            </div>
+          ) : (
+            <label className="grid gap-3" key={field.key}>
+              <span className="text-sm font-medium text-porcelain">{field.label}{field.required ? <span className="text-[#7F1D1D]"> *</span> : null}</span>
+              <input
+                className="form-input"
+                disabled={disabled}
+                type={field.type || "text"}
+                value={formValues[field.key] || ""}
+                onChange={(event) => setFormValues((current) => ({ ...current, [field.key]: event.target.value }))}
+              />
+            </label>
+          )
         ))}
         <label className="grid gap-3">
           <span className="text-sm font-medium text-porcelain">修正原因 <span className="text-[#7F1D1D]">*</span></span>

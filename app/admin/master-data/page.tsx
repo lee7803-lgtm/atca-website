@@ -3,8 +3,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminPageHeader, AdminSectionCard, AdminStatusBadge } from "@/components/admin/AdminUI";
+import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { createMasterDataEntry, listMasterDataEntries, MasterDataTableMissingError } from "@/lib/master-data";
+import { createAuditLog } from "@/lib/admin/audit-logs";
+import { getAdminSession } from "@/lib/admin/auth";
+import { createMasterDataEntry, listMasterDataEntries, MasterDataTableMissingError, updateMasterDataEntry } from "@/lib/master-data";
+import { countryRegionOptions, organizationMasterTypeOptions, refereeTypeOptions } from "@/lib/select-options";
 import type { MasterDataEntry, MasterDataKind } from "@/types/master-data";
 
 export const dynamic = "force-dynamic";
@@ -25,7 +29,7 @@ async function createMasterDataAction(formData: FormData) {
   const name = String(formData.get("name") || "").trim();
   if (!["referee", "organization"].includes(kind) || !name) return;
 
-  await createMasterDataEntry({
+  const entry = await createMasterDataEntry({
     kind,
     name,
     displayName: String(formData.get("displayName") || "").trim() || name,
@@ -36,7 +40,49 @@ async function createMasterDataAction(formData: FormData) {
     status: "active",
     reviewStatus: "approved"
   });
+  await writeMasterDataAudit("master_data.create", entry?.id || "", name, `新增基础资料 ${name}。`);
   revalidatePath("/admin/master-data");
+}
+
+async function updateMasterDataAction(formData: FormData) {
+  "use server";
+
+  const adminCookie = cookies().get(adminSessionCookieName)?.value;
+  if (!isValidAdminSessionToken(adminCookie)) redirect("/admin");
+  const id = String(formData.get("id") || "");
+  const name = String(formData.get("name") || "").trim();
+  const displayName = String(formData.get("displayName") || "").trim() || name;
+  if (!id || !name) return;
+  const entry = await updateMasterDataEntry(id, {
+    name,
+    displayName,
+    type: String(formData.get("type") || "").trim(),
+    country: String(formData.get("country") || "").trim(),
+    region: String(formData.get("region") || "").trim(),
+    status: String(formData.get("status") || "active") === "inactive" ? "inactive" : "active",
+    reviewStatus: ["pending", "approved", "rejected"].includes(String(formData.get("reviewStatus"))) ? (String(formData.get("reviewStatus")) as "pending" | "approved" | "rejected") : "approved",
+    note: String(formData.get("note") || "").trim(),
+    internalNote: String(formData.get("internalNote") || "").trim()
+  });
+  await writeMasterDataAudit("master_data.update", id, displayName, `更新基础资料 ${displayName}。`);
+  if (entry?.status === "inactive") await writeMasterDataAudit("master_data.disable", id, displayName, `停用基础资料 ${displayName}。`);
+  revalidatePath("/admin/master-data");
+}
+
+async function writeMasterDataAudit(action: string, resourceId: string, resourceNo: string, summary: string) {
+  const actor = getAdminSession(cookies().get(adminSessionCookieName)?.value);
+  await createAuditLog({
+    actorAdminId: actor?.adminId,
+    actorEmail: actor?.email,
+    actorName: actor?.displayName || "Legacy Admin",
+    actorRole: actor?.role || "admin",
+    actorType: actor?.actorType || "legacy_admin",
+    action,
+    resourceType: "master_data_entry",
+    resourceId,
+    resourceNo,
+    summary
+  }).catch(() => undefined);
 }
 
 export default async function AdminMasterDataPage() {
@@ -96,6 +142,60 @@ export default async function AdminMasterDataPage() {
           </table>
         </div>
       </AdminSectionCard>
+      <AdminSectionCard title="编辑 / 启停基础资料">
+        <div className="mt-5 grid gap-5">
+          {entries.map((item) => (
+            <form action={updateMasterDataAction} className="grid gap-4 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 lg:grid-cols-4" key={item.id}>
+              <input name="id" type="hidden" value={item.id} />
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-porcelain">名称</span>
+                <input className="form-input" name="name" required defaultValue={item.name} />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-porcelain">显示名称</span>
+                <input className="form-input" name="displayName" defaultValue={item.displayName} />
+              </label>
+              <div>
+                <SearchableSelectWithOther label="分类" name="type" options={item.kind === "referee" ? refereeTypeOptions : organizationMasterTypeOptions} value={item.type} />
+              </div>
+              <div>
+                <SearchableSelectWithOther label="国家 / 地区" name="country" options={countryRegionOptions} value={item.country} />
+              </div>
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-porcelain">区域</span>
+                <input className="form-input" name="region" defaultValue={item.region} />
+              </label>
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-porcelain">状态</span>
+                <select className="form-input" name="status" defaultValue={item.status}>
+                  <option value="active">启用</option>
+                  <option value="inactive">停用</option>
+                </select>
+              </label>
+              <label className="grid gap-2">
+                <span className="text-sm font-medium text-porcelain">审核状态</span>
+                <select className="form-input" name="reviewStatus" defaultValue={item.reviewStatus}>
+                  <option value="approved">通过</option>
+                  <option value="pending">待审核</option>
+                  <option value="rejected">不通过</option>
+                </select>
+              </label>
+              <label className="grid gap-2 lg:col-span-2">
+                <span className="text-sm font-medium text-porcelain">公开备注</span>
+                <input className="form-input" name="note" defaultValue={item.note} />
+              </label>
+              <label className="grid gap-2 lg:col-span-2">
+                <span className="text-sm font-medium text-porcelain">内部备注</span>
+                <input className="form-input" name="internalNote" defaultValue={item.internalNote} />
+              </label>
+              <div className="lg:col-span-4">
+                <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white" type="submit">保存修改</button>
+              </div>
+            </form>
+          ))}
+          {entries.length === 0 ? <p className="text-sm leading-7 text-[#5f5b52]">暂无可编辑基础资料。</p> : null}
+        </div>
+      </AdminSectionCard>
     </div>
   );
 }
@@ -114,14 +214,8 @@ function CreateMasterDataForm({ kind }: { kind: MasterDataKind }) {
           <input className="form-input" name="displayName" />
         </label>
         <div className="grid gap-4 sm:grid-cols-2">
-          <label className="grid gap-2">
-            <span className="text-sm font-medium text-porcelain">分类</span>
-            <input className="form-input" name="type" placeholder={kind === "referee" ? "个人 / 机构" : "宫观 / 协会 / 学院"} />
-          </label>
-          <label className="grid gap-2">
-            <span className="text-sm font-medium text-porcelain">国家 / 地区</span>
-            <input className="form-input" name="country" />
-          </label>
+          <SearchableSelectWithOther label="分类" name="type" options={kind === "referee" ? refereeTypeOptions : organizationMasterTypeOptions} value="" />
+          <SearchableSelectWithOther label="国家 / 地区" name="country" options={countryRegionOptions} value="" />
         </div>
         <label className="grid gap-2">
           <span className="text-sm font-medium text-porcelain">内部备注</span>

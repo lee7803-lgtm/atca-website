@@ -24,10 +24,10 @@ export default async function PaymentCheckoutPage({ searchParams }: { searchPara
         eyebrow="Payment"
         title="付款说明"
         subtitle="Manual Payment Instruction"
-        intro="本页面仅展示申请相关的付款订单状态与线下付款说明。付款确认由协会秘书处后台人工处理。"
+        intro="本页面仅展示申请相关的付款订单状态与银行电汇说明。付款确认由财务后台审核银行回执后处理。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
-        visualDescription="当前阶段不接入真实支付网关，不在前台变更付款状态。"
+        visualDescription="当前阶段仅开放银行电汇，不在前台变更付款状态。"
         visualEyebrow="Order"
         visualMark="PAY"
         visualSeal="付款"
@@ -43,8 +43,8 @@ export default async function PaymentCheckoutPage({ searchParams }: { searchPara
             <PaymentInfoItem label="关联申请编号" value={order.applicationNo || "未记录"} />
             <PaymentInfoItem label="付款人姓名" value={order.payerName || "未记录"} />
             <PaymentInfoItem label="金额" value={formatPaymentAmount(order.amount, order.currency)} />
-            <PaymentInfoItem label="支付渠道" value={order.paymentChannel || "manual"} />
-            <PaymentInfoItem label="支付方式" value={formatPaymentProvider(order.provider, order.paymentChannel)} />
+            <PaymentInfoItem label="付款通道" value="银行电汇 / Bank Transfer" />
+            <PaymentInfoItem label="付款方式" value={formatPaymentProvider(order.provider, order.paymentChannel)} />
             <PaymentInfoItem label="支付状态" value={paymentStatusText[order.status]} />
             <PaymentInfoItem label="创建时间" value={formatPaymentDateTime(order.createdAt)} />
             <PaymentInfoItem label="支付确认时间" value={formatPaymentDateTime(order.paidAt)} />
@@ -71,10 +71,10 @@ function ManualInstruction({ order }: { order: PublicPaymentOrder }) {
   return (
     <section className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Instruction</p>
-      <h2 className="mt-3 font-serif text-3xl text-porcelain">线下付款说明</h2>
+      <h2 className="mt-3 font-serif text-3xl text-porcelain">银行电汇说明</h2>
       <div className="mt-5 grid gap-4 text-sm leading-8 text-[#5f5b52]">
-        <p>当前订单采用人工确认 / 线下付款流程。请按协会秘书处通知的方式完成付款，并保留付款凭证。</p>
-        <p>付款后请等待秘书处在后台确认。前台页面不会修改订单状态，也不会把订单标记为已付款。</p>
+        <p>当前订单仅支持银行电汇 / 线下转账。请按协会秘书处通知的银行账户、金额和备注要求完成付款，并保留银行回执 / 付款凭证。</p>
+        <p>付款后请回到申请查询页上传银行回执 / 付款凭证，等待财务后台审核。前台页面不会修改订单状态，也不会把订单标记为已付款。</p>
         <p className="break-words rounded-2xl border border-[#e4ded0] bg-white p-4 font-medium text-porcelain">付款备注建议填写：{order.orderNo} / {order.applicationNo}</p>
       </div>
     </section>

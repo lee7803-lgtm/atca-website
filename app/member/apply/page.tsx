@@ -5,6 +5,8 @@ import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { MasterDataSelector } from "@/components/MasterDataSelector";
+import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
+import { countryRegionOptions } from "@/lib/select-options";
 import { PageHero } from "@/components/PageHero";
 import { submitMemberApplication } from "@/lib/api/applications";
 import { hasValidLength, personNameLengthMessage } from "@/lib/validation/names";
@@ -213,9 +215,9 @@ export default function MemberApplyPage() {
               <Field error={fieldErrors.email} label="邮箱" required>
                 <input className="form-input" required type="email" value={values.email} onChange={(event) => updateValue("email", event.target.value)} />
               </Field>
-              <Field error={fieldErrors.region} label="所在国家 / 地区" required>
-                <input className="form-input" required value={values.region} onChange={(event) => updateValue("region", event.target.value)} />
-              </Field>
+              <div>
+                <SearchableSelectWithOther error={fieldErrors.region} label="所在国家 / 地区" options={countryRegionOptions} required value={values.region} onChange={(value) => updateValue("region", value)} />
+              </div>
               <div className="md:col-span-2">
                 <MasterDataSelector
                   helperText="如无对应推荐人，可选择其他并填写；后台审核时会显示该内容。"

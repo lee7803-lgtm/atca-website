@@ -70,7 +70,7 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Payments</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">支付订单管理</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看人工确认 / 内部测试支付订单、付款状态和后台处理记录。</p>
+          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看银行电汇支付订单、付款凭证、财务审核状态和后台处理记录。</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
@@ -109,8 +109,9 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
                 <th className="w-[190px] border-b border-[#e4ded0] px-4 py-3 font-medium">关联业务编号</th>
                 <th className="w-[160px] border-b border-[#e4ded0] px-4 py-3 font-medium">付款人</th>
                 <th className="w-[130px] border-b border-[#e4ded0] px-4 py-3 font-medium">金额</th>
-                <th className="w-[170px] border-b border-[#e4ded0] px-4 py-3 font-medium">支付方式</th>
+                <th className="w-[170px] border-b border-[#e4ded0] px-4 py-3 font-medium">付款方式</th>
                 <th className="w-[140px] border-b border-[#e4ded0] px-4 py-3 font-medium">状态</th>
+                <th className="w-[170px] border-b border-[#e4ded0] px-4 py-3 font-medium">凭证 / 财务审核</th>
                 <th className="w-[170px] border-b border-[#e4ded0] px-4 py-3 font-medium">时间</th>
                 <th className="w-[100px] border-b border-[#e4ded0] px-4 py-3 font-medium">操作</th>
               </tr>
@@ -131,11 +132,15 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
                     <p className="mt-1 text-xs text-[#5f5b52]">{order.currency}</p>
                   </td>
                   <td className="px-4 py-4 align-top text-[#5f5b52]">
-                    <p>{formatPaymentProvider(order.provider, order.paymentChannel)}</p>
-                    <p className="mt-1 text-xs">人工确认 / 内部测试支付订单</p>
+                    <p>银行电汇 / Bank Transfer</p>
+                    <p className="mt-1 text-xs">线下转账，上传银行回执</p>
                   </td>
                   <td className="px-4 py-4 align-top">
                     <span className="inline-flex whitespace-nowrap rounded-full bg-[#fbf8ef] px-3 py-1.5 text-xs font-semibold text-[#8a6b3e]">{statusText[order.status] || order.status}</span>
+                  </td>
+                  <td className="px-4 py-4 align-top text-xs leading-6 text-[#5f5b52]">
+                    <p>{formatReceiptStatus(order.receiptReviewStatus)}</p>
+                    <p>{order.receiptUploadedAt ? `上传：${formatDateTime(order.receiptUploadedAt)}` : "尚未上传"}</p>
                   </td>
                   <td className="px-4 py-4 align-top text-xs leading-6 text-[#5f5b52]">
                     <p>创建：{formatDateTime(order.createdAt)}</p>
@@ -148,7 +153,7 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
               ))}
               {orders.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={9}>暂无符合条件的支付订单。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无符合条件的支付订单。</td>
                 </tr>
               ) : null}
             </tbody>
@@ -157,6 +162,13 @@ export default async function AdminPaymentsPage({ searchParams }: { searchParams
       </div>
     </section>
   );
+}
+
+function formatReceiptStatus(value: string) {
+  if (value === "approved") return "凭证已通过";
+  if (value === "rejected") return "凭证不通过";
+  if (value === "pending_review") return "待财务审核";
+  return "未上传凭证";
 }
 
 function formatMoney(value: number) {

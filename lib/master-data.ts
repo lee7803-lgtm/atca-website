@@ -105,6 +105,52 @@ export async function createMasterDataEntry(input: {
   return rows[0] ? toEntry(rows[0]) : null;
 }
 
+export async function updateMasterDataEntry(
+  id: string,
+  input: Partial<{
+    name: string;
+    displayName: string;
+    type: string;
+    country: string;
+    region: string;
+    status: MasterDataStatus;
+    reviewStatus: MasterDataReviewStatus;
+    source: MasterDataSource;
+    phone: string;
+    email: string;
+    note: string;
+    internalNote: string;
+  }>
+) {
+  const config = getConfig();
+  const body: Record<string, unknown> = { updated_at: new Date().toISOString() };
+  if (input.name !== undefined) body.name = input.name.trim();
+  if (input.displayName !== undefined) body.display_name = input.displayName.trim();
+  if (input.type !== undefined) body.type = input.type.trim();
+  if (input.country !== undefined) body.country = input.country.trim();
+  if (input.region !== undefined) body.region = input.region.trim();
+  if (input.status !== undefined) body.status = input.status;
+  if (input.reviewStatus !== undefined) body.review_status = input.reviewStatus;
+  if (input.source !== undefined) body.source = input.source;
+  if (input.phone !== undefined) body.phone = input.phone.trim();
+  if (input.email !== undefined) body.email = input.email.trim();
+  if (input.note !== undefined) body.note = input.note.trim();
+  if (input.internalNote !== undefined) body.internal_note = input.internalNote.trim();
+
+  const response = await fetch(`${config.url}/rest/v1/master_data_entries?id=eq.${encodeURIComponent(id)}`, {
+    method: "PATCH",
+    headers: headers(config, "return=representation"),
+    body: JSON.stringify(body)
+  });
+  if (!response.ok) {
+    const text = await response.text();
+    if (isMissingTableError(text, response.status)) throw new MasterDataTableMissingError();
+    throw new Error("Master data could not be updated.");
+  }
+  const rows = (await response.json()) as Array<Record<string, unknown>>;
+  return rows[0] ? toEntry(rows[0]) : null;
+}
+
 function isMissingTableError(value: string, status?: number) {
   return status === 404 || /master_data_entries|PGRST205|could not find|does not exist|schema cache/i.test(value);
 }

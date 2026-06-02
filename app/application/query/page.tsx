@@ -62,6 +62,8 @@ function ApplicationQueryContent() {
   const [isDownloadingPdf, setIsDownloadingPdf] = useState(false);
   const [paymentActionMessage, setPaymentActionMessage] = useState("");
   const [isCreatingPaymentOrder, setIsCreatingPaymentOrder] = useState(false);
+  const [receiptUploadMessages, setReceiptUploadMessages] = useState<Record<string, string>>({});
+  const [receiptUploadingOrderNo, setReceiptUploadingOrderNo] = useState("");
 
   const selectedApplication = applications[selectedIndex] || null;
 
@@ -70,6 +72,7 @@ function ApplicationQueryContent() {
 
     setIsCreatingPaymentOrder(true);
     setPaymentActionMessage("");
+    setReceiptUploadMessages({});
 
     try {
       const response = await fetch("/api/payments/renewal-order", {
@@ -337,7 +340,37 @@ function ApplicationQueryContent() {
                   message={paymentActionMessage}
                   onCreateOrder={createRenewalOrReviewOrder}
                 />
-                {selectedApplication.paymentOrders?.length ? <PaymentOrdersPanel orders={selectedApplication.paymentOrders} /> : null}
+                {selectedApplication.paymentOrders?.length ? (
+                  <PaymentOrdersPanel
+                    application={selectedApplication}
+                    contact={contact}
+                    messages={receiptUploadMessages}
+                    uploadingOrderNo={receiptUploadingOrderNo}
+                    orders={selectedApplication.paymentOrders}
+                    onReceiptUploaded={(orderNo, receipt) => {
+                      setApplications((current) =>
+                        current.map((application, index) => {
+                          if (index !== selectedIndex) return application;
+                          return {
+                            ...application,
+                            paymentOrders: (application.paymentOrders || []).map((order) =>
+                              order.orderNo === orderNo
+                                ? {
+                                    ...order,
+                                    receiptFileName: receipt.fileName,
+                                    receiptUploadedAt: receipt.uploadedAt,
+                                    receiptReviewStatus: receipt.reviewStatus
+                                  }
+                                : order
+                            )
+                          };
+                        })
+                      );
+                    }}
+                    setMessage={(orderNo, message) => setReceiptUploadMessages((current) => ({ ...current, [orderNo]: message }))}
+                    setUploadingOrderNo={setReceiptUploadingOrderNo}
+                  />
+                ) : null}
                 {selectedApplication.certificateNo ? (
                   <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
                     <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
@@ -423,7 +456,47 @@ function ApplicationQueryContent() {
   );
 }
 
-function PaymentOrdersPanel({ orders }: { orders: PublicPaymentOrder[] }) {
+function PaymentOrdersPanel({
+  application,
+  contact,
+  messages,
+  onReceiptUploaded,
+  orders,
+  setMessage,
+  setUploadingOrderNo,
+  uploadingOrderNo
+}: {
+  application: ApplicationQueryResult;
+  contact: string;
+  messages: Record<string, string>;
+  onReceiptUploaded: (orderNo: string, receipt: { fileName: string; uploadedAt: string; reviewStatus: string }) => void;
+  orders: PublicPaymentOrder[];
+  setMessage: (orderNo: string, message: string) => void;
+  setUploadingOrderNo: (orderNo: string) => void;
+  uploadingOrderNo: string;
+}) {
+  async function uploadReceipt(order: PublicPaymentOrder, formData: FormData) {
+    setUploadingOrderNo(order.orderNo);
+    setMessage(order.orderNo, "");
+    formData.set("orderNo", order.orderNo);
+    formData.set("applicationNo", application.applicationNo);
+    formData.set("contact", contact);
+    try {
+      const response = await fetch("/api/payments/receipt", { method: "POST", body: formData });
+      const result = (await response.json().catch(() => null)) as { success?: boolean; message?: string; receipt?: { fileName: string; uploadedAt: string; reviewStatus: string } } | null;
+      if (!response.ok || !result?.success || !result.receipt) {
+        setMessage(order.orderNo, result?.message || "付款凭证上传失败，请稍后重试。");
+        return;
+      }
+      onReceiptUploaded(order.orderNo, result.receipt);
+      setMessage(order.orderNo, "付款凭证已上传，待财务审核。");
+    } catch {
+      setMessage(order.orderNo, "付款凭证上传服务暂时不可用。");
+    } finally {
+      setUploadingOrderNo("");
+    }
+  }
+
   return (
     <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
       <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">付款信息</p>
@@ -433,10 +506,35 @@ function PaymentOrdersPanel({ orders }: { orders: PublicPaymentOrder[] }) {
             <div className="grid gap-3 md:grid-cols-2">
               <PaymentDetail label="支付订单编号" value={order.orderNo} />
               <PaymentDetail label="金额" value={formatPaymentAmount(order.amount, order.currency)} />
+              <PaymentDetail label="付款方式" value="银行电汇 / Bank Transfer" />
               <PaymentDetail label="支付状态" value={paymentStatusText[order.status]} />
+              <PaymentDetail label="付款凭证状态" value={formatReceiptStatus(order)} />
               <PaymentDetail label="创建时间" value={formatPaymentDateTime(order.createdAt)} />
               <PaymentDetail label="付款确认时间" value={formatPaymentDateTime(order.paidAt)} />
             </div>
+            <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+              <p className="font-medium text-porcelain">银行电汇说明</p>
+              <p className="mt-2">当前仅开放银行电汇 / 线下转账。请以秘书处通知的银行账户、金额和备注要求为准；完成转账后在此上传银行回执 / 付款凭证。</p>
+              <p className="mt-2 text-xs text-[#8a6b3e]">付款凭证仅用于私有留档和财务审核，不会公开展示。</p>
+            </div>
+            {order.status !== "paid" ? (
+              <form
+                className="mt-4 grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fffdf8] p-4"
+                onSubmit={(event) => {
+                  event.preventDefault();
+                  uploadReceipt(order, new FormData(event.currentTarget));
+                }}
+              >
+                <label className="grid gap-2">
+                  <span className="text-sm font-medium text-porcelain">上传银行回执 / 付款凭证</span>
+                  <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" name="receipt" required type="file" />
+                </label>
+                <button className="w-full rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={uploadingOrderNo === order.orderNo} type="submit">
+                  {uploadingOrderNo === order.orderNo ? "正在上传..." : "上传付款凭证"}
+                </button>
+                {messages[order.orderNo] ? <p className="text-sm leading-7 text-[#7F1D1D]">{messages[order.orderNo]}</p> : null}
+              </form>
+            ) : null}
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
               <Link className="w-full rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white sm:w-auto" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
                 查看付款说明
@@ -450,6 +548,14 @@ function PaymentOrdersPanel({ orders }: { orders: PublicPaymentOrder[] }) {
       </div>
     </div>
   );
+}
+
+function formatReceiptStatus(order: PublicPaymentOrder) {
+  const status = order.receiptReviewStatus || "not_uploaded";
+  if (status === "approved") return `已确认${order.receiptUploadedAt ? ` / ${formatPaymentDateTime(order.receiptUploadedAt)}` : ""}`;
+  if (status === "rejected") return `需重新上传${order.receiptReviewNote ? `：${order.receiptReviewNote}` : ""}`;
+  if (status === "pending_review") return `已上传，待财务审核${order.receiptUploadedAt ? ` / ${formatPaymentDateTime(order.receiptUploadedAt)}` : ""}`;
+  return "尚未上传";
 }
 
 function RenewalReviewPanel({
@@ -470,7 +576,7 @@ function RenewalReviewPanel({
     <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
       <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">续期 / 复审付款</p>
       <div className="mt-3 rounded-2xl border border-[#e4ded0] bg-white p-4">
-        <p className="text-sm leading-7 text-[#5f5b52]">当前阶段只创建支付订单并进入人工确认流程，不会自动修改会员有效期、证书 PDF 或公开核验资料。</p>
+        <p className="text-sm leading-7 text-[#5f5b52]">当前阶段只创建银行电汇支付订单并进入财务审核流程，不会自动修改会员有效期、证书 PDF 或公开核验资料。</p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {actions.map((action) => (
             <button className="w-full rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isCreating} key={action.businessType} onClick={() => onCreateOrder(action.businessType)} type="button">

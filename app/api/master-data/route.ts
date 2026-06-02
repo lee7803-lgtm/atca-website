@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { createMasterDataEntry, listMasterDataEntries, MasterDataTableMissingError } from "@/lib/master-data";
+import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { createAuditLog } from "@/lib/admin/audit-logs";
+import { createMasterDataEntry, listMasterDataEntries, MasterDataTableMissingError, updateMasterDataEntry } from "@/lib/master-data";
 import type { MasterDataKind } from "@/types/master-data";
 
 const validKinds: MasterDataKind[] = ["referee", "organization"];
@@ -55,6 +56,7 @@ export async function POST(request: Request) {
       reviewStatus: "approved",
       status: "active"
     });
+    await writeAudit("master_data.create", entry?.id || "", name, `新增基础资料 ${name}。`);
     return NextResponse.json({ success: true, entry });
   } catch (error) {
     if (error instanceof MasterDataTableMissingError) {
@@ -62,4 +64,50 @@ export async function POST(request: Request) {
     }
     return NextResponse.json({ success: false, message: "基础资料暂时无法保存。" }, { status: 500 });
   }
+}
+
+export async function PATCH(request: Request) {
+  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) {
+    return NextResponse.json({ success: false, message: "未登录或登录已失效。" }, { status: 401 });
+  }
+
+  const body = (await request.json().catch(() => null)) as { id?: string; name?: string; displayName?: string; type?: string; country?: string; region?: string; status?: string; reviewStatus?: string; note?: string; internalNote?: string } | null;
+  if (!body?.id || !body.name?.trim()) return NextResponse.json({ success: false, message: "请填写基础资料 ID 和名称。" }, { status: 400 });
+
+  try {
+    const entry = await updateMasterDataEntry(body.id, {
+      name: body.name,
+      displayName: body.displayName || body.name,
+      type: body.type || "",
+      country: body.country || "",
+      region: body.region || "",
+      status: body.status === "inactive" ? "inactive" : "active",
+      reviewStatus: body.reviewStatus === "pending" || body.reviewStatus === "rejected" ? body.reviewStatus : "approved",
+      note: body.note || "",
+      internalNote: body.internalNote || ""
+    });
+    await writeAudit("master_data.update", body.id, body.displayName || body.name, `更新基础资料 ${body.displayName || body.name}。`);
+    return NextResponse.json({ success: true, entry });
+  } catch (error) {
+    if (error instanceof MasterDataTableMissingError) {
+      return NextResponse.json({ success: false, message: "基础资料表尚未配置，请先执行 SQL。" }, { status: 503 });
+    }
+    return NextResponse.json({ success: false, message: "基础资料暂时无法保存。" }, { status: 500 });
+  }
+}
+
+async function writeAudit(action: string, resourceId: string, resourceNo: string, summary: string) {
+  const actor = getAdminSession(cookies().get(adminSessionCookieName)?.value);
+  await createAuditLog({
+    actorAdminId: actor?.adminId,
+    actorEmail: actor?.email,
+    actorName: actor?.displayName || "Legacy Admin",
+    actorRole: actor?.role || "admin",
+    actorType: actor?.actorType || "legacy_admin",
+    action,
+    resourceType: "master_data_entry",
+    resourceId,
+    resourceNo,
+    summary
+  }).catch(() => undefined);
 }

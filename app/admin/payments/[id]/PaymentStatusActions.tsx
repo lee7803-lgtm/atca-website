@@ -7,8 +7,8 @@ import type { PaymentStatus } from "@/lib/api/payments";
 type ActionStatus = "manual_review" | "paid" | "cancelled";
 
 const actionLabels: Record<ActionStatus, string> = {
-  manual_review: "标记为待人工确认",
-  paid: "标记为已付款",
+  manual_review: "标记为待财务审核",
+  paid: "确认已收款",
   cancelled: "标记为已取消"
 };
 
@@ -61,7 +61,7 @@ export function PaymentStatusActions({ orderId, status }: { orderId: string; sta
     <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Manual Actions</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">人工处理</h2>
-      <p className="mt-4 text-sm leading-7 text-[#5f5b52]">本阶段仅支持后台人工确认或内部测试支付订单的状态更新。</p>
+      <p className="mt-4 text-sm leading-7 text-[#5f5b52]">当前支付通道为银行电汇。建议优先在“付款凭证财务审核”中审核银行回执；确认已收款会写入支付事件、审计记录和通知记录，但不会自动跳过复审。</p>
       <label className="mt-5 grid gap-3">
         <span className="text-sm font-medium text-porcelain">后台备注</span>
         <textarea className="form-input min-h-24 resize-y" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />

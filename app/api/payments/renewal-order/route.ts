@@ -323,7 +323,7 @@ async function supabasePost<T = unknown>(table: string, row: unknown) {
   return (await response.json()) as T[];
 }
 
-const publicOrderSelect = "id,order_no,business_type,application_no,payer_name,amount,currency,payment_channel,provider,status,paid_at,cancelled_at,created_at,updated_at";
+const publicOrderSelect = "id,order_no,business_type,application_no,payer_name,amount,currency,payment_channel,provider,status,receipt_file_name,receipt_uploaded_at,receipt_review_status,receipt_review_note,paid_at,cancelled_at,created_at,updated_at";
 
 type PaymentOrderRow = {
   id: string;
@@ -336,6 +336,10 @@ type PaymentOrderRow = {
   payment_channel: string | null;
   provider: string;
   status: PublicPaymentOrder["status"];
+  receipt_file_name?: string | null;
+  receipt_uploaded_at?: string | null;
+  receipt_review_status?: string | null;
+  receipt_review_note?: string | null;
   paid_at: string | null;
   cancelled_at: string | null;
   created_at: string;
@@ -353,6 +357,10 @@ function toPublicPaymentOrder(order: PaymentOrderRow): PublicPaymentOrder {
     paymentChannel: order.payment_channel || "manual",
     provider: order.provider,
     status: order.status,
+    receiptFileName: order.receipt_file_name || "",
+    receiptUploadedAt: order.receipt_uploaded_at || null,
+    receiptReviewStatus: order.receipt_review_status || (order.receipt_file_name ? "pending_review" : "not_uploaded"),
+    receiptReviewNote: order.receipt_review_note || "",
     paidAt: order.paid_at,
     cancelledAt: order.cancelled_at,
     createdAt: order.created_at,

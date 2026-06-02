@@ -24,7 +24,7 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
         intro="本页面仅展示当前订单状态，不通过 URL 参数或前台操作变更付款结果。"
         imageSrc="/images/itca/05-service-verification.png"
         imagePosition="center 58%"
-        visualDescription="付款确认由后台人工确认或后续真实支付网关回调处理。"
+        visualDescription="付款确认由财务后台审核银行回执后处理。"
         visualEyebrow="Result"
         visualMark="PAY"
         visualSeal="状态"
@@ -43,7 +43,7 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
             <ResultItem label="取消时间" value={formatPaymentDateTime(order.cancelledAt)} />
           </div>
           <p className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
-            如您已完成线下付款，请等待秘书处后台确认。前台结果页不会提交支付、不会修改订单状态。
+            如您已完成银行电汇，请在申请查询页上传银行回执 / 付款凭证，并等待财务后台审核。前台结果页不会提交支付、不会修改订单状态。
           </p>
         </section>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">

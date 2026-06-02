@@ -98,6 +98,10 @@ type SupabasePublicPaymentOrderRow = {
   payment_channel: string | null;
   provider: string;
   status: string;
+  receipt_file_name?: string | null;
+  receipt_uploaded_at?: string | null;
+  receipt_review_status?: string | null;
+  receipt_review_note?: string | null;
   paid_at: string | null;
   cancelled_at: string | null;
   created_at: string;
@@ -390,7 +394,7 @@ export async function listPublicPaymentOrdersByApplicationNos(applicationNos: st
   return ordersByApplicationNo;
 }
 
-const publicPaymentOrderSelect = "order_no,business_type,application_no,payer_name,amount,currency,payment_channel,provider,status,paid_at,cancelled_at,created_at,updated_at";
+const publicPaymentOrderSelect = "order_no,business_type,application_no,payer_name,amount,currency,payment_channel,provider,status,receipt_file_name,receipt_uploaded_at,receipt_review_status,receipt_review_note,paid_at,cancelled_at,created_at,updated_at";
 
 function toPublicPaymentOrder(row: SupabasePublicPaymentOrderRow): PublicPaymentOrder {
   return {
@@ -403,6 +407,10 @@ function toPublicPaymentOrder(row: SupabasePublicPaymentOrderRow): PublicPayment
     paymentChannel: row.payment_channel || "manual",
     provider: row.provider,
     status: row.status as PublicPaymentStatus,
+    receiptFileName: row.receipt_file_name || "",
+    receiptUploadedAt: row.receipt_uploaded_at || null,
+    receiptReviewStatus: row.receipt_review_status || (row.receipt_file_name ? "pending_review" : "not_uploaded"),
+    receiptReviewNote: row.receipt_review_note || "",
     paidAt: row.paid_at,
     cancelledAt: row.cancelled_at,
     createdAt: row.created_at,

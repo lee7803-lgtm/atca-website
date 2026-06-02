@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { PaymentStatusActions } from "./PaymentStatusActions";
+import { PaymentReceiptActions } from "./PaymentReceiptActions";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getPaymentOrder, PaymentApiRequestError, PaymentApiUnauthorizedError, type PaymentEvent, type PaymentOrderDetail, type PaymentStatus } from "@/lib/api/payments";
 import { formatPaymentProvider } from "@/lib/payment-display";
@@ -107,9 +108,9 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
           </DetailSection>
 
           <DetailSection title="支付方式与第三方编号">
-            <DetailItem label="支付方式" value={formatPaymentProvider(order.provider, order.paymentChannel)} />
-            <DetailItem label="支付渠道" value={order.paymentChannel || "manual"} />
-            <DetailItem label="支付方式" value={order.paymentMethod || "未记录"} />
+            <DetailItem label="付款方式" value="银行电汇 / Bank Transfer" />
+            <DetailItem label="支付渠道" value={order.paymentChannel || "bank_transfer"} />
+            <DetailItem label="支付方式记录" value={order.paymentMethod || "线下转账"} />
             <DetailItem label="第三方订单编号" value={order.providerOrderId || "未记录"} />
             <DetailItem label="第三方交易编号" value={order.providerTransactionId || "未记录"} />
             <DetailItem label="第三方支付编号" value={order.providerPaymentId || "未记录"} />
@@ -137,6 +138,16 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
             <DetailItem className="md:col-span-2" label="退款原因" value={order.refundReason || "无"} />
           </DetailSection>
 
+          <DetailSection title="付款凭证备案">
+            <DetailItem label="凭证文件" value={order.receiptFileName || "尚未上传"} />
+            <DetailItem label="凭证状态" value={formatReceiptReviewStatus(order.receiptReviewStatus)} />
+            <DetailItem label="上传时间" value={formatDateTime(order.receiptUploadedAt)} />
+            <DetailItem label="文件类型 / 大小" value={order.receiptFileName ? `${order.receiptFileMimeType || "未记录"} / ${order.receiptFileSize ? `${order.receiptFileSize} bytes` : "未记录"}` : "未记录"} />
+            <DetailItem label="审核时间" value={formatDateTime(order.receiptReviewedAt)} />
+            <DetailItem label="审核人" value={order.receiptReviewedBy || "未记录"} />
+            <DetailItem className="md:col-span-2" label="审核备注" value={order.receiptReviewNote || "无"} />
+          </DetailSection>
+
           <DetailSection title="第三方回调资料">
             <pre className="md:col-span-2 max-h-[360px] overflow-auto rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#5f5b52]">{formatJson(order.providerPayload)}</pre>
           </DetailSection>
@@ -145,11 +156,19 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
         </div>
 
         <div className="grid gap-6">
+          <PaymentReceiptActions hasReceipt={Boolean(order.receiptFileName)} orderId={order.id} reviewStatus={order.receiptReviewStatus} />
           <PaymentStatusActions orderId={order.id} status={order.status} />
         </div>
       </div>
     </section>
   );
+}
+
+function formatReceiptReviewStatus(value: string) {
+  if (value === "approved") return "已通过";
+  if (value === "rejected") return "不通过，需重新上传";
+  if (value === "pending_review") return "待财务审核";
+  return "未上传";
 }
 
 function Badge({ children }: { children: ReactNode }) {

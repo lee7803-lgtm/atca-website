@@ -25,8 +25,8 @@ type CreatePaymentOrderResponse =
 export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成支付订单" }: CreatePaymentOrderFormProps) {
   const [amount, setAmount] = useState("");
   const [currency, setCurrency] = useState("MYR");
-  const [provider, setProvider] = useState<"manual" | "none">("manual");
-  const [paymentChannel, setPaymentChannel] = useState("manual");
+  const provider: "manual" = "manual";
+  const paymentChannel = "bank_transfer";
   const [adminNote, setAdminNote] = useState("");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
@@ -83,7 +83,7 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
     <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Payment Order</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">{title}</h2>
-      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">本轮仅生成后台人工确认或内部测试支付订单，申请人可在付款说明页查看订单状态。</p>
+      <p className="mt-3 text-sm leading-7 text-[#5f5b52]">当前仅生成银行电汇 / 线下转账支付订单。申请人通过申请查询页查看付款说明并上传银行回执 / 付款凭证。</p>
       <form className="mt-6 grid gap-4" onSubmit={handleSubmit}>
         <label className="grid gap-2 text-sm font-medium text-porcelain">
           金额
@@ -93,25 +93,10 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
           币种
           <input className="rounded-xl border border-[#d8d0bf] bg-white px-4 py-3 text-sm uppercase text-ink outline-none focus:border-[#7F1D1D]" maxLength={3} value={currency} onChange={(event) => setCurrency(event.target.value.toUpperCase())} />
         </label>
-        <label className="grid gap-2 text-sm font-medium text-porcelain">
-          支付方式
-          <select
-            className="rounded-xl border border-[#d8d0bf] bg-white px-4 py-3 text-sm text-ink outline-none focus:border-[#7F1D1D]"
-            value={provider}
-            onChange={(event) => {
-              const nextProvider = event.target.value as "manual" | "none";
-              setProvider(nextProvider);
-              setPaymentChannel(nextProvider);
-            }}
-          >
-            <option value="manual">人工确认 / 银行转账</option>
-            <option value="none">内部测试 / 暂不发送</option>
-          </select>
-        </label>
-        <label className="grid gap-2 text-sm font-medium text-porcelain">
-          支付渠道
-          <input className="rounded-xl border border-[#d8d0bf] bg-white px-4 py-3 text-sm text-ink outline-none focus:border-[#7F1D1D]" value={paymentChannel} onChange={(event) => setPaymentChannel(event.target.value)} />
-        </label>
+        <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+          <p className="font-medium text-porcelain">付款方式：银行电汇 / Bank Transfer</p>
+          <p className="mt-1">本阶段仅开放银行电汇。银行账户信息请以秘书处通知或后台配置文案为准。</p>
+        </div>
         <label className="grid gap-2 text-sm font-medium text-porcelain">
           后台备注
           <textarea className="min-h-28 rounded-xl border border-[#d8d0bf] bg-white px-4 py-3 text-sm leading-7 text-ink outline-none focus:border-[#7F1D1D]" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />

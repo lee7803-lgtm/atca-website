@@ -33,9 +33,9 @@ export const paymentBusinessTypeText: Record<string, string> = {
 };
 
 export function formatPaymentProvider(provider: string, paymentChannel: string) {
-  if (provider === "none") return "测试模式 / 无真实支付";
-  if (provider === "manual") return paymentChannel === "manual" ? "人工确认 / 线下付款" : "人工确认";
-  return "人工处理";
+  if (provider === "none") return "内部记录 / 暂不收款";
+  if (provider === "manual") return paymentChannel === "bank_transfer" || paymentChannel === "manual" ? "银行电汇 / Bank Transfer" : "银行电汇 / Bank Transfer";
+  return "银行电汇 / Bank Transfer";
 }
 
 export function formatPaymentDateTime(value?: string | null) {

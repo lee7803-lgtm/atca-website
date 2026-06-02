@@ -8,7 +8,8 @@ import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/
 import { AdminContactCorrectionPanel } from "@/components/AdminContactCorrectionPanel";
 import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { createAuditLog } from "@/lib/admin/audit-logs";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
 import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
 import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
@@ -41,7 +42,7 @@ async function collectMemberMasterDataAction(formData: FormData) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
   const name = String(formData.get("name") || "").trim();
   if (!name) return;
-  await createMasterDataEntry({
+  const entry = await createMasterDataEntry({
     kind: "referee",
     name,
     displayName: name,
@@ -52,6 +53,19 @@ async function collectMemberMasterDataAction(formData: FormData) {
     status: "active",
     reviewStatus: "approved"
   });
+  const actor = getAdminSession(cookies().get(adminSessionCookieName)?.value);
+  await createAuditLog({
+    actorAdminId: actor?.adminId,
+    actorEmail: actor?.email,
+    actorName: actor?.displayName || "Legacy Admin",
+    actorRole: actor?.role || "admin",
+    actorType: actor?.actorType || "legacy_admin",
+    action: "master_data.collect_from_application",
+    resourceType: "master_data_entry",
+    resourceId: entry?.id || "",
+    resourceNo: name,
+    summary: `从会员申请收录推荐人基础资料 ${name}。`
+  }).catch(() => undefined);
   revalidatePath("/admin/master-data");
 }
 
@@ -116,14 +130,20 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/">返回前台首页</Link>
         </div>
       </div>
-      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start lg:gap-8">
+      <div className="mt-6 grid gap-6">
         <div className="grid gap-5 sm:gap-6">
           <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
             <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
+            <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+              <StageGuideItem label="统一状态" value={formatApplicationStatus(application)} />
+              <StageGuideItem label="申请类型" value={typeText[application.applicationType]} />
+              <StageGuideItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
+              <StageGuideItem label="付款状态" value={formatPaymentFlowStatus(relatedPayments)} />
+            </div>
           </section>
           <MemberStageCard guide={getMemberStageGuide(application)} />
-          <DetailSection id="basic-info" title="基本信息">
+          <DetailSection id="basic-info" title="申请人基础资料">
             <DetailItem label="申请编号" value={application.applicationNo} />
             <DetailItem label="会员编号" value={application.memberNo || "审核通过后生成"} />
             <DetailItem label="申请类型" value={typeText[application.applicationType]} />
@@ -133,11 +153,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="国家 / 地区" value={application.country} />
             <DetailItem label="机构类型" value={application.organizationType || "不适用"} />
           </DetailSection>
-          <DetailSection title="联系方式">
-            <DetailItem label="手机 / WhatsApp" value={application.phone} />
-            <DetailItem label="邮箱" value={application.email} />
-          </DetailSection>
-          <DetailSection title="申请信息">
+          <DetailSection title="会员类型与申请信息">
             <DetailItem label="是否接收通知" value={application.receiveNotice ? "是" : "否"} />
             <DetailItem label="资料真实性确认" value={application.truthConfirmed ? "已确认" : "未确认"} />
             <DetailItem label="服务条款确认" value={application.termsAccepted ? "已确认" : "未确认"} />
@@ -147,6 +163,32 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
             <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
             <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
+          </DetailSection>
+          <DetailSection title="联系方式与可维护更正入口">
+            <DetailItem label="手机 / WhatsApp" value={application.phone} />
+            <DetailItem label="邮箱" value={application.email} />
+            <div className="md:col-span-2">
+              <AdminContactCorrectionPanel
+                actionUrl={`/api/admin/applications/${application.id}/contact`}
+                disposition={application.recordDisposition}
+                fields={[
+                  { key: "name", label: "姓名 / 机构名称", required: true },
+                  { key: "contactName", label: "联系人", required: true },
+                  { key: "phone", label: "手机 / WhatsApp", required: true },
+                  { key: "email", label: "邮箱", required: true, type: "email" },
+                  { key: "country", label: "国家 / 地区", required: true, optionKind: "country" },
+                  { key: "organizationType", label: "机构类型", optionKind: "organizationType" }
+                ]}
+                values={{
+                  name: application.name,
+                  contactName: application.contactName || application.name,
+                  phone: application.phone,
+                  email: application.email,
+                  country: application.country,
+                  organizationType: application.organizationType || ""
+                }}
+              />
+            </div>
           </DetailSection>
           <DetailSection title="基础资料">
             <DetailItem label="引荐人 / 推荐人" value={application.referrerName || "未填写"} />
@@ -163,6 +205,10 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
               </form>
             ) : null}
           </DetailSection>
+          <DetailSection title="材料 / 附件信息">
+            <DetailItem label="附件状态" value="会员申请当前未启用独立附件上传；如需材料补充，请通过“需补充资料”流程引导申请人在线补交。" />
+            <DetailItem label="补充资料" value={application.supplementSubmittedAt ? `已补充：${formatDateTime(application.supplementSubmittedAt)}` : "暂无补充资料记录"} />
+          </DetailSection>
           <DetailSection title="补充说明">
             <DetailItem label="会员有效期" value={formatMemberValidityRange(application)} />
             <DetailItem label="统一状态" value={formatMemberValidityStatus(application)} />
@@ -174,40 +220,30 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem className="md:col-span-2" label="审核备注" value={application.adminNote || "暂无备注"} />
             <DetailItem className="md:col-span-2" label="状态备注" value={application.memberStatusNote || "暂无备注"} />
           </DetailSection>
-          <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
-          <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
-        </div>
-        <div className="grid gap-5 sm:gap-6">
-          <div className="scroll-mt-6" id="review-processing">
+          <DetailSection id="review-processing" title="初审处理区">
             <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
-          </div>
-          <div className="scroll-mt-6" id="payment-processing">
+          </DetailSection>
+          <DetailSection id="payment-processing" title="付费通知 / 支付订单区">
+            <p className="mb-5 text-sm leading-7 text-[#5f5b52]">初审通过后生成银行电汇支付订单，申请人通过申请查询页查看付款说明并上传银行回执。</p>
             <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
-          </div>
+          </DetailSection>
+          <DetailSection title="财务付款审核区">
+            <DetailItem label="付款闭环" value={formatPaymentFlowStatus(relatedPayments)} />
+            <DetailItem label="复审提示" value={relatedPayments.some((order) => order.status === "paid") ? "付款已确认，可进入复审或会员状态维护。" : "待银行电汇付款凭证通过并确认收款后，再进入复审。"} />
+          </DetailSection>
+          <DetailSection title="复审处理区">
+            <DetailItem label="复审说明" value="当前会员复审仍沿用审核状态和后台备注处理；财务确认后由秘书处在初审处理区推进通过、驳回、补资料或归档。" />
+          </DetailSection>
           <MemberValidityPanel application={application} />
-          <div className="scroll-mt-6" id="member-status-processing">
+          <DetailSection id="member-status-processing" title="会员编号 / 有效期 / 状态维护">
             <MemberStatusForm application={application} />
-          </div>
-          <AdminContactCorrectionPanel
-            actionUrl={`/api/admin/applications/${application.id}/contact`}
-            disposition={application.recordDisposition}
-            fields={[
-              { key: "name", label: "姓名 / 机构名称", required: true },
-              { key: "contactName", label: "联系人", required: true },
-              { key: "phone", label: "手机 / WhatsApp", required: true },
-              { key: "email", label: "邮箱", required: true, type: "email" },
-              { key: "country", label: "国家 / 地区", required: true },
-              { key: "organizationType", label: "机构类型" }
-            ]}
-            values={{
-              name: application.name,
-              contactName: application.contactName || application.name,
-              phone: application.phone,
-              email: application.email,
-              country: application.country,
-              organizationType: application.organizationType || ""
-            }}
-          />
+          </DetailSection>
+          <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
+          <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
+          <DetailSection title="操作记录 / 审计记录">
+            <DetailItem label="审计记录" value="联系方式修正、记录治理、支付确认、基础资料收录等关键写操作会写入 audit_logs。可前往操作记录页按申请编号或资源编号追踪。" />
+            <Link className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-sm font-semibold text-ink" href="/admin/audit-logs">查看操作记录</Link>
+          </DetailSection>
           <AdminRecordDispositionPanel
             actionUrl={`/api/admin/applications/${application.id}/record-disposition`}
             disposition={application.recordDisposition}
@@ -219,6 +255,14 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
       </div>
     </section>
   );
+}
+
+function formatPaymentFlowStatus(orders: PaymentOrderListItem[]) {
+  if (orders.some((order) => order.status === "paid")) return "付款已确认，可进入复审";
+  if (orders.some((order) => order.receiptReviewStatus === "rejected")) return "付款凭证需重新上传";
+  if (orders.some((order) => order.receiptReviewStatus === "pending_review")) return "付款凭证待财务审核";
+  if (orders.some((order) => order.status === "pending_payment" || order.status === "manual_review")) return "待银行电汇付款";
+  return "尚未生成支付订单";
 }
 
 function MemberStageCard({ guide }: { guide: StageGuide }) {

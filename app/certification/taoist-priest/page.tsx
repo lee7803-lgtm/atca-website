@@ -6,6 +6,8 @@ import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { MasterDataSelector } from "@/components/MasterDataSelector";
+import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
+import { countryRegionOptions } from "@/lib/select-options";
 import { PageHero } from "@/components/PageHero";
 import { getAdultBirthDateError } from "@/lib/validation/age";
 import { certificatePhotoUploadHint, getUploadFileError, idProofUploadHint, lineageMaterialUploadHint, uploadFileGeneralHint } from "@/lib/validation/files";
@@ -712,6 +714,22 @@ function FormField({
           kind="organization"
           label={field.label}
           otherPlaceholder="请填写宫观 / 机构 / 所属组织"
+          required={field.required}
+          value={value}
+          onChange={(nextValue) => setValue(field.id, nextValue)}
+        />
+        {errors[field.id] ? <span className="text-xs text-[#7F1D1D]">{errors[field.id]}</span> : null}
+      </div>
+    );
+  }
+
+  if (field.id === "nationality" || field.id === "residence") {
+    return (
+      <div className="grid gap-2">
+        <SearchableSelectWithOther
+          label={field.label}
+          options={countryRegionOptions}
+          otherPlaceholder={`请填写${field.label}`}
           required={field.required}
           value={value}
           onChange={(nextValue) => setValue(field.id, nextValue)}

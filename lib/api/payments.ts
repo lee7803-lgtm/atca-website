@@ -17,6 +17,11 @@ export type PaymentOrderListItem = {
   provider: string;
   paymentChannel: string;
   status: PaymentStatus;
+  receiptFileName: string;
+  receiptUploadedAt: string | null;
+  receiptReviewStatus: string;
+  receiptReviewedAt: string | null;
+  receiptReviewNote: string;
   paidAt: string | null;
   updatedAt: string;
   createdAt: string;
@@ -57,6 +62,10 @@ export type PaymentOrderDetail = PaymentOrderListItem & {
   providerPaymentId: string;
   providerCallbackId: string;
   paymentProofNote: string;
+  receiptFilePath: string;
+  receiptFileMimeType: string;
+  receiptFileSize: number | null;
+  receiptReviewedBy: string;
   adminNote: string;
   internalNote: string;
   metadata: Record<string, unknown>;
@@ -238,7 +247,7 @@ export async function listRelatedPaymentOrders(filters: RelatedPaymentOrderFilte
   if (orFilters.length === 0) return [];
 
   const params = new URLSearchParams({
-    select: "id,order_no,business_type,application_no,member_no,certificate_no,business_id,payer_name,amount,currency,provider,payment_channel,status,paid_at,created_at,updated_at",
+    select: "id,order_no,business_type,application_no,member_no,certificate_no,business_id,payer_name,amount,currency,provider,payment_channel,status,receipt_file_name,receipt_uploaded_at,receipt_review_status,receipt_reviewed_at,receipt_review_note,paid_at,created_at,updated_at",
     or: `(${orFilters.join(",")})`,
     order: "updated_at.desc",
     limit: String(Math.min(Math.max(filters.limit || 5, 1), 20))
@@ -373,6 +382,15 @@ type SupabasePaymentOrderRow = {
   provider_callback_id: string | null;
   status: PaymentStatus;
   payment_proof_note: string | null;
+  receipt_file_path?: string | null;
+  receipt_file_name?: string | null;
+  receipt_file_mime_type?: string | null;
+  receipt_file_size?: number | string | null;
+  receipt_uploaded_at?: string | null;
+  receipt_review_status?: string | null;
+  receipt_reviewed_at?: string | null;
+  receipt_reviewed_by?: string | null;
+  receipt_review_note?: string | null;
   admin_note: string | null;
   internal_note: string | null;
   metadata: Record<string, unknown> | null;
@@ -487,6 +505,11 @@ function toPaymentOrderListItem(row: SupabasePaymentOrderRow): PaymentOrderListI
     provider: row.provider,
     paymentChannel: row.payment_channel || "manual",
     status: row.status,
+    receiptFileName: row.receipt_file_name || "",
+    receiptUploadedAt: row.receipt_uploaded_at || null,
+    receiptReviewStatus: row.receipt_review_status || (row.receipt_file_name ? "pending_review" : "not_uploaded"),
+    receiptReviewedAt: row.receipt_reviewed_at || null,
+    receiptReviewNote: row.receipt_review_note || "",
     paidAt: row.paid_at,
     updatedAt: row.updated_at,
     createdAt: row.created_at
@@ -512,6 +535,10 @@ function toPaymentOrderDetail(row: SupabasePaymentOrderRow, events: PaymentEvent
     providerPaymentId: row.provider_payment_id || "",
     providerCallbackId: row.provider_callback_id || "",
     paymentProofNote: row.payment_proof_note || "",
+    receiptFilePath: row.receipt_file_path || "",
+    receiptFileMimeType: row.receipt_file_mime_type || "",
+    receiptFileSize: row.receipt_file_size === null || row.receipt_file_size === undefined ? null : Number(row.receipt_file_size),
+    receiptReviewedBy: row.receipt_reviewed_by || "",
     adminNote: row.admin_note || "",
     internalNote: row.internal_note || "",
     metadata: redactObject(row.metadata || {}),
