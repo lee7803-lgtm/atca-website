@@ -92,7 +92,7 @@ export default function MemberQueryPage() {
             <div className="mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
               <p className="mb-3">请输入会员编号与姓名 / 机构名称，用于核验公开会员登记信息。核验结果不展示联系电话、邮箱、地址、申请说明、补充资料、审核备注或上传材料。</p>
               <p>如需查询申请办理进度，请前往申请进度查询页面。</p>
-              <Link className="mt-3 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href="/application/query">
+              <Link className="mt-3 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/application/query">
                 前往申请进度查询
               </Link>
             </div>
@@ -107,7 +107,7 @@ export default function MemberQueryPage() {
               </label>
             </div>
             {message ? <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">{message}</div> : null}
-            <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
+            <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
               {isQuerying ? "正在核验..." : "核验会员公开记录"}
             </button>
           </form>
@@ -152,7 +152,7 @@ function ResultRow({ label, value }: { label: string; value: string }) {
   return (
     <div className="grid gap-2 rounded-xl border border-[#e4ded0] bg-white px-4 py-3 sm:grid-cols-[9rem_1fr]">
       <p className="text-sm font-medium text-porcelain">{label}</p>
-      <p className="text-sm leading-6 text-[#666666]">{value || "未记录"}</p>
+      <p className="break-words text-sm leading-6 text-[#666666]">{value || "未记录"}</p>
     </div>
   );
 }

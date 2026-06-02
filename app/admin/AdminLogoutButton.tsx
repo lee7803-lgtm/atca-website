@@ -12,7 +12,7 @@ export function AdminLogoutButton() {
   };
 
   return (
-    <button className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" onClick={logout} type="button">
+    <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" onClick={logout} type="button">
       退出后台
     </button>
   );

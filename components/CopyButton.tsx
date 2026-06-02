@@ -16,7 +16,7 @@ export function CopyButton({ label = "复制申请编号", text }: { label?: str
   };
 
   return (
-    <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink" disabled={!text} onClick={copy} type="button">
+    <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink sm:w-auto" disabled={!text} onClick={copy} type="button">
       {copied ? "已复制" : label}
     </button>
   );

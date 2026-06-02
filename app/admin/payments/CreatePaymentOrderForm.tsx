@@ -80,7 +80,7 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
   }
 
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Payment Order</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">{title}</h2>
       <p className="mt-3 text-sm leading-7 text-[#5f5b52]">本轮仅生成后台人工确认或内部测试支付订单，申请人可在付款说明页查看订单状态。</p>
@@ -116,7 +116,7 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
           后台备注
           <textarea className="min-h-28 rounded-xl border border-[#d8d0bf] bg-white px-4 py-3 text-sm leading-7 text-ink outline-none focus:border-[#7F1D1D]" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />
         </label>
-        <button className="rounded-full bg-[#7F1D1D] px-5 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:bg-[#a89b89]" disabled={isSaving} type="submit">
+        <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:bg-[#a89b89] sm:w-auto" disabled={isSaving} type="submit">
           {isSaving ? "生成中..." : "生成支付订单"}
         </button>
       </form>
@@ -125,7 +125,7 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
           <p>{message}</p>
           {order ? (
             <div className="mt-3 grid gap-2">
-              <p className="font-semibold text-porcelain">{created === false ? "已有订单" : "支付订单"}：{order.orderNo}</p>
+              <p className="break-all font-semibold text-porcelain">{created === false ? "已有订单" : "支付订单"}：{order.orderNo}</p>
               <Link className="font-semibold text-[#8a6b3e] hover:text-[#7F1D1D]" href={`/admin/payments/${order.id}`}>
                 查看支付订单详情
               </Link>

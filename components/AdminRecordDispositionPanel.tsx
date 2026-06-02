@@ -68,7 +68,7 @@ export function AdminRecordDispositionPanel({
   };
 
   return (
-    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="record-disposition">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8" id="record-disposition">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Record Disposition</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">记录治理</h2>
       <div className="mt-5 grid gap-4">
@@ -96,7 +96,7 @@ export function AdminRecordDispositionPanel({
           {message}
         </div>
       ) : null}
-      <button className="mt-6 rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={save} type="button">
+      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
         {isSaving ? "正在保存..." : "保存记录治理状态"}
       </button>
     </section>

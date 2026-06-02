@@ -60,10 +60,10 @@ export function MaterialReviewField({
   };
 
   return (
-    <label className="scroll-mt-6 grid gap-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 md:col-span-2" id={`material-review-${itemKey}`}>
+    <label className="scroll-mt-6 grid gap-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-3 sm:p-4 md:col-span-2" id={`material-review-${itemKey}`}>
       <span className="flex flex-col gap-2 text-sm font-medium text-porcelain sm:flex-row sm:items-center sm:justify-between">
         <span>{label || materialReviewItemLabels[itemKey]}审核状态</span>
-        {targetHref ? <a className="text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D]" href={targetHref}>查看资料</a> : null}
+        {targetHref ? <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-3 py-2 text-center text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D] sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:text-left" href={targetHref}>查看资料</a> : null}
       </span>
       <select className="form-input" disabled={disabled || isSaving} value={value} onChange={(event) => updateValue(event.target.value as MaterialReviewStatus)}>
         {Object.entries(materialReviewStatusLabels).map(([status, label]) => (

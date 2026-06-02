@@ -84,12 +84,12 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
   if (databaseMessage) {
     return (
-      <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
+      <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/certification-applications">返回申请管理</Link>
           <div className="flex flex-col gap-3 sm:flex-row">
-            <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
-            <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
+            <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/admin">返回后台首页</Link>
+            <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/">返回前台首页</Link>
           </div>
         </div>
         <div className="mt-8 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate">
@@ -262,15 +262,15 @@ export default async function AdminCertificationApplicationDetailPage({ params }
   }
 
   return (
-    <section className="mx-auto max-w-5xl px-5 py-12 sm:px-8 lg:py-16">
+    <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/certification-applications">返回申请管理</Link>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/admin">返回后台首页</Link>
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/">返回前台首页</Link>
         </div>
       </div>
-      <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+      <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-[minmax(0,1fr)_360px] lg:items-start">
           <div className="min-w-0">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Detail</p>
@@ -278,8 +278,8 @@ export default async function AdminCertificationApplicationDetailPage({ params }
             <div className="mt-5 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <p className="break-all rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-base font-semibold text-[#7F1D1D]">申请编号：{application.applicationNo}</p>
               <CopyButton label="复制申请编号" text={application.applicationNo} />
-              <span className="rounded-full bg-[#7F1D1D] px-4 py-2 text-sm font-semibold text-white">{formatCertificationApplicationStatus(application)}</span>
-              <a className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink" href={`/api/admin/certification-applications/${application.id}/export`}>
+              <span className="w-full rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-sm font-semibold text-white sm:w-auto">{formatCertificationApplicationStatus(application)}</span>
+              <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-sm font-semibold text-ink sm:w-auto" href={`/api/admin/certification-applications/${application.id}/export`}>
                 下载本申请资料
               </a>
             </div>
@@ -394,14 +394,14 @@ export default async function AdminCertificationApplicationDetailPage({ params }
 
 function CertificationStageCard({ guide }: { guide: StageGuide }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-7">
+    <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 shadow-aureate sm:p-7">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Current Stage</p>
           <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">{guide.stage}</h2>
           <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{guide.statusDescription}</p>
         </div>
-        <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={guide.anchorHref}>
+        <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href={guide.anchorHref}>
           {guide.anchorLabel}
         </a>
       </div>
@@ -417,7 +417,7 @@ function StageGuideItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3">
       <p className="text-xs tracking-[0.2em] text-[#8a6b3e]">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-porcelain">{value}</p>
+      <p className="mt-2 break-words text-sm leading-7 text-porcelain">{value}</p>
     </div>
   );
 }
@@ -630,13 +630,13 @@ function FormalCertificatePreview({
           <h2 className="mt-2 font-serif text-3xl text-porcelain">正式证书预览</h2>
         </div>
         <div className="grid gap-3 sm:justify-items-end">
-          <form action={`/api/admin/certification-applications/${application.id}/certificate-pdf`} method="post" target="_blank">
-            <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
+          <form className="w-full sm:w-auto" action={`/api/admin/certification-applications/${application.id}/certificate-pdf`} method="post" target="_blank">
+            <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-2.5 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" type="submit">
               {certificatePdf?.hasPdf ? "重新生成正式证书 PDF" : "生成正式证书 PDF"}
             </button>
           </form>
           {certificatePdf?.hasPdf ? (
-            <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/api/admin/certification-applications/${application.id}/certificate-pdf`} target="_blank" rel="noreferrer">
+            <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href={`/api/admin/certification-applications/${application.id}/certificate-pdf`} target="_blank" rel="noreferrer">
               下载已生成 PDF
             </a>
           ) : null}
@@ -809,11 +809,11 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
         <p className="mt-3 text-sm leading-7 text-[#7F1D1D]">附件文件暂不可显示，请联系协会秘书处核验。</p>
       ) : null}
       {attachment.signedUrl ? (
-        <div className="mt-4 flex flex-wrap gap-2">
-          <a className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href={attachment.signedUrl} rel="noreferrer" target="_blank">
+        <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+          <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink sm:w-auto" href={attachment.signedUrl} rel="noreferrer" target="_blank">
             {isImage ? "查看原图" : "打开附件"}
           </a>
-          <a className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" download={attachment.originalName} href={attachment.signedUrl}>
+          <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink sm:w-auto" download={attachment.originalName} href={attachment.signedUrl}>
             下载附件
           </a>
         </div>
@@ -824,7 +824,7 @@ function AttachmentCard({ attachment }: { attachment: CertificationAttachment })
 
 function DetailSection({ children, id, title }: { children: ReactNode; id?: string; title: string }) {
   return (
-    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7" id={id}>
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-7" id={id}>
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
     </section>

@@ -290,7 +290,7 @@ export function CertificationReviewForm({
   const archive = () => request({ action: "archive" }, "申请已建档。");
 
   return (
-    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="review-processing">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8" id="review-processing">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Review</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">审核处理</h2>
       <div className="mt-5 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
@@ -329,7 +329,7 @@ export function CertificationReviewForm({
           </div>
         </div>
         {materialReviewWorkflow ? (
-          <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white p-5" id="material-review">
+          <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white p-4 sm:p-5" id="material-review">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div>
                 <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Material Review</p>
@@ -367,7 +367,7 @@ export function CertificationReviewForm({
                           <p className="font-medium text-porcelain">{item.label}</p>
                           <p className="mt-1 text-xs leading-5 text-[#8a6b3e]">当前审核状态：{item.status}</p>
                         </div>
-                        <a className="text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D]" href={item.href}>定位到审核项</a>
+                        <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-3 py-2 text-center text-xs font-semibold text-[#8a6b3e] hover:text-[#7F1D1D] sm:w-auto sm:border-0 sm:bg-transparent sm:px-0 sm:py-0 sm:text-left" href={item.href}>定位到审核项</a>
                       </div>
                       <p className="mt-2 text-[#7F1D1D]">{item.reason}</p>
                     </div>
@@ -428,10 +428,10 @@ export function CertificationReviewForm({
       </div>
       {message ? <div className={`mt-5 border-l-4 p-4 text-sm leading-7 ${messageTone === "success" ? "border-[#8a6b3e] bg-[#fbf8ef] text-[#5f5b52]" : "border-[#7F1D1D] bg-[#fbf0ec] text-[#7F1D1D]"}`}>{message}</div> : null}
       <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-        {canSaveReview ? <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={saveStatus} type="button">
+        {canSaveReview ? <button className="w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={saveStatus} type="button">
           {isSaving ? "正在保存..." : "保存审核结果"}
         </button> : null}
-        {initialStatus === "approved" && !hasCertificate ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving || !canGenerateCertificate} onClick={generateCertificate} type="button" title={generateBlockedReason || "生成证书"}>
+        {initialStatus === "approved" && !hasCertificate ? <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving || !canGenerateCertificate} onClick={generateCertificate} type="button" title={generateBlockedReason || "生成证书"}>
           生成证书
         </button> : null}
         {generateBlockedReason && initialStatus !== "rejected" && initialStatus !== "archived" ? <p className="basis-full text-sm leading-7 text-[#7F1D1D]">{generateBlockedReason}</p> : null}
@@ -440,13 +440,13 @@ export function CertificationReviewForm({
             生成证书前，请确认申请人身份、联系方式、师承材料、资质凭证、道装证件照及各资料板块材料审核状态均已通过。资料无法核验、疑似冒用或存在重大疑点的申请不得生成证书。
           </p>
         ) : null}
-        {canMarkDelivered ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={markDelivered} type="button">
+        {canMarkDelivered ? <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={markDelivered} type="button">
           标记已下发
         </button> : null}
-        {canCorrectNotDelivered ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={correctNotDelivered} type="button">
+        {canCorrectNotDelivered ? <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={correctNotDelivered} type="button">
           更正为未下发
         </button> : null}
-        {canArchive ? <button className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={archive} type="button">
+        {canArchive ? <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={archive} type="button">
           归档
         </button> : null}
       </div>
@@ -537,7 +537,7 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
           {message}
         </div>
       ) : null}
-      <button className="mt-6 rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={save} type="button">
+      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
         {isSaving ? "正在保存..." : "保存证书状态"}
       </button>
     </section>
@@ -577,10 +577,10 @@ function TemplateButtons({ disabled, onSelect, templates }: { disabled: boolean;
   };
 
   return (
-    <div className="-mt-2 flex flex-wrap gap-2">
+    <div className="-mt-2 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
       {templates.map((template) => (
         <button
-          className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D] disabled:cursor-not-allowed disabled:opacity-50"
+          className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D] disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
           disabled={disabled}
           key={template.label}
           onClick={() => applyTemplate(template.text)}

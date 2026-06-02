@@ -69,12 +69,12 @@ export default function ApplicationSuccessPage({ searchParams }: SuccessPageProp
             <p className="font-medium text-porcelain">请保存申请编号</p>
             <p className="mt-2">申请提交不代表审核通过。申请编号用于进度查询；正式会员编号或证书编号会在审核通过及对应记录生成后另行显示。</p>
           </div>
-          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row">
+          <div className="mt-8 flex flex-col justify-center gap-3 sm:flex-row sm:flex-wrap">
             <CopyButton text={applicationNumber} />
-            <Link className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={applicationNumber ? `/application/query?number=${applicationNumber}` : "/application/query"}>
+            <Link className="w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href={applicationNumber ? `/application/query?number=${applicationNumber}` : "/application/query"}>
               {queryLabel}
             </Link>
-            <Link className="rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-sm font-semibold text-ink" href={returnHref}>
+            <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-7 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href={returnHref}>
               {returnLabel}
             </Link>
           </div>

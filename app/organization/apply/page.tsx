@@ -171,8 +171,8 @@ export default function OrganizationApplyPage() {
       />
 
       <main className="section-surface">
-        <section className="mx-auto grid max-w-6xl gap-8 px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-start lg:pt-16 lg:pb-16">
-          <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
+        <section className="mx-auto grid max-w-6xl gap-6 px-5 pt-8 pb-10 sm:px-8 sm:pt-12 md:pt-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-start lg:gap-8 lg:pt-16 lg:pb-16">
+          <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-6">
             <p className="font-medium text-porcelain">申请说明</p>
             <p className="mt-3">
               请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。
@@ -187,7 +187,7 @@ export default function OrganizationApplyPage() {
             </div>
           </aside>
 
-          <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+          <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-4 shadow-aureate sm:p-8" onSubmit={submitApplication}>
             <input aria-hidden="true" autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} type="text" />
             <div className="mb-7">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Form</p>
@@ -239,7 +239,7 @@ export default function OrganizationApplyPage() {
 
             <div className="mt-8 flex flex-col gap-3 border-t border-[#eee7da] pt-6 sm:flex-row sm:items-center sm:justify-between">
               <p className="text-xs leading-6 text-[#777]">申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。</p>
-              <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
+              <button className="w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSubmitting} type="submit">
                 {isSubmitting ? "正在提交..." : "提交机构会员申请"}
               </button>
             </div>

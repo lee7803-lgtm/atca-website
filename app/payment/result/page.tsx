@@ -30,7 +30,7 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
         visualSeal="状态"
         visualTitle={paymentResultText[order.status]}
       />
-      <main className="mx-auto max-w-4xl px-5 py-12 sm:px-8 lg:py-16">
+      <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
           <h1 className="mt-3 font-serif text-4xl text-porcelain">{paymentResultText[order.status]}</h1>
@@ -47,10 +47,10 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
           </p>
         </section>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
+          <Link className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
             查看付款说明
           </Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href={`/application/query?number=${encodeURIComponent(order.applicationNo)}`}>
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href={`/application/query?number=${encodeURIComponent(order.applicationNo)}`}>
             返回申请进度查询
           </Link>
         </div>

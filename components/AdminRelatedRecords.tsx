@@ -28,13 +28,13 @@ const businessTypeText: Record<string, string> = {
 
 export function RelatedPaymentRecords({ message = "", orders }: { message?: string; orders: PaymentOrderListItem[] }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-7">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Related Payments</p>
           <h2 className="mt-3 font-serif text-2xl text-porcelain">关联支付状态</h2>
         </div>
-        <Link className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href="/admin/payments">
+        <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href="/admin/payments">
           查看支付后台
         </Link>
       </div>
@@ -88,13 +88,13 @@ export function RelatedPaymentRecords({ message = "", orders }: { message?: stri
 
 export function RelatedNotificationRecords({ logs, message = "" }: { logs: NotificationLogRecord[]; message?: string }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7">
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-7">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Related Notifications</p>
           <h2 className="mt-3 font-serif text-2xl text-porcelain">关联通知记录</h2>
         </div>
-        <Link className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href="/admin/notifications">
+        <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href="/admin/notifications">
           查看通知后台
         </Link>
       </div>

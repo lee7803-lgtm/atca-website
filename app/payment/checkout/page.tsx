@@ -33,7 +33,7 @@ export default async function PaymentCheckoutPage({ searchParams }: { searchPara
         visualSeal="付款"
         visualTitle={order.orderNo}
       />
-      <main className="mx-auto max-w-5xl px-5 py-12 sm:px-8 lg:py-16">
+      <main className="mx-auto max-w-5xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
         <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Payment Order</p>
           <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{order.orderNo}</h1>
@@ -55,10 +55,10 @@ export default async function PaymentCheckoutPage({ searchParams }: { searchPara
         {needsManualConfirmation ? <ManualInstruction order={order} /> : null}
 
         <div className="mt-8 flex flex-col gap-3 sm:flex-row">
-          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={`/payment/result?orderNo=${encodeURIComponent(order.orderNo)}`}>
+          <Link className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href={`/payment/result?orderNo=${encodeURIComponent(order.orderNo)}`}>
             查看付款结果
           </Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href={`/application/query?number=${encodeURIComponent(order.applicationNo)}`}>
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href={`/application/query?number=${encodeURIComponent(order.applicationNo)}`}>
             返回申请进度查询
           </Link>
         </div>
@@ -75,7 +75,7 @@ function ManualInstruction({ order }: { order: PublicPaymentOrder }) {
       <div className="mt-5 grid gap-4 text-sm leading-8 text-[#5f5b52]">
         <p>当前订单采用人工确认 / 线下付款流程。请按协会秘书处通知的方式完成付款，并保留付款凭证。</p>
         <p>付款后请等待秘书处在后台确认。前台页面不会修改订单状态，也不会把订单标记为已付款。</p>
-        <p className="rounded-2xl border border-[#e4ded0] bg-white p-4 font-medium text-porcelain">付款备注建议填写：{order.orderNo} / {order.applicationNo}</p>
+        <p className="break-words rounded-2xl border border-[#e4ded0] bg-white p-4 font-medium text-porcelain">付款备注建议填写：{order.orderNo} / {order.applicationNo}</p>
       </div>
     </section>
   );

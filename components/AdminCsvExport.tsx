@@ -29,7 +29,7 @@ export function AdminCsvExport({ headers, filename, rows }: AdminCsvExportProps)
 
   return (
     <button
-      className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50"
+      className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-50 sm:w-auto"
       disabled={rows.length === 0}
       onClick={exportCsv}
       type="button"

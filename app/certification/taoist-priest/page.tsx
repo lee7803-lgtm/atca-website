@@ -581,16 +581,16 @@ export default function TaoistPriestCertificationPage() {
             ))}
           </div>
         </section>
-        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between">
+        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-4 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between sm:p-5">
           <span>已提交认证申请？查询认证申请进度</span>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/application/query">
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/application/query">
             查询认证申请进度
           </Link>
         </div>
 
         <StepNav current={current} onSelect={setCurrent} steps={steps.map((item) => item.title)} />
 
-        <form ref={stepTopRef} className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+        <form ref={stepTopRef} className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/92 p-4 shadow-aureate sm:p-8" onSubmit={submitApplication}>
           <input aria-hidden="true" autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} type="text" />
           <div className="mb-7 flex items-start gap-4">
             <ApplicationIcon name={step.icon} />
@@ -642,15 +642,15 @@ export default function TaoistPriestCertificationPage() {
           {errorMessage ? <div className="mt-6 whitespace-pre-line border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">{errorMessage}</div> : null}
 
           <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-            <button className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-45" disabled={current === 0} onClick={goPrev} type="button">
+            <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto" disabled={current === 0} onClick={goPrev} type="button">
               上一步
             </button>
             {current < steps.length - 1 ? (
-              <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)]" onClick={goNext} type="button">
+              <button className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)] sm:w-auto" onClick={goNext} type="button">
                 下一步
               </button>
             ) : (
-              <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
+              <button className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_10px_22px_rgba(127,29,29,0.12)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSubmitting} type="submit">
                 {isSubmitting ? "正在提交..." : "提交认证申请"}
               </button>
             )}
@@ -666,7 +666,7 @@ function StepNav({ current, onSelect, steps }: { current: number; onSelect: (ind
     <div className="my-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {steps.map((item, index) => (
         <button
-          className={`rounded-2xl border px-4 py-3 text-left text-sm transition ${
+          className={`min-w-0 rounded-2xl border px-4 py-3 text-left text-sm transition ${
             index === current
               ? "border-[#7F1D1D] bg-[#fffaf0] text-[#7F1D1D]"
               : index < current
@@ -678,7 +678,7 @@ function StepNav({ current, onSelect, steps }: { current: number; onSelect: (ind
           type="button"
         >
           <span className="block text-xs tracking-[0.2em]">第 {index + 1} 步</span>
-          <span className="mt-1 block font-medium">{item}</span>
+          <span className="mt-1 block break-words font-medium">{item}</span>
         </button>
       ))}
     </div>

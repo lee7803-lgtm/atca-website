@@ -64,7 +64,7 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
   };
 
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+    <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Review</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">审核处理</h2>
       <div className="mt-6 grid gap-5">
@@ -78,10 +78,10 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
           <span className="text-sm font-medium text-porcelain">审核备注</span>
           <textarea className="form-input min-h-36 resize-y" value={adminNote} onChange={(event) => setAdminNote(event.target.value)} />
         </label>
-        <div className="flex flex-wrap gap-2">
+        <div className="flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {reviewTemplates.map((template) => (
             <button
-              className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D]"
+              className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink transition hover:border-[#8a6b3e] hover:text-[#7F1D1D] sm:w-auto"
               key={template.label}
               onClick={() => setAdminNote(template.text)}
               type="button"
@@ -96,7 +96,7 @@ export function ReviewForm({ applicationId, initialAdminNote, initialStatus }: {
           {message}
         </div>
       ) : null}
-      <button className="mt-6 rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={save} type="button">
+      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
         {isSaving ? "正在保存..." : "保存审核结果"}
       </button>
     </section>
@@ -193,7 +193,7 @@ export function MemberStatusForm({ application }: { application: ApplicationAdmi
           {message}
         </div>
       ) : null}
-      <button className="mt-6 rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSaving} onClick={save} type="button">
+      <button className="mt-6 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSaving} onClick={save} type="button">
         {isSaving ? "正在保存..." : "保存会员状态"}
       </button>
     </section>

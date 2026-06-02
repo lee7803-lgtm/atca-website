@@ -86,17 +86,17 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
   }
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <Link className="text-sm font-medium text-[#8a6b3e] hover:text-[#7F1D1D]" href="/admin/applications">返回申请管理</Link>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin">返回后台首页</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/">返回前台首页</Link>
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/admin">返回后台首页</Link>
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/">返回前台首页</Link>
         </div>
       </div>
-      <div className="mt-6 grid gap-8 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start">
-        <div className="grid gap-6">
-          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+      <div className="mt-6 grid gap-6 lg:grid-cols-[minmax(0,1.05fr)_minmax(360px,0.95fr)] lg:items-start lg:gap-8">
+        <div className="grid gap-5 sm:gap-6">
+          <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8">
             <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Detail</p>
             <h1 className="mt-3 break-all font-serif text-4xl leading-tight text-porcelain">{application.applicationNo}</h1>
           </section>
@@ -140,7 +140,7 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
           <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
           <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
         </div>
-        <div className="grid gap-6">
+        <div className="grid gap-5 sm:gap-6">
           <div className="scroll-mt-6" id="review-processing">
             <ReviewForm applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
           </div>
@@ -186,14 +186,14 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
 
 function MemberStageCard({ guide }: { guide: StageGuide }) {
   return (
-    <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 shadow-aureate sm:p-7">
+    <section className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 shadow-aureate sm:p-7">
       <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-start">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Current Stage</p>
           <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">{guide.stage}</h2>
           <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{guide.statusDescription}</p>
         </div>
-        <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={guide.anchorHref}>
+        <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href={guide.anchorHref}>
           {guide.anchorLabel}
         </a>
       </div>
@@ -209,7 +209,7 @@ function StageGuideItem({ label, value }: { label: string; value: string }) {
   return (
     <div className="rounded-xl border border-[#e4ded0] bg-white px-4 py-3">
       <p className="text-xs tracking-[0.2em] text-[#8a6b3e]">{label}</p>
-      <p className="mt-2 text-sm leading-7 text-porcelain">{value}</p>
+      <p className="mt-2 break-words text-sm leading-7 text-porcelain">{value}</p>
     </div>
   );
 }
@@ -320,14 +320,14 @@ function DetailItem({ className = "", label, value }: { className?: string; labe
   return (
     <div className={`border-b border-[#eee7da] pb-4 ${className}`}>
       <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">{label}</p>
-      <p className="mt-2 whitespace-pre-wrap text-sm leading-7 text-porcelain">{value}</p>
+      <p className="mt-2 whitespace-pre-wrap break-words text-sm leading-7 text-porcelain">{value}</p>
     </div>
   );
 }
 
 function DetailSection({ children, id, title }: { children: ReactNode; id?: string; title: string }) {
   return (
-    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-7" id={id}>
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-7" id={id}>
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
     </section>
@@ -336,7 +336,7 @@ function DetailSection({ children, id, title }: { children: ReactNode; id?: stri
 
 function MemberValidityPanel({ application }: { application: ApplicationAdminRecord }) {
   return (
-    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8" id="validity-processing">
+    <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8" id="validity-processing">
       <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Validity</p>
       <h2 className="mt-3 font-serif text-3xl text-porcelain">会员有效期</h2>
       <div className="mt-6 grid gap-4">

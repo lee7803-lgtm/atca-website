@@ -125,7 +125,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
   ]);
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-12 sm:px-8 lg:py-16">
+    <section className="mx-auto max-w-7xl px-4 py-8 sm:px-6 sm:py-12 lg:px-8 lg:py-16">
       <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Applications</p>
@@ -133,10 +133,10 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看个人会员与机构会员申请，按类型、状态、申请编号、姓名或推荐人筛选申请记录。</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/admin">
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href="/admin">
             返回后台首页
           </Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">
+          <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href="/">
             返回前台首页
           </Link>
           <AdminCsvExport headers={csvHeaders} filename="membership-applications.csv" rows={csvRows} />
@@ -180,7 +180,7 @@ export default async function AdminApplicationsPage({ searchParams }: { searchPa
           <span className="text-sm font-medium text-porcelain">搜索</span>
           <input className="form-input" defaultValue={q || ""} name="q" placeholder="申请编号 / 姓名 / 推荐人" />
         </label>
-        <button className="rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" type="submit">
+        <button className="w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] md:w-auto" type="submit">
           筛选
         </button>
       </form>

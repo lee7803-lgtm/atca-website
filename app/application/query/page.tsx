@@ -249,7 +249,7 @@ function ApplicationQueryContent() {
                       {contactEmail}
                     </a>
                   </p>
-                  <a className="mt-4 inline-flex rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" href={applicationLookupMailto}>
+                  <a className="mt-4 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href={applicationLookupMailto}>
                     发送邮件找回
                   </a>
                 </div>
@@ -261,7 +261,7 @@ function ApplicationQueryContent() {
             </div>
 
             {errorMessage ? <div className="mt-6 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">{errorMessage}</div> : null}
-            <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
+            <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60" disabled={isQuerying} type="submit">
               {isQuerying ? "正在查询..." : "查询申请进度 / 结果"}
             </button>
             <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-xs leading-6 text-[#666666]">
@@ -276,7 +276,7 @@ function ApplicationQueryContent() {
               <div className="mt-6 grid gap-3">
                 <p className="text-sm leading-7 text-[#5f5b52]">查询到多条匹配记录，请选择一条查看脱敏详情。</p>
                 {applications.map((item, index) => (
-                  <button className={`rounded-2xl border px-4 py-3 text-left text-sm ${selectedIndex === index ? "border-[#7F1D1D] bg-white text-[#7F1D1D]" : "border-[#e4ded0] bg-white/70 text-[#5f5b52]"}`} key={item.applicationNo} onClick={() => setSelectedIndex(index)} type="button">
+                  <button className={`min-w-0 rounded-2xl border px-4 py-3 text-left text-sm break-words ${selectedIndex === index ? "border-[#7F1D1D] bg-white text-[#7F1D1D]" : "border-[#e4ded0] bg-white/70 text-[#5f5b52]"}`} key={item.applicationNo} onClick={() => setSelectedIndex(index)} type="button">
                     {maskApplicationNo(item.applicationNo)} · {typeText[item.applicationType]} · {maskName(item.name)} · {formatQueryStatus(item)}
                   </button>
                 ))}
@@ -342,12 +342,12 @@ function ApplicationQueryContent() {
                   <div className="border-b border-[#e4ded0] pb-4 last:border-b-0">
                     <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">证书编号</p>
                     <p className="mt-2 break-all text-sm leading-7 text-porcelain">{selectedApplication.certificateNo}</p>
-                    <div className="mt-3 flex flex-wrap gap-2">
-                      <a className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink" href="/certificate-query">
+                    <div className="mt-3 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
+                      <a className="inline-flex w-full justify-center rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink sm:w-auto" href="/certificate-query">
                         前往证书查询页
                       </a>
                       {selectedApplication.certificatePdfAvailable ? (
-                        <button className="inline-flex rounded-full bg-[#7F1D1D] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" disabled={isDownloadingPdf} onClick={() => downloadCertificatePdf(selectedApplication)} type="button">
+                        <button className="inline-flex w-full justify-center rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isDownloadingPdf} onClick={() => downloadCertificatePdf(selectedApplication)} type="button">
                           {isDownloadingPdf ? "正在下载..." : "下载正式证书 PDF"}
                         </button>
                       ) : null}
@@ -438,10 +438,10 @@ function PaymentOrdersPanel({ orders }: { orders: PublicPaymentOrder[] }) {
               <PaymentDetail label="付款确认时间" value={formatPaymentDateTime(order.paidAt)} />
             </div>
             <div className="mt-4 flex flex-col gap-2 sm:flex-row">
-              <Link className="rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
+              <Link className="w-full rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white sm:w-auto" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
                 查看付款说明
               </Link>
-              <Link className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink" href={`/payment/result?orderNo=${encodeURIComponent(order.orderNo)}`}>
+              <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-xs font-semibold text-ink sm:w-auto" href={`/payment/result?orderNo=${encodeURIComponent(order.orderNo)}`}>
                 查看付款状态
               </Link>
             </div>
@@ -473,7 +473,7 @@ function RenewalReviewPanel({
         <p className="text-sm leading-7 text-[#5f5b52]">当前阶段只创建支付订单并进入人工确认流程，不会自动修改会员有效期、证书 PDF 或公开核验资料。</p>
         <div className="mt-4 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
           {actions.map((action) => (
-            <button className="rounded-full bg-[#7F1D1D] px-4 py-2 text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60" disabled={isCreating} key={action.businessType} onClick={() => onCreateOrder(action.businessType)} type="button">
+            <button className="w-full rounded-full bg-[#7F1D1D] px-4 py-2 text-center text-xs font-semibold text-white disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isCreating} key={action.businessType} onClick={() => onCreateOrder(action.businessType)} type="button">
               {isCreating ? "正在生成..." : action.label}
             </button>
           ))}
@@ -682,7 +682,7 @@ function SupplementForm({ application, contact, onSuccess }: { application: Appl
         </SupplementGroup>
         <p className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">提交后申请状态将转为“已补充，审核中”，协会将基于更新后的资料继续审核。</p>
         {message ? <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]">{message}</div> : null}
-        <button className="rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] disabled:cursor-not-allowed disabled:opacity-60" disabled={isSubmitting} type="submit">
+        <button className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSubmitting} type="submit">
           {isSubmitting ? "正在提交..." : "提交补充 / 修改资料"}
         </button>
       </form>
@@ -723,7 +723,7 @@ function SupplementSuccess({ files, onReset }: { files: string[]; onReset: () =>
       <h3 className="font-serif text-2xl text-porcelain">补充资料已提交</h3>
       <p className="mt-3 text-sm leading-7 text-[#5f5b52]">补充资料已提交，当前申请资料已更新，状态已转为“已补充，审核中”。协会将基于最新资料继续审核，请稍后通过申请编号和登记联系方式查询处理进度。</p>
       {files.length > 0 ? <p className="mt-3 text-sm leading-7 text-[#5f5b52]">已上传文件：{files.join("、")}</p> : null}
-      <button className="mt-5 rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-sm font-semibold text-ink" onClick={onReset} type="button">
+      <button className="mt-5 w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" onClick={onReset} type="button">
         重新查询申请状态
       </button>
     </section>
@@ -748,7 +748,7 @@ function QueryPageFallback() {
               <input className="form-input" placeholder="请输入提交申请时填写的联络方式" readOnly />
             </label>
           </div>
-          <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white" type="button">
+          <button className="mt-7 w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white" type="button">
             查询申请进度 / 结果
           </button>
         </div>
