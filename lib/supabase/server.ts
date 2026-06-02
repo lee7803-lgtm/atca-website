@@ -39,7 +39,7 @@ const publicNumberMaxAttempts = 10;
 const applicantCertificateSelect =
   "certificate_no,status,certificate_review_status,holder_name,taoist_name,certification_path,certification_level,taoist_rank,lineage_or_temple,sect,issued_date,valid_from,valid_until,certificate_photo_path,pdf_storage_path,pdf_generated_at,pdf_version,pdf_file_size,pdf_status";
 const applicationAdminSelect =
-  "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,record_disposition,record_disposition_note,record_disposition_at,record_disposition_by,supplemental_submissions,supplement_submitted_at,created_at,updated_at";
+  "id,application_no,member_no,member_no_issued_at,member_no_issued_by,member_valid_from,member_valid_until,member_status,member_renewal_status,last_renewed_at,member_status_note,application_no_scheme,application_type,status,name,contact_name,phone,email,country,organization_type,profile,purpose,referrer_name,referrer_contact,referrer_note,receive_notice,truth_confirmed,terms_accepted,privacy_accepted,confirmed_at,admin_note,record_disposition,record_disposition_note,record_disposition_at,record_disposition_by,supplemental_submissions,supplement_submitted_at,created_at,updated_at";
 const applicationQuerySelect =
   "application_no,member_no,member_valid_from,member_valid_until,member_status,member_renewal_status,application_type,name,status,admin_note,record_disposition,record_disposition_note,contact_name,phone,email,country,organization_type,profile,purpose,supplemental_submissions,supplement_submitted_at,created_at,updated_at";
 const recordDispositions: Array<RecordDisposition | "all"> = ["normal", "test", "archived", "voided", "all"];
@@ -468,6 +468,9 @@ function toSupabaseRow(application: ApplicationRecord) {
     organization_type: application.organizationType ?? null,
     profile: application.profile,
     purpose: application.purpose,
+    referrer_name: application.referrerName ?? "",
+    referrer_contact: application.referrerContact ?? "",
+    referrer_note: application.referrerNote ?? "",
     receive_notice: application.receiveNotice ?? false,
     truth_confirmed: application.truthConfirmed,
     terms_accepted: application.termsAccepted,

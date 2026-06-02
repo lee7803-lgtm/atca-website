@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import QRCode from "qrcode";
@@ -13,6 +14,7 @@ import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderF
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
 import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
 import { getCertificateVerificationUrl } from "@/lib/site-url";
+import { createMasterDataEntry } from "@/lib/master-data";
 import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
 import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
@@ -59,6 +61,26 @@ type StageGuide = {
   anchorHref: string;
   anchorLabel: string;
 };
+
+async function collectCertificationMasterDataAction(formData: FormData) {
+  "use server";
+
+  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  const kind = String(formData.get("kind") || "");
+  const name = String(formData.get("name") || "").trim();
+  if (!["referee", "organization"].includes(kind) || !name) return;
+  await createMasterDataEntry({
+    kind: kind as "referee" | "organization",
+    name,
+    displayName: name,
+    type: "申请人填写",
+    internalNote: String(formData.get("note") || "").trim(),
+    source: "applicant_submitted",
+    status: "active",
+    reviewStatus: "approved"
+  });
+  revalidatePath("/admin/master-data");
+}
 
 export default async function AdminCertificationApplicationDetailPage({ params }: { params: { id: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
@@ -357,6 +379,17 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       </div>
 
       <div className="mt-8">
+        <DetailSection title="基础资料治理">
+          <DetailItem label="推荐人" value={application.recommenderName || "未填写"} />
+          <DetailItem label="推荐关系 / 说明" value={application.recommenderRelation || "未填写"} />
+          <DetailItem label="宫观 / 机构 / 所属组织" value={application.templeOrOrganization || "未填写"} />
+          <DetailItem label="道场 / 传承说明" value={application.lineage || "未填写"} />
+          <MasterDataCollectButton kind="referee" name={application.recommenderName} note={`来自认证申请 ${application.applicationNo}。${application.recommenderRelation || ""}`} />
+          <MasterDataCollectButton kind="organization" name={application.templeOrOrganization} note={`来自认证申请 ${application.applicationNo}。`} />
+        </DetailSection>
+      </div>
+
+      <div className="mt-8">
         <CreatePaymentOrderForm sourceId={application.id} sourceType="certification_application" />
       </div>
 
@@ -389,6 +422,20 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         </div>
       ) : null}
     </section>
+  );
+}
+
+function MasterDataCollectButton({ kind, name, note }: { kind: "referee" | "organization"; name: string; note: string }) {
+  if (!name) return null;
+  return (
+    <form action={collectCertificationMasterDataAction} className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+      <input name="kind" type="hidden" value={kind} />
+      <input name="name" type="hidden" value={name} />
+      <input name="note" type="hidden" value={note} />
+      <button className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink" type="submit">
+        收录为{kind === "referee" ? "推荐人" : "组织"}基础资料
+      </button>
+    </form>
   );
 }
 

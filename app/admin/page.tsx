@@ -2,15 +2,19 @@ import Link from "next/link";
 import type { Metadata } from "next";
 import { cookies } from "next/headers";
 import { AdminLoginForm } from "./AdminLoginForm";
-import { AdminLogoutButton } from "./AdminLogoutButton";
+import { AdminPageHeader, AdminSectionCard, AdminStatCard } from "@/components/admin/AdminUI";
 import { AdminConfigError, adminSessionCookieName, getAdminPassword, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { listAdminApplications } from "@/lib/api/admin-applications";
+import { listPaymentOrders } from "@/lib/api/payments";
+import { listNotificationLogs } from "@/lib/notifications/admin";
+import { listCertificationApplications } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
   title: "后台管理｜国际道教与文化协会 ITCA"
 };
 
-export default function AdminPage() {
+export default async function AdminPage() {
   let isConfigured = true;
 
   try {
@@ -20,70 +24,36 @@ export default function AdminPage() {
   }
 
   const isAuthed = isConfigured && isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value);
+  const stats = isAuthed ? await getDashboardStats() : null;
 
   return (
-    <section className="mx-auto max-w-7xl px-5 py-8 sm:px-8 lg:py-10">
-      <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
-        <div className="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-          <div>
-            <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Admin Console</p>
-            <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">后台管理</h1>
-            <p className="mt-4 max-w-3xl text-sm leading-8 text-[#5f5b52]">
-              用于秘书处查看会员申请、认证申请，处理审核状态、审核备注、材料核验与证书生成相关记录。
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 sm:flex-row">
-            <Link className="rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink" href="/">
-              返回前台首页
-            </Link>
-            {isAuthed ? <AdminLogoutButton /> : null}
-          </div>
-        </div>
-      </div>
-
+    <section className="mx-auto grid max-w-7xl gap-6">
+      <AdminPageHeader
+        eyebrow="Dashboard"
+        intro="秘书处用于处理审核优先级、会员 / 认证申请、支付、通知、安全审计和基础资料治理的运营总览。"
+        title="后台总览"
+      />
       {!isConfigured ? (
-        <div className="mt-8 border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-5 text-sm leading-7 text-[#7F1D1D]">
+        <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-5 text-sm leading-7 text-[#7F1D1D]">
           后台密码尚未配置，请先在本地环境变量中设置 ADMIN_PASSWORD。
         </div>
       ) : isAuthed ? (
-        <div className="mt-8 grid gap-5 md:grid-cols-2">
-          <AdminEntryCard
-            href="/admin/workbench"
-            index="01"
-            title="审核工作台"
-            text="聚合会员申请、认证申请、支付订单与通知记录的待办事项，只读查看并跳转详情。"
-          />
-          <AdminEntryCard
-            href="/admin/applications"
-            index="02"
-            title="会员申请管理"
-            text="查看个人会员与机构会员申请，筛选状态，进入详情处理审核备注。"
-          />
-          <AdminEntryCard
-            href="/admin/certification-applications"
-            index="03"
-            title="认证申请管理"
-            text="查看道士资格认证申请，处理材料审核、审核反馈、证书生成与下发状态。"
-          />
-          <AdminEntryCard
-            href="/admin/audit-logs"
-            index="04"
-            title="操作记录"
-            text="查看后台关键写操作的基础审计记录，用于追踪审核状态修改和后续操作留痕。"
-          />
-          <AdminEntryCard
-            href="/admin/notifications"
-            index="05"
-            title="通知记录"
-            text="查看系统、邮件、WhatsApp 与人工处理通知记录，支持后续通知链路追踪。"
-          />
-          <AdminEntryCard
-            href="/admin/payments"
-            index="06"
-            title="支付订单管理"
-            text="查看人工确认 / 内部测试支付订单，处理待人工确认、已付款和已取消状态。"
-          />
-        </div>
+        <>
+          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+            <AdminStatCard label="会员待审核" note={stats?.memberMessage || "submitted / pending / under_review / need_more_info"} value={stats?.memberPending ?? "—"} />
+            <AdminStatCard label="认证待审核" note={stats?.certificationMessage || "submitted / under_review / need_more_info"} value={stats?.certificationPending ?? "—"} />
+            <AdminStatCard label="支付待处理" note={stats?.paymentMessage || "pending / manual / failed"} value={stats?.paymentPending ?? "—"} />
+            <AdminStatCard label="通知待处理" note={stats?.notificationMessage || "pending / failed"} value={stats?.notificationPending ?? "—"} />
+          </div>
+          <AdminSectionCard title="优先处理入口">
+            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+              <AdminEntryCard href="/admin/workbench" title="审核工作台" text="按优先级查看申请、支付与通知待办。" />
+              <AdminEntryCard href="/admin/applications" title="会员申请" text="处理会员审核、有效期、联系方式修正与记录治理。" />
+              <AdminEntryCard href="/admin/certification-applications" title="认证申请" text="处理材料审核、证书生成、下发与证书状态。" />
+              <AdminEntryCard href="/admin/master-data" title="基础资料" text="维护推荐人、引荐人、宫观、机构与所属组织。" />
+            </div>
+          </AdminSectionCard>
+        </>
       ) : (
         <AdminLoginForm />
       )}
@@ -91,13 +61,32 @@ export default function AdminPage() {
   );
 }
 
-function AdminEntryCard({ href, index, text, title }: { href: string; index: string; text: string; title: string }) {
+async function getDashboardStats() {
+  const [members, certifications, payments, notifications] = await Promise.allSettled([
+    listAdminApplications({ pageSize: 100 }),
+    listCertificationApplications(),
+    listPaymentOrders({ pageSize: 100 }),
+    listNotificationLogs({ limit: 100 })
+  ]);
+
+  return {
+    memberPending: members.status === "fulfilled" ? members.value.filter((item) => ["submitted", "pending_review", "under_review", "need_more_info"].includes(item.status)).length : "—",
+    memberMessage: members.status === "fulfilled" ? "" : "会员申请暂时无法读取",
+    certificationPending: certifications.status === "fulfilled" ? certifications.value.filter((item) => ["submitted", "under_review", "need_more_info"].includes(item.status)).length : "—",
+    certificationMessage: certifications.status === "fulfilled" ? "" : "认证申请暂时无法读取",
+    paymentPending: payments.status === "fulfilled" ? payments.value.filter((item) => ["pending_payment", "manual_review", "failed"].includes(item.status)).length : "—",
+    paymentMessage: payments.status === "fulfilled" ? "" : "支付订单暂时无法读取",
+    notificationPending: notifications.status === "fulfilled" ? notifications.value.filter((item) => ["pending", "failed"].includes(item.sendStatus)).length : "—",
+    notificationMessage: notifications.status === "fulfilled" ? "" : "通知记录暂时无法读取"
+  };
+}
+
+function AdminEntryCard({ href, text, title }: { href: string; text: string; title: string }) {
   return (
-    <Link className="group rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate transition hover:border-gold/50 hover:bg-[#fffdf8] sm:p-7" href={href}>
-      <p className="text-xs tracking-[0.24em] text-gold">{index}</p>
-      <h2 className="mt-4 font-serif text-2xl text-porcelain">{title}</h2>
+    <Link className="group rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-5 transition hover:border-gold/50 hover:bg-white" href={href}>
+      <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{text}</p>
-      <span className="mt-6 inline-flex rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white transition group-hover:bg-[#6f1919]">
+      <span className="mt-5 inline-flex rounded-full bg-[#7F1D1D] px-4 py-2 text-xs font-semibold text-white transition group-hover:bg-[#6f1919]">
         进入管理
       </span>
     </Link>

@@ -127,6 +127,30 @@ const templateDefinitions: Record<string, TemplateDefinition> = {
     nextStep: "如需查看申请侧信息，请使用官网申请进度查询入口。",
     includeApplicationQuery: true,
     includeCertificateQuery: true
+  },
+  "payment.order_created": {
+    subject: "ITCA 支付订单已创建",
+    opening: "您的 ITCA 相关支付订单已创建。请以官网申请进度查询页面显示的信息为准。",
+    nextStep: "如需协助，请通过官网公布的联系方式联系。",
+    includeApplicationQuery: true
+  },
+  "payment.order_updated": {
+    subject: "ITCA 支付状态已更新",
+    opening: "您的 ITCA 相关支付状态已有更新。请以官网申请进度查询页面显示的信息为准。",
+    nextStep: "支付记录以后台人工核验和正式入账记录为准。",
+    includeApplicationQuery: true
+  },
+  "payment.paid": {
+    subject: "ITCA 支付已完成",
+    opening: "您的 ITCA 相关支付已记录为完成。后续审核或证书流程将继续推进。",
+    nextStep: "请通过官网申请进度查询入口查看后续状态。",
+    includeApplicationQuery: true
+  },
+  "payment.cancelled": {
+    subject: "ITCA 支付订单已取消",
+    opening: "您的 ITCA 相关支付订单已记录为取消。请以官网申请进度查询页面显示的信息为准。",
+    nextStep: "如需重新处理，请通过官网公布的联系方式联系。",
+    includeApplicationQuery: true
   }
 };
 

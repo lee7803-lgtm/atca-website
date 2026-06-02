@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { revalidatePath } from "next/cache";
 import { notFound, redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { MemberStatusForm, ReviewForm } from "./ReviewForm";
@@ -13,6 +14,7 @@ import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderList
 import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
 import { formatApplicationStatus } from "@/lib/status-labels";
+import { createMasterDataEntry } from "@/lib/master-data";
 import type { NotificationLogRecord } from "@/lib/notifications/types";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType } from "@/types/application";
 
@@ -32,6 +34,26 @@ const statusText: Record<ApplicationStatus, string> = {
   rejected: "已驳回",
   archived: "已建档"
 };
+
+async function collectMemberMasterDataAction(formData: FormData) {
+  "use server";
+
+  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  const name = String(formData.get("name") || "").trim();
+  if (!name) return;
+  await createMasterDataEntry({
+    kind: "referee",
+    name,
+    displayName: name,
+    type: "申请人填写",
+    phone: String(formData.get("contact") || "").trim(),
+    internalNote: String(formData.get("note") || "").trim(),
+    source: "applicant_submitted",
+    status: "active",
+    reviewStatus: "approved"
+  });
+  revalidatePath("/admin/master-data");
+}
 
 type StageGuide = {
   stage: string;
@@ -125,6 +147,21 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
             <DetailItem label="会员编号生成时间" value={application.memberNoIssuedAt ? formatDateTime(application.memberNoIssuedAt) : "暂未生成"} />
             <DetailItem label="会员编号生成来源" value={application.memberNoIssuedBy || "暂未生成"} />
+          </DetailSection>
+          <DetailSection title="基础资料">
+            <DetailItem label="引荐人 / 推荐人" value={application.referrerName || "未填写"} />
+            <DetailItem label="引荐人联系方式" value={application.referrerContact || "未填写"} />
+            <DetailItem className="md:col-span-2" label="推荐说明" value={application.referrerNote || "未填写"} />
+            {application.referrerName ? (
+              <form action={collectMemberMasterDataAction} className="md:col-span-2 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+                <input name="name" type="hidden" value={application.referrerName} />
+                <input name="contact" type="hidden" value={application.referrerContact} />
+                <input name="note" type="hidden" value={`来自会员申请 ${application.applicationNo}。${application.referrerNote || ""}`} />
+                <button className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink" type="submit">
+                  收录为推荐人基础资料
+                </button>
+              </form>
+            ) : null}
           </DetailSection>
           <DetailSection title="补充说明">
             <DetailItem label="会员有效期" value={formatMemberValidityRange(application)} />

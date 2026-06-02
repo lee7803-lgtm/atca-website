@@ -88,6 +88,9 @@ export type ApplicationSubmitPayload = {
   country: string;
   profile: string;
   purpose: string;
+  referrerName?: string;
+  referrerContact?: string;
+  referrerNote?: string;
   organizationType?: OrganizationType;
   receiveNotice?: boolean;
   truthConfirmed: boolean;

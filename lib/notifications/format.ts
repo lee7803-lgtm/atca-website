@@ -17,7 +17,14 @@ export const notificationTypeLabels: Record<string, string> = {
   certificate_pdf_generated: "正式证书 PDF 已生成",
   certificate_delivered: "证书已下发",
   member_status_updated: "会员状态已更新",
-  certificate_status_updated: "证书状态已更新"
+  certificate_status_updated: "证书状态已更新",
+  "payment.order_created": "支付订单已创建",
+  "payment.order_updated": "支付状态已更新",
+  "payment.manual_confirmed": "支付待人工确认",
+  "payment.paid": "支付已完成",
+  "payment.cancelled": "支付已取消",
+  "renewal.payment_required": "续期支付待处理",
+  "rereview.payment_required": "复审支付待处理"
 };
 
 export const channelLabels: Record<NotificationChannel, string> = {

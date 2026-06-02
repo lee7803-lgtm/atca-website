@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
+import { MasterDataSelector } from "@/components/MasterDataSelector";
 import { PageHero } from "@/components/PageHero";
 import { submitOrganizationApplication } from "@/lib/api/applications";
 import { hasValidLength, organizationNameLengthMessage, personNameLengthMessage } from "@/lib/validation/names";
@@ -13,6 +14,7 @@ const organizationTypes = ["宫观道堂及文化场所", "传统文化机构", 
 
 type FormValues = {
   organizationName: string;
+  organizationLibraryName: string;
   principalName: string;
   contact: string;
   email: string;
@@ -84,6 +86,7 @@ export default function OrganizationApplyPage() {
   const [fieldErrors, setFieldErrors] = useState<Partial<Record<keyof FormValues, string>>>({});
   const [values, setValues] = useState<FormValues>({
     organizationName: "",
+    organizationLibraryName: "",
     principalName: "",
     contact: "",
     email: "",
@@ -198,6 +201,19 @@ export default function OrganizationApplyPage() {
               <Field error={fieldErrors.organizationName} label="机构名称" required>
                 <input className="form-input" required value={values.organizationName} onChange={(event) => updateValue("organizationName", event.target.value)} />
               </Field>
+              <div>
+                <MasterDataSelector
+                  helperText="可从已有机构资料选择；没有对应资料时选择其他并填写机构名称。"
+                  kind="organization"
+                  label="已有机构资料"
+                  otherPlaceholder="请填写机构名称"
+                  value={values.organizationName || values.organizationLibraryName}
+                  onChange={(value) => {
+                    updateValue("organizationLibraryName", value);
+                    updateValue("organizationName", value);
+                  }}
+                />
+              </div>
               <Field error={fieldErrors.principalName} label="负责人姓名" required>
                 <input className="form-input" required value={values.principalName} onChange={(event) => updateValue("principalName", event.target.value)} />
               </Field>

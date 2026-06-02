@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import type { ReactNode } from "react";
 import { FormEvent, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
+import { MasterDataSelector } from "@/components/MasterDataSelector";
 import { PageHero } from "@/components/PageHero";
 import { submitMemberApplication } from "@/lib/api/applications";
 import { hasValidLength, personNameLengthMessage } from "@/lib/validation/names";
@@ -17,6 +18,9 @@ type FormValues = {
   region: string;
   profile: string;
   reason: string;
+  referrerName: string;
+  referrerContact: string;
+  referrerNote: string;
   notice: boolean;
   truthConfirmed: boolean;
   termsAccepted: boolean;
@@ -84,6 +88,9 @@ export default function MemberApplyPage() {
     region: "",
     profile: "",
     reason: "",
+    referrerName: "",
+    referrerContact: "",
+    referrerNote: "",
     notice: false,
     truthConfirmed: false,
     termsAccepted: false,
@@ -122,6 +129,9 @@ export default function MemberApplyPage() {
         country: values.region,
         profile: values.profile,
         purpose: values.reason,
+        referrerName: values.referrerName,
+        referrerContact: values.referrerContact,
+        referrerNote: values.referrerNote,
         receiveNotice: values.notice,
         truthConfirmed: values.truthConfirmed,
         termsAccepted: values.termsAccepted,
@@ -205,6 +215,22 @@ export default function MemberApplyPage() {
               </Field>
               <Field error={fieldErrors.region} label="所在国家 / 地区" required>
                 <input className="form-input" required value={values.region} onChange={(event) => updateValue("region", event.target.value)} />
+              </Field>
+              <div className="md:col-span-2">
+                <MasterDataSelector
+                  helperText="如无对应推荐人，可选择其他并填写；后台审核时会显示该内容。"
+                  kind="referee"
+                  label="引荐人 / 推荐人"
+                  otherPlaceholder="请填写引荐人或推荐人姓名"
+                  value={values.referrerName}
+                  onChange={(value) => updateValue("referrerName", value)}
+                />
+              </div>
+              <Field className="md:col-span-2" label="引荐人补充说明">
+                <div className="grid gap-4 md:grid-cols-2">
+                  <input className="form-input" placeholder="联系方式（选填）" value={values.referrerContact} onChange={(event) => updateValue("referrerContact", event.target.value)} />
+                  <input className="form-input" placeholder="推荐关系 / 说明（选填）" value={values.referrerNote} onChange={(event) => updateValue("referrerNote", event.target.value)} />
+                </div>
               </Field>
               <Field error={fieldErrors.profile} className="md:col-span-2" label="补充备注">
                 <textarea className="form-input min-h-32 resize-y" maxLength={1000} value={values.profile} onChange={(event) => updateValue("profile", event.target.value)} />

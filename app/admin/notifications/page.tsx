@@ -10,6 +10,7 @@ import { getEmailProviderConfig, isEmailAllowedTestRecipient } from "@/lib/notif
 import { formatNotificationChannel, formatNotificationStatus, formatNotificationType, maskEmail, maskPhone } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
 import { getNotificationRecipientEmail } from "@/lib/notifications/recipient";
+import { autoNotificationAllowlist, getNotificationResendPolicyText } from "@/lib/notifications/policy";
 import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
 
 export const dynamic = "force-dynamic";
@@ -59,7 +60,11 @@ export default async function AdminNotificationsPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
-        当前仅支持后台单条邮件通知操作。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径或证书核验凭证。
+        自动通知白名单覆盖申请提交、需补充资料、补充资料提交、审核结果、支付订单记录、证书生成 / 下发、会员与证书状态变更。Production 默认 dry-run 或 manual-only；WhatsApp 仅保留字段、模板与状态，不调用真实 API。本页不会展示敏感服务端凭证、数据库连接串、管理员凭证、存储对象路径、PDF path 或证书核验凭证。
+      </div>
+      <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-xs leading-6 text-[#5f5b52]">
+        <p className="font-semibold text-porcelain">当前自动通知白名单</p>
+        <p className="mt-2">{autoNotificationAllowlist.join(" / ")}</p>
       </div>
 
       <div className="mt-4 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 text-sm leading-7 text-[#5f5b52]">
@@ -90,7 +95,7 @@ export default async function AdminNotificationsPage() {
           <table className="min-w-[1280px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["创建时间", "通知类型", "渠道", "状态", "接收人", "邮箱 / 手机", "关联编号", "状态时间", "失败原因", "操作"].map((item) => (
+                {["创建时间", "通知类型", "渠道 / Provider", "状态", "接收人", "邮箱 / 手机", "业务对象", "最近发送时间", "失败原因", "可重发", "操作"].map((item) => (
                   <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
                 ))}
               </tr>
@@ -103,7 +108,10 @@ export default async function AdminNotificationsPage() {
                     <p>{formatNotificationType(item.notificationType)}</p>
                     {item.templateKey ? <p className="mt-1 break-all text-xs text-[#8a6b3e]">{item.templateKey}</p> : null}
                   </td>
-                  <td className="px-4 py-4 text-[#5f5b52]">{formatNotificationChannel(item.channel)}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">
+                    <p>{formatNotificationChannel(item.channel)}</p>
+                    <p className="mt-1 text-xs text-[#8a6b3e]">{item.provider || "none"}</p>
+                  </td>
                   <td className="px-4 py-4">
                     <StatusBadge status={item.sendStatus} />
                   </td>
@@ -119,6 +127,7 @@ export default async function AdminNotificationsPage() {
                   </td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(getStatusTime(item))}</td>
                   <td className="max-w-sm px-4 py-4 text-[#5f5b52]" title={item.errorMessage}>{summarizeError(item.errorMessage)}</td>
+                  <td className="px-4 py-4 text-[#5f5b52]">{getNotificationResendPolicyText(item)}</td>
                   <td className="px-4 py-4">
                     <NotificationSendAction channel={item.channel} id={item.id} status={item.sendStatus} {...getSendActionCopy(emailProviderStatus)} />
                   </td>
@@ -126,7 +135,7 @@ export default async function AdminNotificationsPage() {
               ))}
               {logs.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={10}>暂无通知记录。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={11}>暂无通知记录。</td>
                 </tr>
               ) : null}
             </tbody>

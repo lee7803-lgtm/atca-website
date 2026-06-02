@@ -6,6 +6,7 @@ import { getEmailProviderConfig } from "@/lib/notifications/email/config";
 import { resolveEmailProvider } from "@/lib/notifications/email/provider";
 import { sanitizeNotificationPayload } from "@/lib/notifications/format";
 import { NotificationTableMissingError } from "@/lib/notifications/logger";
+import { containsSensitiveNotificationPayload, isManualEmailNotificationAllowed } from "@/lib/notifications/policy";
 import { getNotificationRecipientEmail } from "@/lib/notifications/recipient";
 import type { EmailProviderSendResult } from "@/lib/notifications/email/types";
 import type { NotificationLogRecord, NotificationSendStatus } from "@/lib/notifications/types";
@@ -122,22 +123,9 @@ function getResponseMessage(status: NotificationSendStatus, providerErrorMessage
 }
 
 function getManualSendBlockReason(notification: NotificationLogRecord) {
-  if (isBlockedNotificationType(notification.notificationType)) return "manual_send_notification_type_blocked";
+  if (!isManualEmailNotificationAllowed(notification)) return "manual_send_notification_type_blocked";
   if (containsSensitiveNotificationPayload(notification.payloadJson)) return "manual_send_sensitive_payload_blocked";
   return "";
-}
-
-function isBlockedNotificationType(notificationType: string) {
-  return (
-    notificationType.startsWith("payment.") ||
-    notificationType === "renewal.payment_required" ||
-    notificationType === "rereview.payment_required" ||
-    notificationType === "certificate_pdf_generated"
-  );
-}
-
-function containsSensitiveNotificationPayload(payload: Record<string, unknown>) {
-  return Object.keys(payload || {}).some((key) => /storage|pdf|vt|token|identity|id[_-]?proof|recommend|recommender|committee|internal|material/i.test(key));
 }
 
 function buildBlockedProviderResult(provider: string, skippedReason: string): EmailProviderSendResult {

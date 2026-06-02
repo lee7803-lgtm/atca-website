@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { FormEvent, useEffect, useMemo, useRef, useState } from "react";
 import { FormTemplateHelper } from "@/components/FormTemplateHelper";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
+import { MasterDataSelector } from "@/components/MasterDataSelector";
 import { PageHero } from "@/components/PageHero";
 import { getAdultBirthDateError } from "@/lib/validation/age";
 import { certificatePhotoUploadHint, getUploadFileError, idProofUploadHint, lineageMaterialUploadHint, uploadFileGeneralHint } from "@/lib/validation/files";
@@ -702,6 +703,40 @@ function FormField({
 }) {
   const badge = field.required ? "*" : field.badge;
   const commonClass = "w-full rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3 text-sm text-porcelain outline-none transition focus:border-gold";
+
+  if (field.id === "masterTemple") {
+    return (
+      <div className="grid gap-2">
+        <MasterDataSelector
+          helperText="没有对应宫观或机构时请选择其他并填写，后台审核时会保留该内容。"
+          kind="organization"
+          label={field.label}
+          otherPlaceholder="请填写宫观 / 机构 / 所属组织"
+          required={field.required}
+          value={value}
+          onChange={(nextValue) => setValue(field.id, nextValue)}
+        />
+        {errors[field.id] ? <span className="text-xs text-[#7F1D1D]">{errors[field.id]}</span> : null}
+      </div>
+    );
+  }
+
+  if (field.id === "recommenderName") {
+    return (
+      <div className="grid gap-2">
+        <MasterDataSelector
+          helperText="可选择已有推荐人；没有对应资料时请选择其他并填写。"
+          kind="referee"
+          label={field.label}
+          otherPlaceholder="请填写推荐人姓名"
+          required={field.required}
+          value={value}
+          onChange={(nextValue) => setValue(field.id, nextValue)}
+        />
+        {errors[field.id] ? <span className="text-xs text-[#7F1D1D]">{errors[field.id]}</span> : null}
+      </div>
+    );
+  }
 
   return (
     <label className={field.kind === "textarea" || field.kind === "file" ? "grid gap-3 rounded-2xl bg-white/45 p-3 md:col-span-2" : "grid gap-3 rounded-2xl bg-white/45 p-3"}>
