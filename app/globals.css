@@ -665,14 +665,14 @@ a {
   max-width: 28rem;
 }
 
-.cultural-visual__image-heading span {
+.cultural-visual__image-heading > span {
   display: grid;
-  min-width: 3.5rem;
-  min-height: 3.5rem;
+  min-width: 3.6rem;
+  min-height: 3.6rem;
+  flex-shrink: 0;
   place-items: center;
   border: 1px solid rgba(248, 230, 194, 0.48);
   background: rgba(127, 29, 29, 0.54);
-  padding: 0.35rem;
   color: #f8e6c2;
   font-size: 0.82rem;
   line-height: 1.25;
@@ -681,7 +681,7 @@ a {
   backdrop-filter: blur(4px);
 }
 
-.cultural-visual--wide .cultural-visual__image-heading span {
+.cultural-visual--wide .cultural-visual__image-heading > span {
   min-width: 4.6rem;
 }
 
@@ -996,7 +996,7 @@ a {
     font-size: 0.86rem;
   }
 
-  .cultural-visual__image-heading span {
+  .cultural-visual__image-heading > span {
     min-width: 3.15rem;
     min-height: 3.15rem;
     font-size: 0.76rem;

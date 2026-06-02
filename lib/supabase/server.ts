@@ -29,7 +29,6 @@ type AuditActorValues = {
 
 type SupabaseConfig = {
   url: string;
-  anonKey: string;
   serviceRoleKey: string;
 };
 
@@ -305,7 +304,6 @@ function generatePublicNumberSuffix() {
 function getSupabaseConfig(): SupabaseConfig {
   const config = {
     NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY
   };
   const missing = Object.entries(config)
@@ -318,7 +316,6 @@ function getSupabaseConfig(): SupabaseConfig {
 
   return {
     url: config.NEXT_PUBLIC_SUPABASE_URL,
-    anonKey: config.NEXT_PUBLIC_SUPABASE_ANON_KEY,
     serviceRoleKey: config.SUPABASE_SERVICE_ROLE_KEY
   } as SupabaseConfig;
 }
@@ -476,9 +473,6 @@ function toSupabaseRow(application: ApplicationRecord) {
     organization_type: application.organizationType ?? null,
     profile: application.profile,
     purpose: application.purpose,
-    referrer_name: application.referrerName ?? "",
-    referrer_contact: application.referrerContact ?? "",
-    referrer_note: application.referrerNote ?? "",
     receive_notice: application.receiveNotice ?? false,
     truth_confirmed: application.truthConfirmed,
     terms_accepted: application.termsAccepted,

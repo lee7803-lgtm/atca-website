@@ -22,6 +22,41 @@ function isEmail(value: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
 }
 
+function getItcaApiBaseUrl() {
+  return (process.env.ITCA_API_BASE_URL || process.env.NEXT_PUBLIC_ITCA_API_BASE_URL || "").replace(/\/$/, "");
+}
+
+async function trySubmitApplicationToItcaApi(values: ApplicationSubmitPayload) {
+  const baseUrl = getItcaApiBaseUrl();
+  if (!baseUrl) return null;
+
+  const path = values.applicationType === "organization_member" ? "/api/organization-applications" : "/api/member-applications";
+
+  try {
+    const response = await fetch(`${baseUrl}${path}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(values)
+    });
+    const result = (await response.json()) as ApplicationSubmitResponse;
+
+    if (result.success) {
+      return NextResponse.json(result, { status: response.status });
+    }
+
+    const safeResult: ApplicationSubmitResponse = {
+      success: false,
+      message: result.message || "申请提交服务暂时不可用，请稍后重试或联系协会秘书处。",
+      errorType: response.status === 400 && result.fieldErrors ? "validation_failed" : response.status === 409 ? "duplicate_application" : "dotnet_submit_failed",
+      ...(result.fieldErrors ? { fieldErrors: result.fieldErrors } : {})
+    };
+
+    return NextResponse.json(safeResult, { status: response.status });
+  } catch {
+    return null;
+  }
+}
+
 function validatePayload(payload: unknown) {
   const fieldErrors: Record<string, string> = {};
 
@@ -183,15 +218,22 @@ export async function POST(request: Request) {
     return NextResponse.json(response);
   } catch (error) {
     if (error instanceof SupabaseConfigError) {
+      const fallbackResponse = await trySubmitApplicationToItcaApi(values);
+      if (fallbackResponse) return fallbackResponse;
+
       const response: ApplicationSubmitResponse = {
         success: false,
-        message: `申请提交服务尚未完成数据库配置，缺少环境变量：${error.missing.join(", ")}。`
+        message: "申请提交服务尚未完成数据库配置，请联系协会秘书处。",
+        errorType: "next_submit_failed"
       };
 
       return NextResponse.json(response, { status: 500 });
     }
 
     if (error instanceof SupabaseRequestError) {
+      const fallbackResponse = await trySubmitApplicationToItcaApi(values);
+      if (fallbackResponse) return fallbackResponse;
+
       const response: ApplicationSubmitResponse = {
         success: false,
         message: "申请提交服务暂时无法写入资料，系统将尝试备用提交服务；如仍失败请联系协会秘书处。",
@@ -200,6 +242,9 @@ export async function POST(request: Request) {
 
       return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });
     }
+
+    const fallbackResponse = await trySubmitApplicationToItcaApi(values);
+    if (fallbackResponse) return fallbackResponse;
 
     const response: ApplicationSubmitResponse = {
       success: false,

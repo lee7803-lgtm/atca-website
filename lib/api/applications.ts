@@ -83,83 +83,15 @@ async function submitNextApplicationApi(payload: ApplicationSubmitRequest) {
   return { response, result };
 }
 
-async function submitApplicationToItcaApi(path: string, payload: ApplicationSubmitRequest) {
-  const response = await fetch(`${getItcaApiBaseUrl()}${path}`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
-  const result = await readApplicationSubmitResponse(response);
-
-  return { response, result };
-}
-
-function isValidationFailure(response: Response, result: ApplicationSubmitResponse) {
-  return response.status === 400 && result.success === false && Boolean(result.fieldErrors);
-}
-
-function isDuplicateFailure(response: Response, result: ApplicationSubmitResponse) {
-  return response.status === 409 && result.success === false && result.errorType === "duplicate_application";
-}
-
-function buildAllSubmitPathsFailedResult(nextStatus?: number, dotnetStatus?: number): ApplicationSubmitResponse {
-  const statusTrail = [nextStatus ? `next:${nextStatus}` : "", dotnetStatus ? `dotnet:${dotnetStatus}` : ""].filter(Boolean).join(",");
-
-  if (statusTrail) {
-    console.warn(`[application-submit] all_submit_paths_failed ${statusTrail}`);
-  } else {
-    console.warn("[application-submit] all_submit_paths_failed");
-  }
-
-  return {
-    success: false,
-    message: "申请提交服务暂时不可用，请稍后重试或联系协会秘书处。",
-    errorType: "all_submit_paths_failed"
-  };
-}
-
-async function submitApplicationWithFallback(path: string, payload: ApplicationSubmitRequest) {
-  let nextStatus: number | undefined;
-
-  try {
-    const { response, result } = await submitNextApplicationApi(payload);
-    nextStatus = response.status;
-
-    if (response.ok || isValidationFailure(response, result) || isDuplicateFailure(response, result)) {
-      return { response, result };
-    }
-  } catch {
-    console.warn("[application-submit] next_submit_failed");
-  }
-
-  try {
-    const { response, result } = await submitApplicationToItcaApi(path, payload);
-
-    if (response.ok || isValidationFailure(response, result) || isDuplicateFailure(response, result)) {
-      return { response, result };
-    }
-
-    return {
-      response,
-      result: buildAllSubmitPathsFailedResult(nextStatus, response.status)
-    };
-  } catch {
-    return {
-      response: new Response(null, { status: 503 }),
-      result: buildAllSubmitPathsFailedResult(nextStatus)
-    };
-  }
-}
-
 export async function submitMemberApplication(payload: ApplicationSubmitRequest) {
-  return submitApplicationWithFallback("/api/member-applications", {
+  return submitNextApplicationApi({
     ...payload,
     applicationType: "personal_member"
   });
 }
 
 export async function submitOrganizationApplication(payload: ApplicationSubmitRequest) {
-  return submitApplicationWithFallback("/api/organization-applications", {
+  return submitNextApplicationApi({
     ...payload,
     applicationType: "organization_member"
   });
