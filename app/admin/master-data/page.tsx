@@ -85,7 +85,7 @@ async function writeMasterDataAudit(action: string, resourceId: string, resource
   }).catch(() => undefined);
 }
 
-export default async function AdminMasterDataPage() {
+export default async function AdminMasterDataPage({ searchParams }: { searchParams?: { edit?: string } }) {
   if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
 
   let entries: MasterDataEntry[] = [];
@@ -95,6 +95,7 @@ export default async function AdminMasterDataPage() {
   } catch (error) {
     message = error instanceof MasterDataTableMissingError ? "基础资料表尚未配置；请先执行 supabase/v1-3-stage13-master-data.sql。" : "基础资料暂时无法读取，请确认 Supabase 配置。";
   }
+  const selectedEntry = entries.find((item) => item.id === searchParams?.edit) || null;
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6">
@@ -113,7 +114,7 @@ export default async function AdminMasterDataPage() {
           <table className="min-w-[980px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["类型", "显示名称", "分类", "地区", "来源", "状态", "更新时间"].map((item) => (
+                {["类型", "显示名称", "分类", "地区", "来源", "状态", "更新时间", "操作"].map((item) => (
                   <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
                 ))}
               </tr>
@@ -131,72 +132,81 @@ export default async function AdminMasterDataPage() {
                   <td className="px-4 py-4 text-[#5f5b52]">{item.source}</td>
                   <td className="px-4 py-4"><AdminStatusBadge tone={item.status === "active" && item.reviewStatus === "approved" ? "success" : "warning"}>{item.status} / {item.reviewStatus}</AdminStatusBadge></td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.updatedAt)}</td>
+                  <td className="px-4 py-4">
+                    <a className="rounded-full border border-[#d8d0bf] bg-white px-3 py-2 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/admin/master-data?edit=${encodeURIComponent(item.id)}#master-data-editor`}>
+                      编辑 / 维护
+                    </a>
+                  </td>
                 </tr>
               ))}
               {entries.length === 0 ? (
                 <tr>
-                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={7}>暂无基础资料。</td>
+                  <td className="px-4 py-8 text-center text-[#5f5b52]" colSpan={8}>暂无基础资料。</td>
                 </tr>
               ) : null}
             </tbody>
           </table>
         </div>
       </AdminSectionCard>
-      <AdminSectionCard title="编辑 / 启停基础资料">
-        <div className="mt-5 grid gap-5">
-          {entries.map((item) => (
-            <form action={updateMasterDataAction} className="grid gap-4 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 lg:grid-cols-4" key={item.id}>
-              <input name="id" type="hidden" value={item.id} />
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-porcelain">名称</span>
-                <input className="form-input" name="name" required defaultValue={item.name} />
-              </label>
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-porcelain">显示名称</span>
-                <input className="form-input" name="displayName" defaultValue={item.displayName} />
-              </label>
-              <div>
-                <SearchableSelectWithOther label="分类" name="type" options={item.kind === "referee" ? refereeTypeOptions : organizationMasterTypeOptions} value={item.type} />
-              </div>
-              <div>
-                <SearchableSelectWithOther label="国家 / 地区" name="country" options={countryRegionOptions} value={item.country} />
-              </div>
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-porcelain">区域</span>
-                <input className="form-input" name="region" defaultValue={item.region} />
-              </label>
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-porcelain">状态</span>
-                <select className="form-input" name="status" defaultValue={item.status}>
-                  <option value="active">启用</option>
-                  <option value="inactive">停用</option>
-                </select>
-              </label>
-              <label className="grid gap-2">
-                <span className="text-sm font-medium text-porcelain">审核状态</span>
-                <select className="form-input" name="reviewStatus" defaultValue={item.reviewStatus}>
-                  <option value="approved">通过</option>
-                  <option value="pending">待审核</option>
-                  <option value="rejected">不通过</option>
-                </select>
-              </label>
-              <label className="grid gap-2 lg:col-span-2">
-                <span className="text-sm font-medium text-porcelain">公开备注</span>
-                <input className="form-input" name="note" defaultValue={item.note} />
-              </label>
-              <label className="grid gap-2 lg:col-span-2">
-                <span className="text-sm font-medium text-porcelain">内部备注</span>
-                <input className="form-input" name="internalNote" defaultValue={item.internalNote} />
-              </label>
-              <div className="lg:col-span-4">
-                <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white" type="submit">保存修改</button>
-              </div>
-            </form>
-          ))}
-          {entries.length === 0 ? <p className="text-sm leading-7 text-[#5f5b52]">暂无可编辑基础资料。</p> : null}
-        </div>
-      </AdminSectionCard>
+      {selectedEntry ? <MasterDataEditSection entry={selectedEntry} /> : null}
     </div>
+  );
+}
+
+function MasterDataEditSection({ entry }: { entry: MasterDataEntry }) {
+  return (
+    <AdminSectionCard title={`正在维护：${entry.displayName}`} id="master-data-editor">
+      <form action={updateMasterDataAction} className="mt-5 grid gap-4 rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 lg:grid-cols-4">
+        <input name="id" type="hidden" value={entry.id} />
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">名称</span>
+          <input className="form-input" name="name" required defaultValue={entry.name} />
+        </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">显示名称</span>
+          <input className="form-input" name="displayName" defaultValue={entry.displayName} />
+        </label>
+        <div>
+          <SearchableSelectWithOther label="分类" name="type" options={entry.kind === "referee" ? refereeTypeOptions : organizationMasterTypeOptions} value={entry.type} />
+        </div>
+        <div>
+          <SearchableSelectWithOther label="国家 / 地区" name="country" options={countryRegionOptions} value={entry.country} />
+        </div>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">区域</span>
+          <input className="form-input" name="region" defaultValue={entry.region} />
+        </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">状态</span>
+          <select className="form-input" name="status" defaultValue={entry.status}>
+            <option value="active">启用</option>
+            <option value="inactive">停用</option>
+          </select>
+        </label>
+        <label className="grid gap-2">
+          <span className="text-sm font-medium text-porcelain">审核状态</span>
+          <select className="form-input" name="reviewStatus" defaultValue={entry.reviewStatus}>
+            <option value="approved">通过</option>
+            <option value="pending">待审核</option>
+            <option value="rejected">不通过</option>
+          </select>
+        </label>
+        <label className="grid gap-2 lg:col-span-2">
+          <span className="text-sm font-medium text-porcelain">公开备注</span>
+          <input className="form-input" name="note" defaultValue={entry.note} />
+        </label>
+        <label className="grid gap-2 lg:col-span-2">
+          <span className="text-sm font-medium text-porcelain">内部备注</span>
+          <input className="form-input" name="internalNote" defaultValue={entry.internalNote} />
+        </label>
+        <div className="flex flex-col gap-3 lg:col-span-4 sm:flex-row">
+          <button className="rounded-full bg-[#7F1D1D] px-5 py-2.5 text-sm font-semibold text-white" type="submit">保存修改</button>
+          <a className="rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink" href="/admin/master-data">
+            取消编辑 / 关闭编辑
+          </a>
+        </div>
+      </form>
+    </AdminSectionCard>
   );
 }
 
