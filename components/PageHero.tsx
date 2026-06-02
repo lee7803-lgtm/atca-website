@@ -56,7 +56,7 @@ export function PageHero({
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d8bd7a]/28 to-transparent" aria-hidden="true" />
       <CulturePattern variant="hero" className="opacity-60" />
       <InkLandscape className="opacity-80" />
-      <div className="relative mx-auto grid max-w-7xl gap-12 px-5 py-18 sm:px-8 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
+      <div className="relative mx-auto grid max-w-7xl gap-8 px-5 py-16 sm:gap-12 sm:px-8 sm:py-18 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
         <div className="page-hero__copy max-w-3xl">
           <p className="page-hero__eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
@@ -67,8 +67,8 @@ export function PageHero({
               {actions.map((action, index) => {
                 const variant = action.variant ?? (index === 0 ? "primary" : "secondary");
                 const className = variant === "primary"
-                  ? "rounded-xl bg-[#B7833D] px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#A06F32]"
-                  : "rounded-xl border border-[#F8F1E8]/[0.38] bg-white/[0.08] px-6 py-3.5 text-center text-sm font-semibold text-[#F8F1E8] transition hover:bg-white/[0.14]";
+                  ? "w-full rounded-xl bg-[#B7833D] px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-[#A06F32] sm:w-auto"
+                  : "w-full rounded-xl border border-[#F8F1E8]/[0.38] bg-white/[0.08] px-6 py-3.5 text-center text-sm font-semibold text-[#F8F1E8] transition hover:bg-white/[0.14] sm:w-auto";
 
                 return (
                   <Link className={className} href={action.href} key={`${action.href}-${action.label}`}>

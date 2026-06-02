@@ -41,8 +41,8 @@ export default async function CertificateDetailPage({ params, searchParams }: Ce
   }
 
   return (
-    <main className="mx-auto max-w-4xl px-5 py-12 sm:px-8 lg:py-16">
-      <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-8 shadow-aureate sm:p-10">
+    <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
+      <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-10">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Verification</p>
         <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">证书核验详情</h1>
         <p className="mt-5 max-w-2xl text-sm leading-8 text-[#5f5b52]">
@@ -62,7 +62,7 @@ export default async function CertificateDetailPage({ params, searchParams }: Ce
           <DetailRow label="核验说明" value="该短期核验链接由证书编号与持证人姓名完成核验后生成，有效期内可查看公开证书详情。" />
         </div>
 
-        <Link className="mt-8 inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href="/certificate-query">
+        <Link className="mt-8 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href="/certificate-query">
           返回证书核验
         </Link>
       </section>
@@ -72,14 +72,14 @@ export default async function CertificateDetailPage({ params, searchParams }: Ce
 
 function ProtectedPrompt({ message }: { message: string }) {
   return (
-    <main className="mx-auto max-w-4xl px-5 py-12 sm:px-8 lg:py-16">
-      <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-8 text-center shadow-aureate sm:p-10">
+    <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
+      <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-center shadow-aureate sm:p-10">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Verification</p>
         <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">请先完成证书核验</h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-8 text-[#5f5b52]">
           {message || "请先完成证书核验。为保护持证人信息，请返回证书查询页面，输入证书编号与持证人姓名进行核验。"}
         </p>
-        <Link className="mt-7 inline-flex rounded-full bg-[#7F1D1D] px-7 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certificate-query">
+        <Link className="mt-7 inline-flex w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href="/certificate-query">
           前往证书核验
         </Link>
       </section>
