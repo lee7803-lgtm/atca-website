@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { MasterDataEntry, MasterDataKind } from "@/types/master-data";
 
 export function MasterDataSelector({
+  error,
   helperText,
   kind,
   label,
@@ -13,6 +14,7 @@ export function MasterDataSelector({
   value,
   onChange
 }: {
+  error?: string;
   helperText?: string;
   kind: MasterDataKind;
   label: string;
@@ -75,6 +77,7 @@ export function MasterDataSelector({
         <input className="form-input" placeholder={otherPlaceholder || "请填写"} required={required} value={value} onChange={(event) => onChange(event.target.value)} />
       )}
       {helperText || message ? <p className="text-xs leading-6 text-[#8a6b3e]">{message || helperText}</p> : null}
+      {error ? <p className="text-xs leading-6 text-[#7F1D1D]">{error}</p> : null}
     </div>
   );
 }

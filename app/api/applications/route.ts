@@ -192,7 +192,7 @@ export async function POST(request: Request) {
     if (error instanceof SupabaseRequestError) {
       const response: ApplicationSubmitResponse = {
         success: false,
-        message: "申请资料未能写入数据库，请稍后重试或联系协会秘书处。"
+        message: `申请资料未能写入数据库（后端状态 ${error.status}），系统将尝试备用提交服务；如仍失败请联系协会秘书处。`
       };
 
       return NextResponse.json(response, { status: error.status >= 400 && error.status < 500 ? 400 : 500 });

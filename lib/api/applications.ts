@@ -90,7 +90,7 @@ async function submitApplicationWithFallback(path: string, payload: ApplicationS
   try {
     const { response, result } = await submitNextApplicationApi(payload);
 
-    if (response.ok || response.status === 400 || response.status === 409) {
+    if (response.ok || response.status === 409 || (response.status === 400 && result.success === false && Boolean(result.fieldErrors))) {
       return { response, result };
     }
   } catch {

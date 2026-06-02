@@ -105,6 +105,22 @@ export default function MemberApplyPage() {
     setFieldErrors((current) => ({ ...current, [field]: "" }));
   };
 
+  const confirmAllRequiredStatements = () => {
+    setValues((current) => ({
+      ...current,
+      truthConfirmed: true,
+      termsAccepted: true,
+      privacyAccepted: true
+    }));
+    setFieldErrors((current) => ({
+      ...current,
+      truthConfirmed: "",
+      termsAccepted: "",
+      privacyAccepted: ""
+    }));
+    setErrorMessage("");
+  };
+
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     const submittedFormData = new FormData(event.currentTarget);
@@ -249,6 +265,11 @@ export default function MemberApplyPage() {
               <ConfirmCheckbox checked={values.truthConfirmed} error={fieldErrors.truthConfirmed} label="我确认所提交的姓名、联系方式、身份资料及相关说明真实、完整、合法，且为本人或经合法授权提交；我理解协会可人工核验资料，并可对资料不完整、无法核验、疑似冒用、伪造、虚假陈述或恶意提交的申请要求补充材料、暂停审核、驳回申请，或在建档后撤销相关记录。" onChange={(checked) => updateValue("truthConfirmed", checked)} />
               <ConfirmCheckbox checked={values.termsAccepted} error={fieldErrors.termsAccepted} label="我已阅读并同意《服务条款》。" onChange={(checked) => updateValue("termsAccepted", checked)} />
               <ConfirmCheckbox checked={values.privacyAccepted} error={fieldErrors.privacyAccepted} label="我已阅读并同意《隐私政策》及资料使用说明。" onChange={(checked) => updateValue("privacyAccepted", checked)} />
+              <div className="md:col-span-2">
+                <button className="w-full rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-5 py-2.5 text-center text-sm font-semibold text-[#7F1D1D] transition hover:border-[#8a6b3e] hover:bg-white sm:w-auto" type="button" onClick={confirmAllRequiredStatements}>
+                  全部确认
+                </button>
+              </div>
             </div>
 
             {errorMessage ? (

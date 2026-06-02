@@ -455,6 +455,24 @@ export default function TaoistPriestCertificationPage() {
     setCurrent((value) => Math.max(value - 1, 0));
   };
 
+  const confirmCurrentStepChecks = () => {
+    const checkboxIds = step.groups.flatMap((group) => group.fields).filter((field) => field.kind === "checkbox").map((field) => field.id);
+    if (checkboxIds.length === 0) return;
+
+    setValues((currentValues) => ({
+      ...currentValues,
+      ...Object.fromEntries(checkboxIds.map((id) => [id, "true"]))
+    }));
+    setErrors((currentErrors) => {
+      const next = { ...currentErrors };
+      checkboxIds.forEach((id) => delete next[id]);
+      return next;
+    });
+    setErrorMessage("");
+  };
+
+  const currentStepHasCheckboxes = step.groups.some((group) => group.fields.some((field) => field.kind === "checkbox"));
+
   const submitApplication = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting || !validateAllSteps()) return;
@@ -610,20 +628,42 @@ export default function TaoistPriestCertificationPage() {
                 <h3 className="mb-5 text-base font-medium text-porcelain">{group.title}</h3>
                 <div className="grid gap-5 md:grid-cols-2">
                   {group.fields.map((field) => (
-                    <FormField
-                      errors={errors}
-                      field={field}
-                      key={field.id}
-                      setFileValue={setFileValue}
-                      setValue={setValue}
-                      template={textareaTemplates[field.id]}
-                      value={values[field.id] ?? ""}
-                    />
+                    field.id === "templeName" ? (
+                      <MasterDataSelector
+                        error={errors.templeName}
+                        helperText="可从后台基础资料库选择已启用且审核通过的宫观 / 机构；如找不到，请选择其他并填写。"
+                        key={field.id}
+                        kind="organization"
+                        label={field.label}
+                        otherLabel="其他"
+                        otherPlaceholder="请填写所属道场 / 宫观名称"
+                        value={values.templeName ?? ""}
+                        onChange={(value) => setValue("templeName", value)}
+                      />
+                    ) : (
+                      <FormField
+                        errors={errors}
+                        field={field}
+                        key={field.id}
+                        setFileValue={setFileValue}
+                        setValue={setValue}
+                        template={textareaTemplates[field.id]}
+                        value={values[field.id] ?? ""}
+                      />
+                    )
                   ))}
                 </div>
               </div>
             ))}
           </div>
+
+          {currentStepHasCheckboxes ? (
+            <div className="mt-6 flex justify-start">
+              <button className="w-full rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-5 py-2.5 text-center text-sm font-semibold text-[#7F1D1D] transition hover:border-[#8a6b3e] hover:bg-white sm:w-auto" type="button" onClick={confirmCurrentStepChecks}>
+                全部确认
+              </button>
+            </div>
+          ) : null}
 
           {current === steps.length - 1 ? (
             <div className="mt-7 grid gap-5 lg:grid-cols-[1fr_0.95fr]">

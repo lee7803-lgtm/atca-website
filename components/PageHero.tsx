@@ -43,6 +43,8 @@ export function PageHero({
   visualSeal = "ITCA",
   atmosphere = "standard"
 }: PageHeroProps) {
+  const visualSealLines = visualSeal.split("\n");
+
   return (
     <section className={`page-hero page-hero--${atmosphere} relative overflow-hidden border-b border-[#d8d0bf]`}>
       <div className="absolute inset-0 bg-[#2B1D18]" />
@@ -96,7 +98,11 @@ export function PageHero({
                   <h3>{visualTitle ?? title}</h3>
                   {visualDescription ? <figcaption>{visualDescription}</figcaption> : null}
                 </div>
-                <span>{visualSeal}</span>
+                <span>
+                  {visualSealLines.map((line, index) => (
+                    <span className="block leading-tight" key={`${line}-${index}`}>{line}</span>
+                  ))}
+                </span>
               </div>
             </div>
           </figure>

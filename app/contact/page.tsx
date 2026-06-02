@@ -65,7 +65,7 @@ export default function ContactPage() {
         visualDescription="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"
         visualEyebrow="Cultural Exchange"
         visualMark="Culture"
-        visualSeal="合作交流"
+        visualSeal={"合作\n交流"}
         visualTitle="国际文化交流与合作"
       />
 
