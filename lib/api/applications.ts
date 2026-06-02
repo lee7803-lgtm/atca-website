@@ -88,16 +88,16 @@ async function submitApplicationToItcaApi(path: string, payload: ApplicationSubm
 
 async function submitApplicationWithFallback(path: string, payload: ApplicationSubmitRequest) {
   try {
-    const { response, result } = await submitApplicationToItcaApi(path, payload);
+    const { response, result } = await submitNextApplicationApi(payload);
 
     if (response.ok || response.status === 400 || response.status === 409) {
       return { response, result };
     }
   } catch {
-    return submitNextApplicationApi(payload);
+    return submitApplicationToItcaApi(path, payload);
   }
 
-  return submitNextApplicationApi(payload);
+  return submitApplicationToItcaApi(path, payload);
 }
 
 export async function submitMemberApplication(payload: ApplicationSubmitRequest) {

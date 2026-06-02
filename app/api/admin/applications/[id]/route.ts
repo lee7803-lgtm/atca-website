@@ -1,8 +1,8 @@
 import { NextResponse } from "next/server";
 import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
-import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationReview } from "@/lib/api/admin-applications";
+import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationAdminNote, updateAdminApplicationReview } from "@/lib/api/admin-applications";
 import { recordMemberApplicationReviewNotification } from "@/lib/notifications/workflows";
-import { getApplicationById, SupabaseConfigError, SupabaseRequestError, updateApplicationAdminNote } from "@/lib/supabase/server";
+import { getApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationStatus } from "@/types/application";
 
 const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "under_review", "need_more_info", "approved", "rejected", "archived"];
@@ -57,12 +57,9 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   if (body.action === "update_member_material_review") {
     try {
       const actor = getAdminSession(adminCookie) || undefined;
-      const application = await updateApplicationAdminNote(params.id, {
+      const application = await updateAdminApplicationAdminNote(params.id, {
         adminNote: body.adminNote?.trim() || "",
-        actorEmail: actor?.email || "",
-        actorName: actor?.displayName || "",
-        actorRole: actor?.role || "",
-        actorType: actor?.actorType || "legacy_admin",
+        actor,
         ipAddress: getRequestIp(request),
         userAgent: request.headers.get("user-agent") || ""
       });
@@ -73,15 +70,23 @@ export async function PATCH(request: Request, { params }: { params: { id: string
 
       return NextResponse.json({ success: true, application });
     } catch (error) {
+      if (error instanceof AdminApiUnauthorizedError) {
+        return unauthorized();
+      }
+
+      if (error instanceof AdminApiRequestError) {
+        return NextResponse.json({ success: false, message: error.message }, { status: error.status });
+      }
+
       if (error instanceof SupabaseConfigError) {
         return NextResponse.json({ success: false, message: "会员资料审核服务尚未完成系统配置，请联系网站管理员处理。" }, { status: 500 });
       }
 
       if (error instanceof SupabaseRequestError) {
-        return NextResponse.json({ success: false, message: "无法保存资料审核记录，请稍后重试。" }, { status: 500 });
+        return NextResponse.json({ success: false, message: `无法保存资料审核记录（后端状态 ${error.status}），请稍后重试或联系网站管理员。` }, { status: 500 });
       }
 
-      return NextResponse.json({ success: false, message: "资料审核保存服务暂时不可用。" }, { status: 500 });
+      return NextResponse.json({ success: false, message: "资料审核保存服务暂时不可用，请确认后台 API 与数据库配置。" }, { status: 500 });
     }
   }
 

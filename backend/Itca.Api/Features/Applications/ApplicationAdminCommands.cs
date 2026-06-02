@@ -183,6 +183,98 @@ public sealed class ApplicationAdminCommands(SupabaseDb database, AuditLogWriter
         return updated;
     }
 
+    public async Task<ApplicationAdminReviewSummaryDto?> UpdateAdminNoteAsync(
+        Guid id,
+        ApplicationAdminNoteRequest? request,
+        AdminActorContext actor,
+        CancellationToken cancellationToken
+    )
+    {
+        if (request is null)
+        {
+            throw new ApplicationAdminReviewValidationException("更新资料格式不正确。");
+        }
+
+        var adminNote = request.AdminNote?.Trim() ?? string.Empty;
+        await using var connection = await database.OpenConnectionAsync(cancellationToken);
+        var before = await GetReviewSnapshotAsync(connection, id, cancellationToken);
+        if (before is null)
+        {
+            return null;
+        }
+
+        await using var command = connection.CreateCommand();
+        var updatedAt = DateTimeOffset.UtcNow;
+        command.CommandText = """
+            update applications
+            set
+              admin_note = @adminNote,
+              updated_at = @updatedAt
+            where id = @id
+              and application_type in ('personal_member', 'organization_member')
+            returning
+              id,
+              application_no,
+              member_no,
+              application_type,
+              status,
+              admin_note,
+              updated_at;
+            """;
+        command.Parameters.AddWithValue("id", id);
+        command.Parameters.AddWithValue("adminNote", adminNote);
+        command.Parameters.AddWithValue("updatedAt", updatedAt);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+        if (!await reader.ReadAsync(cancellationToken))
+        {
+            return null;
+        }
+
+        var updated = new ApplicationAdminReviewSummaryDto(
+            reader.GetGuid(0),
+            reader.GetString(1),
+            reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
+            reader.GetString(3),
+            reader.GetString(4),
+            reader.IsDBNull(5) ? string.Empty : reader.GetString(5),
+            reader.GetFieldValue<DateTime>(6).ToString("O")
+        );
+        await reader.DisposeAsync();
+
+        await auditLogs.WriteAsync(
+            new AuditLogEntry(
+                actor.AdminId,
+                actor.Email,
+                actor.Name,
+                actor.Role,
+                string.IsNullOrWhiteSpace(actor.ActorType) ? "legacy_admin" : actor.ActorType,
+                "member_application.material_review_update",
+                "application",
+                updated.Id.ToString(),
+                updated.ApplicationNo,
+                before,
+                new ApplicationReviewAuditSnapshot(
+                    updated.Id,
+                    updated.ApplicationNo,
+                    updated.MemberNo,
+                    updated.ApplicationType,
+                    updated.Status,
+                    updated.AdminNote,
+                    before.MemberValidFrom,
+                    before.MemberValidUntil,
+                    updated.UpdatedAt
+                ),
+                $"会员申请 {updated.ApplicationNo} 资料审核记录已更新。",
+                actor.IpAddress,
+                actor.UserAgent
+            ),
+            cancellationToken
+        );
+
+        return updated;
+    }
+
     public async Task<ApplicationAdminDto?> UpdateMemberValidityAsync(
         Guid id,
         ApplicationMemberValidityRequest? request,

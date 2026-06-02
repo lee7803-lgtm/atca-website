@@ -57,7 +57,7 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
 
         await using var connection = await database.OpenConnectionAsync(cancellationToken);
 
-        if (await HasOpenApplicationAsync(connection, values.ApplicationType, values.Email, values.Phone, cancellationToken))
+        if (!IsAllowedDuplicateApplicationTestEmail(values.Email) && await HasOpenApplicationAsync(connection, values.ApplicationType, values.Email, values.Phone, cancellationToken))
         {
             throw new OpenApplicationAlreadyExistsException();
         }
@@ -358,6 +358,37 @@ public sealed class ApplicationSubmissionService(SupabaseDb database, Applicatio
     private static string Trim(string? value)
     {
         return value?.Trim() ?? string.Empty;
+    }
+
+    private static bool IsAllowedDuplicateApplicationTestEmail(string email)
+    {
+        var normalizedEmail = NormalizeEmail(email);
+        if (string.IsNullOrWhiteSpace(normalizedEmail) || !IsEmail(normalizedEmail))
+        {
+            return false;
+        }
+
+        return GetAllowedTestRecipientEmails().Contains(normalizedEmail);
+    }
+
+    private static HashSet<string> GetAllowedTestRecipientEmails()
+    {
+        var configured = Environment.GetEnvironmentVariable("ITCA_EMAIL_ALLOWED_TEST_RECIPIENTS")
+            ?? Environment.GetEnvironmentVariable("ITCA_RESEND_ALLOWED_TEST_RECIPIENTS")
+            ?? Environment.GetEnvironmentVariable("RESEND_ALLOWED_TEST_RECIPIENTS")
+            ?? string.Empty;
+        var separators = new[] { ',', '，', ';', '；', '\r', '\n', '\t', ' ' };
+
+        return configured
+            .Split(separators, StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(NormalizeEmail)
+            .Where(IsEmail)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private static string NormalizeEmail(string? value)
+    {
+        return Trim(value).ToLowerInvariant();
     }
 
     private static bool IsValidLength(string value, int min, int max)

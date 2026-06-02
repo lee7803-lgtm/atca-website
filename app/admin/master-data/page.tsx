@@ -21,6 +21,17 @@ const kindText: Record<MasterDataKind, string> = {
   organization: "宫观 / 机构 / 所属组织"
 };
 
+const statusText: Record<string, string> = {
+  active: "启用",
+  inactive: "停用"
+};
+
+const reviewStatusText: Record<string, string> = {
+  approved: "通过",
+  pending: "待审核",
+  rejected: "不通过"
+};
+
 async function createMasterDataAction(formData: FormData) {
   "use server";
 
@@ -111,12 +122,17 @@ export default async function AdminMasterDataPage({ searchParams }: { searchPara
       </div>
       <AdminSectionCard title="资料条目">
         <div className="mt-5 overflow-x-auto">
-          <table className="min-w-[980px] w-full border-collapse text-left text-sm">
+          <table className="min-w-[1080px] w-full border-collapse text-left text-sm">
             <thead className="bg-[#fbf8ef] text-[#5f5b52]">
               <tr>
-                {["类型", "显示名称", "分类", "地区", "来源", "状态", "更新时间", "操作"].map((item) => (
-                  <th className="border-b border-[#e4ded0] px-4 py-3 font-medium" key={item}>{item}</th>
-                ))}
+                <th className="border-b border-[#e4ded0] px-4 py-3 font-medium">类型</th>
+                <th className="border-b border-[#e4ded0] px-4 py-3 font-medium">显示名称</th>
+                <th className="border-b border-[#e4ded0] px-4 py-3 font-medium">分类</th>
+                <th className="border-b border-[#e4ded0] px-4 py-3 font-medium">地区</th>
+                <th className="border-b border-[#e4ded0] px-4 py-3 font-medium">来源</th>
+                <th className="min-w-[120px] border-b border-[#e4ded0] px-4 py-3 font-medium">状态</th>
+                <th className="border-b border-[#e4ded0] px-4 py-3 font-medium">更新时间</th>
+                <th className="min-w-[132px] border-b border-[#e4ded0] px-4 py-3 font-medium">操作</th>
               </tr>
             </thead>
             <tbody>
@@ -130,10 +146,10 @@ export default async function AdminMasterDataPage({ searchParams }: { searchPara
                   <td className="px-4 py-4 text-[#5f5b52]">{item.type || "未分类"}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{[item.country, item.region].filter(Boolean).join(" / ") || "未记录"}</td>
                   <td className="px-4 py-4 text-[#5f5b52]">{item.source}</td>
-                  <td className="px-4 py-4"><AdminStatusBadge tone={item.status === "active" && item.reviewStatus === "approved" ? "success" : "warning"}>{item.status} / {item.reviewStatus}</AdminStatusBadge></td>
+                  <td className="px-4 py-4"><AdminStatusBadge tone={item.status === "active" && item.reviewStatus === "approved" ? "success" : "warning"}>{formatMasterDataStatus(item.status, item.reviewStatus)}</AdminStatusBadge></td>
                   <td className="px-4 py-4 text-[#5f5b52]">{formatDateTime(item.updatedAt)}</td>
-                  <td className="px-4 py-4">
-                    <a className="rounded-full border border-[#d8d0bf] bg-white px-3 py-2 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/admin/master-data?edit=${encodeURIComponent(item.id)}#master-data-editor`}>
+                  <td className="min-w-[132px] px-4 py-4">
+                    <a className="inline-flex whitespace-nowrap rounded-full border border-[#d8d0bf] bg-white px-3 py-2 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/admin/master-data?edit=${encodeURIComponent(item.id)}#master-data-editor`}>
                       编辑 / 维护
                     </a>
                   </td>
@@ -242,4 +258,8 @@ function CreateMasterDataForm({ kind }: { kind: MasterDataKind }) {
 function formatDateTime(value: string) {
   if (!value) return "未记录";
   return new Date(value).toLocaleString("zh-HK", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit" });
+}
+
+function formatMasterDataStatus(status: string, reviewStatus: string) {
+  return `${statusText[status] || status} / ${reviewStatusText[reviewStatus] || reviewStatus}`;
 }

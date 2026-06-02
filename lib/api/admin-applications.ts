@@ -1,6 +1,6 @@
 import "server-only";
 
-import { getApplicationById, listApplications, updateApplicationContactInfo, updateApplicationMemberValidity, updateApplicationRecordDisposition, updateApplicationReview } from "@/lib/supabase/server";
+import { getApplicationById, listApplications, updateApplicationAdminNote, updateApplicationContactInfo, updateApplicationMemberValidity, updateApplicationRecordDisposition, updateApplicationReview } from "@/lib/supabase/server";
 import type { AdminSession } from "@/lib/admin/auth";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType, RecordDisposition } from "@/types/application";
 
@@ -59,6 +59,13 @@ type AdminApplicationReviewResponse =
 
 type UpdateAdminApplicationReviewValues = {
   status: ApplicationStatus;
+  adminNote: string;
+  actor?: AdminSession;
+  ipAddress?: string;
+  userAgent?: string;
+};
+
+type UpdateAdminApplicationAdminNoteValues = {
   adminNote: string;
   actor?: AdminSession;
   ipAddress?: string;
@@ -290,6 +297,64 @@ export async function updateAdminApplicationReview(id: string, values: UpdateAdm
     status: values.status,
     adminNote: values.adminNote,
     issuedBy: values.actor?.email || values.actor?.displayName || "next-admin-fallback",
+    actorEmail: values.actor?.email || "",
+    actorName: values.actor?.displayName || "",
+    actorRole: values.actor?.role || "",
+    actorType: values.actor?.actorType || "legacy_admin",
+    ipAddress: values.ipAddress,
+    userAgent: values.userAgent
+  });
+}
+
+export async function updateAdminApplicationAdminNote(id: string, values: UpdateAdminApplicationAdminNoteValues) {
+  try {
+    const response = await fetch(`${getItcaApiBaseUrl()}/api/admin/applications/${encodeURIComponent(id)}/admin-note`, {
+      method: "PATCH",
+      cache: "no-store",
+      headers: {
+        "Content-Type": "application/json",
+        ...getAdminApiHeaders(),
+        ...getAdminActorHeaders(values.actor, values.ipAddress, values.userAgent)
+      },
+      body: JSON.stringify({
+        adminNote: values.adminNote
+      })
+    });
+
+    if (response.status === 401 || response.status === 403) {
+      throw new AdminApiUnauthorizedError();
+    }
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (response.ok) {
+      const result = (await response.json()) as AdminApplicationReviewResponse;
+      if (result.success) {
+        return result.application;
+      }
+
+      throw new AdminApiRequestError(response.status, result.message || "资料审核记录未能保存。");
+    }
+  } catch (error) {
+    if (error instanceof AdminApiUnauthorizedError || error instanceof AdminApiRequestError) {
+      throw error;
+    }
+
+    return updateApplicationAdminNote(id, {
+      adminNote: values.adminNote,
+      actorEmail: values.actor?.email || "",
+      actorName: values.actor?.displayName || "",
+      actorRole: values.actor?.role || "",
+      actorType: values.actor?.actorType || "legacy_admin",
+      ipAddress: values.ipAddress,
+      userAgent: values.userAgent
+    });
+  }
+
+  return updateApplicationAdminNote(id, {
+    adminNote: values.adminNote,
     actorEmail: values.actor?.email || "",
     actorName: values.actor?.displayName || "",
     actorRole: values.actor?.role || "",

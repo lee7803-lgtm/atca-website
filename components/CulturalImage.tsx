@@ -77,6 +77,7 @@ export function CulturalImage({
   const hasImage = hasLocalPublicImage(imageSrc);
   const imageTitle = overlayTitle ?? title;
   const imageSeal = overlaySeal ?? current.seal;
+  const imageSealLines = imageSeal.split("\n");
   const showImageMark = true;
 
   return (
@@ -105,7 +106,11 @@ export function CulturalImage({
               {overlaySubtitle ? <p className="cultural-visual__image-subtitle">{overlaySubtitle}</p> : null}
               {caption ? <figcaption>{caption}</figcaption> : null}
             </div>
-            <span>{imageSeal}</span>
+            <span>
+              {imageSealLines.map((line, index) => (
+                <span className="block leading-tight" key={`${line}-${index}`}>{line}</span>
+              ))}
+            </span>
           </div>
         </div>
       ) : (

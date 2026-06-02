@@ -53,6 +53,10 @@ public sealed record ApplicationAdminReviewRequest(
     string? AdminNote
 );
 
+public sealed record ApplicationAdminNoteRequest(
+    string? AdminNote
+);
+
 public sealed record ApplicationAdminReviewSummaryDto(
     Guid Id,
     string ApplicationNo,

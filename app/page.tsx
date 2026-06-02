@@ -310,7 +310,7 @@ export default function Home() {
             caption="以稳健、克制的协会视觉承接合作沟通场景，保持文化厚度与公共机构感。"
             imageSrc="/images/itca/06-home-international-cooperation.png"
             imagePosition="center 48%"
-            overlaySeal="合作交流"
+            overlaySeal={"合作\n交流"}
             tone="space"
             variant="wide"
             className="mb-7 min-h-[21rem]"
