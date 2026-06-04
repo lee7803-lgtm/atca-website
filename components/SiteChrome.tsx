@@ -22,7 +22,7 @@ export function SiteChrome({ children }: { children: ReactNode }) {
     <>
       <div className="grain" />
       <Header />
-      <main>{children}</main>
+      <main className="w-full max-w-full overflow-x-hidden">{children}</main>
       <Footer />
     </>
   );

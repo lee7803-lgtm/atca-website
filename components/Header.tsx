@@ -25,11 +25,11 @@ export function Header() {
   };
 
   return (
-    <header className="sticky top-0 z-50 border-b border-[#d8d0bf] bg-[#f7f1e6]/98 shadow-[0_8px_22px_rgba(80,54,36,0.055)] backdrop-blur-md">
-      <div className="border-b border-[#e6ddcf] bg-[#eee5d8] px-4 py-1.5 text-center text-[10px] tracking-[0.12em] text-[#8a6b3e] sm:px-5 sm:text-xs sm:tracking-[0.22em]">
+    <header className="sticky top-0 z-50 w-full max-w-full overflow-x-hidden border-b border-[#d8d0bf] bg-[#f7f1e6]/98 shadow-[0_8px_22px_rgba(80,54,36,0.055)] backdrop-blur-md">
+      <div className="max-w-full border-b border-[#e6ddcf] bg-[#eee5d8] px-4 py-1.5 text-center text-[10px] tracking-[0.12em] text-[#8a6b3e] sm:px-5 sm:text-xs sm:tracking-[0.22em]">
         道法自然 · 和合共生 · 弘道传承 · 文化互鉴 · 共创未来
       </div>
-      <div className="mx-auto grid max-w-[1320px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-8 lg:min-h-[76px] lg:grid-cols-[minmax(260px,1fr)_auto_minmax(130px,1fr)] lg:gap-6 lg:py-0">
+      <div className="mx-auto grid w-full max-w-[1320px] min-w-0 grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-4 py-3 sm:px-8 lg:min-h-[76px] lg:grid-cols-[minmax(260px,1fr)_auto_minmax(130px,1fr)] lg:gap-6 lg:py-0">
         <Link href="/" className="group flex min-w-0 items-center gap-3">
           <BrandMark size="md" />
           <span className="min-w-0">
@@ -76,7 +76,7 @@ export function Header() {
         </div>
       </div>
 
-      <div className="max-w-full px-4 pb-3 sm:px-8 lg:hidden">
+      <div className="w-full max-w-full overflow-hidden px-4 pb-3 sm:px-8 lg:hidden">
         <nav className="grid max-w-full grid-cols-3 gap-1.5 border border-[#e4ded0] bg-white/82 p-1.5 shadow-[0_8px_20px_rgba(80,54,36,0.055)]">
           {navItems.map((item) => {
             const active = isActive(item.href);

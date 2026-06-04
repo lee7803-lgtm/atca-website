@@ -30,11 +30,11 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
         visualSeal="状态"
         visualTitle={paymentResultText[order.status]}
       />
-      <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
-        <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+      <main className="mx-auto w-full max-w-4xl min-w-0 overflow-x-hidden px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Status</p>
           <h1 className="mt-3 font-serif text-4xl text-porcelain">{paymentResultText[order.status]}</h1>
-          <div className="mt-7 grid gap-4 md:grid-cols-2">
+          <div className="mt-7 grid min-w-0 gap-4 md:grid-cols-2">
             <ResultItem label="支付订单编号" value={order.orderNo} />
             <ResultItem label="关联申请编号" value={order.applicationNo || "未记录"} />
             <ResultItem label="金额" value={formatPaymentAmount(order.amount, order.currency)} />
@@ -46,7 +46,7 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
             如您已完成银行电汇，请在申请查询页上传银行回执 / 付款凭证，并等待财务后台审核。前台结果页不会提交支付、不会修改订单状态。
           </p>
         </section>
-        <div className="mt-8 flex flex-col gap-3 sm:flex-row">
+        <div className="mt-8 flex min-w-0 flex-col gap-3 sm:flex-row">
           <Link className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href={`/payment/checkout?orderNo=${encodeURIComponent(order.orderNo)}`}>
             查看付款说明
           </Link>
@@ -61,7 +61,7 @@ export default async function PaymentResultPage({ searchParams }: { searchParams
 
 function ResultItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="border-b border-[#eee7da] pb-4">
+    <div className="min-w-0 border-b border-[#eee7da] pb-4">
       <p className="text-xs tracking-[0.22em] text-[#8a6b3e]">{label}</p>
       <p className="mt-2 break-all text-sm leading-7 text-porcelain">{value}</p>
     </div>

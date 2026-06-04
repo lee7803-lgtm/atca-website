@@ -43,13 +43,13 @@ const process: Array<{ title: string; icon: IconBadgeName }> = [
 function MembershipSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
     <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-14 md:pt-14 lg:pt-16 lg:pb-18" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
-        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div>
+      <div className={`mx-auto w-full max-w-7xl min-w-0 px-5 sm:px-8 ${afterHero ? "pt-12 pb-14 md:pt-14 lg:pt-16 lg:pb-18" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+        <div className="mb-10 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
+          <div className="min-w-0">
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
             <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.75rem]">{title}</h2>
           </div>
-          {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
+          {intro ? <p className="min-w-0 max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
         {children}
       </div>
@@ -69,9 +69,9 @@ function MembershipIcon({ name }: { name: IconBadgeName }) {
 
 function LabelList({ items }: { items: string[] }) {
   return (
-    <div className="mt-5 flex flex-wrap gap-2">
+    <div className="mt-5 flex min-w-0 flex-wrap gap-2">
       {items.map((item) => (
-        <span className="rounded-full border border-[#e4ded0] bg-[#f8f7f3] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>
+        <span className="max-w-full break-words rounded-full border border-[#e4ded0] bg-[#f8f7f3] px-3 py-1.5 text-xs font-medium text-[#66594d]" key={item}>
           {item}
         </span>
       ))}
@@ -104,23 +104,23 @@ export default function MembershipPage() {
       />
 
       <MembershipSection eyebrow="Application Notice" title="申请须知" compact afterHero>
-        <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
+        <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时与申请人联系补充相关材料。申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。
         </div>
       </MembershipSection>
 
       <MembershipSection eyebrow="Member Types" title="会员类型" tone="soft">
-        <div className="grid gap-6 md:grid-cols-2">
+        <div className="grid min-w-0 gap-6 md:grid-cols-2">
           {memberTypes.map((item) => (
-            <article className="pattern-card rounded-[1.5rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8" key={item.title}>
+            <article className="pattern-card min-w-0 overflow-hidden rounded-[1.5rem] border border-[#e4ded0] bg-white/90 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8" key={item.title}>
               <MembershipIcon name={item.icon} />
               <h2 className="mt-5 text-2xl font-medium text-porcelain">{item.title}</h2>
               <p className="mt-4 text-sm leading-7 text-[#666666]">{item.text}</p>
               <LabelList items={item.labels} />
-              <div className="mt-6 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-                <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={item.href}>{item.title}申请</Link>
-                <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/application/query">查询申请进度</Link>
-                <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/member-query">会员公开核验</Link>
+              <div className="mt-6 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+                <Link className="inline-flex max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={item.href}>{item.title}申请</Link>
+                <Link className="inline-flex max-w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/application/query">查询申请进度</Link>
+                <Link className="inline-flex max-w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member-query">会员公开核验</Link>
               </div>
             </article>
           ))}
@@ -128,7 +128,7 @@ export default function MembershipPage() {
       </MembershipSection>
 
       <MembershipSection eyebrow="Purpose" title="会员申请用途">
-        <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {purposes.map((item, index) => (
             <InfoCard icon={<MembershipIcon name={item.icon} />} index={`0${index + 1}`} key={item.title} text={item.text} title={item.title} />
           ))}
@@ -136,9 +136,9 @@ export default function MembershipPage() {
       </MembershipSection>
 
       <MembershipSection eyebrow="Process" title="申请流程" tone="soft">
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {process.map((item, index) => (
-            <article className="rounded-2xl border border-[#e4ded0] bg-white/95 p-5 shadow-aureate" key={item.title}>
+            <article className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/95 p-5 shadow-aureate" key={item.title}>
               <MembershipIcon name={item.icon} />
               <p className="mt-4 text-xs tracking-[0.22em] text-gold">第 {index + 1} 步</p>
               <h3 className="mt-4 text-base font-medium leading-7 text-porcelain">{item.title}</h3>
@@ -148,14 +148,14 @@ export default function MembershipPage() {
       </MembershipSection>
 
       <MembershipSection eyebrow="Notice" title="会员身份说明" compact>
-        <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
+        <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           会员身份属于协会会员服务与档案管理体系。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
         </div>
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/organization/apply">申请机构会员</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/application/query">申请进度查询</Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member-query">会员公开核验</Link>
+        <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <Link className="max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>
+          <Link className="max-w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/organization/apply">申请机构会员</Link>
+          <Link className="max-w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/application/query">申请进度查询</Link>
+          <Link className="max-w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member-query">会员公开核验</Link>
         </div>
       </MembershipSection>
     </>

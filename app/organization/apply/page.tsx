@@ -192,8 +192,8 @@ export default function OrganizationApplyPage() {
       />
 
       <main className="section-surface">
-        <section className="mx-auto grid max-w-6xl gap-6 px-5 pt-8 pb-10 sm:px-8 sm:pt-12 md:pt-14 lg:grid-cols-[0.72fr_1.28fr] lg:items-start lg:gap-8 lg:pt-16 lg:pb-16">
-          <aside className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-6">
+        <section className="mx-auto grid w-full max-w-6xl min-w-0 gap-6 px-5 pt-8 pb-10 sm:px-8 sm:pt-12 md:pt-14 lg:grid-cols-[minmax(0,0.72fr)_minmax(0,1.28fr)] lg:items-start lg:gap-8 lg:pt-16 lg:pb-16">
+          <aside className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-6">
             <p className="font-medium text-porcelain">申请说明</p>
             <p className="mt-3">
               请填写机构基础资料、负责人信息及合作方向。所提交资料将用于机构会员审核、档案管理及后续合作沟通。
@@ -208,14 +208,14 @@ export default function OrganizationApplyPage() {
             </div>
           </aside>
 
-          <form className="rounded-2xl border border-[#e4ded0] bg-white/94 p-4 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+          <form className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 p-4 shadow-aureate sm:p-8" onSubmit={submitApplication}>
             <input aria-hidden="true" autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} type="text" />
             <div className="mb-7">
               <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Form</p>
               <h2 className="mt-3 font-serif text-3xl leading-tight text-porcelain">机构会员资料</h2>
             </div>
 
-            <div className="grid gap-5 md:grid-cols-2">
+            <div className="grid min-w-0 gap-5 md:grid-cols-2">
               <Field error={fieldErrors.organizationName} label="机构名称" required>
                 <input className="form-input" required value={values.organizationName} onChange={(event) => updateValue("organizationName", event.target.value)} />
               </Field>
@@ -267,8 +267,8 @@ export default function OrganizationApplyPage() {
               </div>
             ) : null}
 
-            <div className="mt-8 flex flex-col gap-3 border-t border-[#eee7da] pt-6 sm:flex-row sm:items-center sm:justify-between">
-              <p className="text-xs leading-6 text-[#777]">申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。</p>
+            <div className="mt-8 flex min-w-0 flex-col gap-3 border-t border-[#eee7da] pt-6 sm:flex-row sm:items-center sm:justify-between">
+              <p className="min-w-0 text-xs leading-6 text-[#777]">申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。</p>
               <button className="w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] disabled:cursor-not-allowed disabled:opacity-60 sm:w-auto" disabled={isSubmitting} type="submit">
                 {isSubmitting ? "正在提交..." : "提交机构会员申请"}
               </button>
@@ -282,25 +282,25 @@ export default function OrganizationApplyPage() {
 
 function Field({ children, className = "", error = "", label, required = false }: { children: ReactNode; className?: string; error?: string; label: string; required?: boolean }) {
   return (
-    <label className={`grid gap-3 rounded-2xl bg-white/45 p-3 ${className}`}>
-      <span className="flex items-center gap-2 text-sm font-medium text-porcelain">
+    <label className={`grid min-w-0 gap-3 rounded-2xl bg-white/45 p-3 ${className}`}>
+      <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-medium text-porcelain">
         {label}
         {required ? <span className="rounded-full bg-[#f8e8e8] px-2 py-0.5 text-xs text-[#7F1D1D]">*</span> : null}
       </span>
       {children}
-      {error ? <span className="text-xs text-[#7F1D1D]">{error}</span> : null}
+      {error ? <span className="min-w-0 break-words text-xs text-[#7F1D1D]">{error}</span> : null}
     </label>
   );
 }
 
 function ConfirmCheckbox({ checked, error, label, onChange }: { checked: boolean; error?: string; label: string; onChange: (checked: boolean) => void }) {
   return (
-    <label className="grid gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52] md:col-span-2">
-      <span className="flex items-start gap-3">
+    <label className="grid min-w-0 gap-2 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52] md:col-span-2">
+      <span className="flex min-w-0 items-start gap-3">
         <input className="mt-1 h-4 w-4 accent-[#7F1D1D]" checked={checked} type="checkbox" onChange={(event) => onChange(event.target.checked)} />
-        <span>{label}</span>
+        <span className="min-w-0 break-words">{label}</span>
       </span>
-      {error ? <span className="text-xs text-[#7F1D1D]">{error}</span> : null}
+      {error ? <span className="min-w-0 break-words text-xs text-[#7F1D1D]">{error}</span> : null}
     </label>
   );
 }

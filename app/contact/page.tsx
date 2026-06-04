@@ -23,13 +23,13 @@ const contactEmail = "aseantaoist@gmail.com";
 function ContactSection({ eyebrow, title, intro, children, compact = false, afterHero = false, tone = "default" }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; compact?: boolean; afterHero?: boolean; tone?: "default" | "soft" }) {
   return (
     <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
-        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div>
+      <div className={`mx-auto w-full max-w-7xl min-w-0 px-5 sm:px-8 ${afterHero ? "pt-12 pb-16 md:pt-14 lg:pt-16 lg:pb-24" : compact ? "py-14 lg:py-18" : "py-16 lg:py-24"}`}>
+        <div className="mb-10 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
+          <div className="min-w-0">
             {eyebrow ? <p className="mb-3 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">{eyebrow}</p> : null}
             <h2 className="font-serif text-3xl leading-tight text-porcelain sm:text-4xl lg:text-[2.75rem]">{title}</h2>
           </div>
-          {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
+          {intro ? <p className="min-w-0 max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
         {children}
       </div>
@@ -70,7 +70,7 @@ export default function ContactPage() {
       />
 
       <ContactSection eyebrow="Contact Category" title="联系方向" afterHero>
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+        <div className="grid min-w-0 gap-4 sm:grid-cols-2 lg:grid-cols-5">
           {categories.map((item, index) => (
             <InfoCard icon={<ContactIcon name={item.icon} />} index={`0${index + 1}`} key={item.title} text={item.text} title={item.title} />
           ))}
@@ -78,8 +78,8 @@ export default function ContactPage() {
       </ContactSection>
 
       <ContactSection title="联系须知" tone="soft" compact>
-        <div className="grid gap-6 lg:grid-cols-[0.92fr_1.08fr]">
-          <div className="rounded-[1.5rem] border border-[#d8d0bf] bg-white/92 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8">
+        <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.08fr)]">
+          <div className="min-w-0 overflow-hidden rounded-[1.5rem] border border-[#d8d0bf] bg-white/92 p-6 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-8">
             <div className="mb-5 flex items-center gap-4">
               <ContactIcon name="contact" />
               <div>
@@ -89,16 +89,16 @@ export default function ContactPage() {
               </div>
             </div>
             <h3 className="mb-3 text-sm font-medium text-porcelain">咨询事项</h3>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex min-w-0 flex-wrap gap-2">
               {consultationItems.map((item) => (
-                <span className="rounded-full border border-[#e4ded0] bg-[#f8f7f3] px-3 py-1.5 text-sm font-medium text-[#66594d]" key={item}>
+                <span className="max-w-full break-words rounded-full border border-[#e4ded0] bg-[#f8f7f3] px-3 py-1.5 text-sm font-medium text-[#66594d]" key={item}>
                   {item}
                 </span>
               ))}
             </div>
           </div>
 
-          <div className="rounded-[1.5rem] border border-gold/35 bg-[#fbf8ef] p-6 shadow-[0_14px_34px_rgba(176,138,69,0.07)] sm:p-8">
+          <div className="min-w-0 overflow-hidden rounded-[1.5rem] border border-gold/35 bg-[#fbf8ef] p-6 shadow-[0_14px_34px_rgba(176,138,69,0.07)] sm:p-8">
             <div className="mb-5 flex items-center gap-4">
               <ContactIcon name="cooperation" />
               <div>
@@ -113,14 +113,14 @@ export default function ContactPage() {
             </div>
           </div>
         </div>
-        <div className="mt-7 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
-          <a className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={`mailto:${contactEmail}`}>
+        <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+          <a className="inline-flex max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href={`mailto:${contactEmail}`}>
             发送邮件
           </a>
-          <Link className="inline-flex rounded-full bg-[#7F1D1D] px-6 py-3 text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/membership">
+          <Link className="inline-flex max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/membership">
             查看会员申请
           </Link>
-          <Link className="inline-flex rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-sm font-semibold text-ink" href="/">
+          <Link className="inline-flex max-w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/">
             返回首页
           </Link>
         </div>

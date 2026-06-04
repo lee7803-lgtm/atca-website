@@ -50,8 +50,8 @@ export function SearchableSelectWithOther({
   }
 
   return (
-    <label className={`grid gap-3 rounded-2xl bg-white/45 p-3 ${className}`}>
-      <span className="flex items-center gap-2 text-sm font-medium text-porcelain">
+    <label className={`grid min-w-0 gap-3 rounded-2xl bg-white/45 p-3 ${className}`}>
+      <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-medium text-porcelain">
         {label}
         {required ? <span className="rounded-full bg-[#f8e8e8] px-2 py-0.5 text-xs text-[#7F1D1D]">*</span> : null}
       </span>
@@ -72,8 +72,8 @@ export function SearchableSelectWithOther({
       {mode === "other" ? (
         <input className="form-input" placeholder={otherPlaceholder} required={required} value={otherValue} onChange={(event) => setOther(event.target.value)} />
       ) : null}
-      {error ? <span className="text-xs text-[#7F1D1D]">{error}</span> : null}
-      {helperText ? <span className="text-xs leading-6 text-[#8a6b3e]">{helperText}</span> : null}
+      {error ? <span className="min-w-0 break-words text-xs text-[#7F1D1D]">{error}</span> : null}
+      {helperText ? <span className="min-w-0 break-words text-xs leading-6 text-[#8a6b3e]">{helperText}</span> : null}
     </label>
   );
 }

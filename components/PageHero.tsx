@@ -58,14 +58,14 @@ export function PageHero({
       <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[#d8bd7a]/28 to-transparent" aria-hidden="true" />
       <CulturePattern variant="hero" className="opacity-60" />
       <InkLandscape className="opacity-80" />
-      <div className="relative mx-auto grid max-w-7xl gap-8 px-5 py-16 sm:gap-12 sm:px-8 sm:py-18 lg:grid-cols-[1fr_0.72fr] lg:items-center lg:py-28">
-        <div className="page-hero__copy max-w-3xl">
+      <div className="relative mx-auto grid w-full max-w-7xl min-w-0 gap-8 px-5 py-16 sm:gap-12 sm:px-8 sm:py-18 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.72fr)] lg:items-center lg:py-28">
+        <div className="page-hero__copy min-w-0 max-w-3xl">
           <p className="page-hero__eyebrow">{eyebrow}</p>
           <h1>{title}</h1>
           {subtitle && atmosphere !== "standard" ? <p className="page-hero__subtitle">{subtitle}</p> : null}
           <p className="page-hero__intro">{intro}</p>
           {actions.length > 0 ? (
-            <div className="mt-9 flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <div className="mt-9 flex max-w-full min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
               {actions.map((action, index) => {
                 const variant = action.variant ?? (index === 0 ? "primary" : "secondary");
                 const className = variant === "primary"
@@ -73,7 +73,7 @@ export function PageHero({
                   : "w-full rounded-xl border border-[#F8F1E8]/[0.38] bg-white/[0.08] px-6 py-3.5 text-center text-sm font-semibold text-[#F8F1E8] transition hover:bg-white/[0.14] sm:w-auto";
 
                 return (
-                  <Link className={className} href={action.href} key={`${action.href}-${action.label}`}>
+                  <Link className={`${className} max-w-full min-w-0 break-words`} href={action.href} key={`${action.href}-${action.label}`}>
                     {action.label}
                   </Link>
                 );
@@ -81,8 +81,8 @@ export function PageHero({
             </div>
           ) : null}
         </div>
-        <div className="lg:pt-4">
-          <figure className="cultural-visual cultural-visual--portal cultural-visual--has-image min-h-[28rem] border-[#79644E] bg-[#f8f1e4] shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
+        <div className="min-w-0 max-w-full lg:pt-4">
+          <figure className="cultural-visual cultural-visual--portal cultural-visual--has-image min-h-[28rem] max-w-full border-[#79644E] bg-[#f8f1e4] shadow-[0_24px_80px_rgba(0,0,0,0.18)]">
             <div
               className="cultural-visual__photo"
               style={{ backgroundImage: `url("${imageSrc}")`, backgroundPosition: imagePosition }}

@@ -81,7 +81,7 @@ export function CulturalImage({
   const showImageMark = true;
 
   return (
-    <figure className={`cultural-visual cultural-visual--${variant} ${hasImage ? "cultural-visual--has-image" : ""} ${className}`}>
+    <figure className={`cultural-visual cultural-visual--${variant} ${hasImage ? "cultural-visual--has-image" : ""} max-w-full ${className}`}>
       {hasImage ? (
         <div
           className="cultural-visual__photo"

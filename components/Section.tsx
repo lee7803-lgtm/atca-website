@@ -13,9 +13,9 @@ type SectionProps = {
 export function Section({ eyebrow, title, intro, children, tone = "default", afterHero = false }: SectionProps) {
   return (
     <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
-      <div className={`mx-auto max-w-7xl px-5 sm:px-8 ${afterHero ? "pt-12 pb-20 md:pt-14 lg:pt-16 lg:pb-28" : "py-20 lg:py-28"}`}>
-        <div className="mb-10 grid gap-5 lg:grid-cols-[0.9fr_1.1fr] lg:items-end">
-          <div>
+      <div className={`mx-auto w-full max-w-7xl min-w-0 px-5 sm:px-8 ${afterHero ? "pt-12 pb-20 md:pt-14 lg:pt-16 lg:pb-28" : "py-20 lg:py-28"}`}>
+        <div className="mb-10 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,0.9fr)_minmax(0,1.1fr)] lg:items-end">
+          <div className="min-w-0">
             {eyebrow ? (
               <p className="mb-4 text-xs font-medium uppercase tracking-[0.28em] text-gold sm:text-sm">
                 {eyebrow}
@@ -25,7 +25,7 @@ export function Section({ eyebrow, title, intro, children, tone = "default", aft
               {title}
             </h2>
           </div>
-          {intro ? <p className="max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
+          {intro ? <p className="min-w-0 max-w-2xl text-sm leading-8 text-[#666666] lg:justify-self-end">{intro}</p> : null}
         </div>
         {children}
       </div>
@@ -47,14 +47,14 @@ export function InfoCard({
   children?: ReactNode;
 }) {
   return (
-    <article className="pattern-card min-h-full rounded-[1.35rem] border border-[#e5e0d5] bg-white/86 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)] transition hover:-translate-y-0.5 hover:border-gold/35 sm:p-6">
-      <div className="mb-6 flex items-start justify-between gap-4">
+    <article className="pattern-card min-h-full min-w-0 max-w-full rounded-[1.35rem] border border-[#e5e0d5] bg-white/86 p-5 shadow-[0_14px_34px_rgba(31,42,40,0.045)] transition hover:-translate-y-0.5 hover:border-gold/35 sm:p-6">
+      <div className="mb-6 flex min-w-0 items-start justify-between gap-4">
         {icon ?? (index ? <p className="font-serif text-3xl text-gold/72 sm:text-4xl">{index}</p> : <span />)}
         {index && icon ? <p className="font-serif text-2xl text-gold/65">{index}</p> : <span className="cultural-chip" aria-hidden="true" />}
       </div>
       <h3 className="text-lg font-medium text-porcelain">{title}</h3>
       <p className="mt-4 text-sm leading-7 text-[#666666]">{text}</p>
-      {children ? <div className="mt-5">{children}</div> : null}
+      {children ? <div className="mt-5 min-w-0 max-w-full">{children}</div> : null}
     </article>
   );
 }

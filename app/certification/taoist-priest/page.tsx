@@ -569,41 +569,41 @@ export default function TaoistPriestCertificationPage() {
         visualTitle="认证资料与备案"
       />
 
-      <main className="mx-auto max-w-6xl px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
-        <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
+      <main className="mx-auto w-full max-w-6xl min-w-0 overflow-x-hidden px-5 pt-12 pb-12 sm:px-8 md:pt-14 lg:pt-16 lg:pb-16">
+        <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-5 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)]">
           申请人需提交与道教身份、师承关系、学习经历及相关证明有关的资料。协会将依据提交材料进行资料核验、审核记录及认证建档。
         </div>
-        <section className="mt-6 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <section className="mt-6 grid min-w-0 gap-4 md:grid-cols-2 lg:grid-cols-3">
           {applicationNotices.map(([title, text]) => (
-            <article className="rounded-2xl border border-[#e4ded0] bg-white/92 p-5 text-sm leading-7 text-[#5f5b52] shadow-[0_12px_28px_rgba(31,42,40,0.04)]" key={title}>
+            <article className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/92 p-5 text-sm leading-7 text-[#5f5b52] shadow-[0_12px_28px_rgba(31,42,40,0.04)]" key={title}>
               <h2 className="text-base font-medium text-porcelain">{title}</h2>
               <p className="mt-3">{text}</p>
             </article>
           ))}
         </section>
-        <section className="mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
+        <section className="mt-6 min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Material Guide</p>
           <h2 className="mt-3 font-serif text-2xl text-porcelain">材料清单说明</h2>
-          <div className="mt-5 grid gap-4 lg:grid-cols-3">
+          <div className="mt-5 grid min-w-0 gap-4 lg:grid-cols-3">
             {lineageMaterialGuides.map((guide) => (
-              <article className="rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-5" key={guide.title}>
+              <article className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-[#fffdf8] p-5" key={guide.title}>
                 <h3 className="text-base font-medium text-porcelain">{guide.title}</h3>
-                <div className="mt-3 grid gap-2 text-sm leading-7 text-[#5f5b52]">
-                  {guide.items.map((item) => <p className="rounded-xl border border-[#e4ded0] bg-white/70 px-3 py-2" key={item}>{item}</p>)}
+                <div className="mt-3 grid min-w-0 gap-2 text-sm leading-7 text-[#5f5b52]">
+                  {guide.items.map((item) => <p className="min-w-0 break-words rounded-xl border border-[#e4ded0] bg-white/70 px-3 py-2" key={item}>{item}</p>)}
                 </div>
               </article>
             ))}
           </div>
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-5 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {materialChecklist.map((item) => (
-              <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-sm text-[#5f5b52]" key={item}>
+              <div className="min-w-0 break-words rounded-xl border border-[#e4ded0] bg-[#fbf8ef] px-4 py-3 text-sm text-[#5f5b52]" key={item}>
                 {item}
               </div>
             ))}
           </div>
         </section>
-        <div className="mt-5 flex flex-col gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-4 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between sm:p-5">
-          <span>已提交认证申请？查询认证申请进度</span>
+        <div className="mt-5 flex min-w-0 flex-col gap-3 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 p-4 text-sm leading-7 text-[#5f5b52] shadow-aureate sm:flex-row sm:items-center sm:justify-between sm:p-5">
+          <span className="min-w-0 break-words">已提交认证申请？查询认证申请进度</span>
           <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/application/query">
             查询认证申请进度
           </Link>
@@ -611,22 +611,22 @@ export default function TaoistPriestCertificationPage() {
 
         <StepNav current={current} onSelect={setCurrent} steps={steps.map((item) => item.title)} />
 
-        <form ref={stepTopRef} className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/92 p-4 shadow-aureate sm:p-8" onSubmit={submitApplication}>
+        <form ref={stepTopRef} className="scroll-mt-6 min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/92 p-4 shadow-aureate sm:p-8" onSubmit={submitApplication}>
           <input aria-hidden="true" autoComplete="off" className="hidden" name="companyWebsite" tabIndex={-1} type="text" />
-          <div className="mb-7 flex items-start gap-4">
+          <div className="mb-7 flex min-w-0 items-start gap-4">
             <ApplicationIcon name={step.icon} />
-            <div>
+            <div className="min-w-0">
               <p className="text-xs tracking-[0.24em] text-gold">第 {current + 1} 步 / 共 {steps.length} 步</p>
               <h2 className="mt-2 font-serif text-3xl text-porcelain">{step.title}</h2>
               {step.help ? <p className="mt-3 text-sm leading-7 text-[#666666]">{step.help}</p> : null}
             </div>
           </div>
 
-          <div className="grid gap-8">
+          <div className="grid min-w-0 gap-8">
             {step.groups.map((group) => (
-              <div key={group.title}>
+              <div className="min-w-0" key={group.title}>
                 <h3 className="mb-5 text-base font-medium text-porcelain">{group.title}</h3>
-                <div className="grid gap-5 md:grid-cols-2">
+                <div className="grid min-w-0 gap-5 md:grid-cols-2">
                   {group.fields.map((field) => (
                     field.id === "templeName" ? (
                       <MasterDataSelector
@@ -666,14 +666,14 @@ export default function TaoistPriestCertificationPage() {
           ) : null}
 
           {current === steps.length - 1 ? (
-            <div className="mt-7 grid gap-5 lg:grid-cols-[1fr_0.95fr]">
-              <div className="rounded-2xl border border-[#e4ded0] bg-[#f8f7f3] p-5">
+            <div className="mt-7 grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.95fr)]">
+              <div className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-[#f8f7f3] p-5">
                 <h3 className="text-base font-medium text-porcelain">提交前检查摘要</h3>
                 <ul className="mt-4 grid gap-2 text-sm leading-6 text-[#666666]">
                   {step.checks?.map((item) => <li key={item}>· {item}</li>)}
                 </ul>
               </div>
-              <div className="rounded-2xl border border-gold/35 bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
+              <div className="min-w-0 overflow-hidden rounded-2xl border border-gold/35 bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">
                 <h3 className="font-serif text-xl text-porcelain">认证说明与适用范围</h3>
                 <p className="mt-3">提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。</p>
                 <p className="mt-3">申报认证等级仅作为审核参考，最终核定等级将根据资料完整性、师承证明、资质凭证、实践经历、推荐材料及认证委员会审核意见确定。</p>
@@ -684,7 +684,7 @@ export default function TaoistPriestCertificationPage() {
 
           {errorMessage ? <div className="mt-6 whitespace-pre-line border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-4 text-sm leading-7 text-[#7F1D1D]" role="alert">{errorMessage}</div> : null}
 
-          <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+          <div className="mt-8 flex min-w-0 flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
             <button className="w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink disabled:cursor-not-allowed disabled:opacity-45 sm:w-auto" disabled={current === 0} onClick={goPrev} type="button">
               上一步
             </button>
@@ -706,7 +706,7 @@ export default function TaoistPriestCertificationPage() {
 
 function StepNav({ current, onSelect, steps }: { current: number; onSelect: (index: number) => void; steps: string[] }) {
   return (
-    <div className="my-8 grid gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
+    <div className="my-8 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-6">
       {steps.map((item, index) => (
         <button
           className={`min-w-0 rounded-2xl border px-4 py-3 text-left text-sm transition ${
@@ -748,7 +748,7 @@ function FormField({
 
   if (field.id === "masterTemple") {
     return (
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <MasterDataSelector
           helperText="没有对应宫观或机构时请选择其他并填写，后台审核时会保留该内容。"
           kind="organization"
@@ -765,7 +765,7 @@ function FormField({
 
   if (field.id === "nationality" || field.id === "residence") {
     return (
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <SearchableSelectWithOther
           label={field.label}
           options={countryRegionOptions}
@@ -781,7 +781,7 @@ function FormField({
 
   if (field.id === "recommenderName") {
     return (
-      <div className="grid gap-2">
+      <div className="grid min-w-0 gap-2">
         <MasterDataSelector
           helperText="可选择已有推荐人；没有对应资料时请选择其他并填写。"
           kind="referee"
@@ -797,7 +797,7 @@ function FormField({
   }
 
   return (
-    <label className={field.kind === "textarea" || field.kind === "file" ? "grid gap-3 rounded-2xl bg-white/45 p-3 md:col-span-2" : "grid gap-3 rounded-2xl bg-white/45 p-3"}>
+    <label className={field.kind === "textarea" || field.kind === "file" ? "grid min-w-0 gap-3 rounded-2xl bg-white/45 p-3 md:col-span-2" : "grid min-w-0 gap-3 rounded-2xl bg-white/45 p-3"}>
       <span className="flex flex-wrap items-center gap-2 text-sm font-medium leading-6 text-porcelain">
         <span>{field.label}</span>
         {badge ? (
@@ -822,10 +822,10 @@ function FormField({
       ) : field.kind === "file" ? (
         <span className="grid gap-3 rounded-2xl border border-dashed border-gold/45 bg-[#fbf8ef] p-5 text-sm text-[#666666]">
           <input accept=".pdf,.jpg,.jpeg,.png,application/pdf,image/jpeg,image/png" className="block w-full text-sm text-[#66594d] file:mr-4 file:rounded-full file:border-0 file:bg-[#7F1D1D] file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white" type="file" onChange={(event) => setFileValue(field.id, event.target.files?.[0] ?? null)} />
-          <span className="block text-xs leading-5 text-[#8a6b3e]">{getFileHint(field.id)} 上传材料不公开展示，且不得上传与申请无关的文件。</span>
+        <span className="block min-w-0 break-words text-xs leading-5 text-[#8a6b3e]">{getFileHint(field.id)} 上传材料不公开展示，且不得上传与申请无关的文件。</span>
         </span>
       ) : field.kind === "checkbox" ? (
-        <span className="flex items-center gap-3 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3">
+        <span className="flex min-w-0 items-center gap-3 rounded-xl border border-[#d8d0bf] bg-[#f8f7f3] px-4 py-3">
           <input className="h-4 w-4 accent-[#7F1D1D]" type="checkbox" checked={value === "true"} onChange={(event) => setValue(field.id, event.target.checked ? "true" : "")} />
           <span className="text-sm text-[#5f5148]">确认</span>
         </span>

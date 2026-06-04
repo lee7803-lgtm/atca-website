@@ -49,13 +49,13 @@ export function MasterDataSelector({
   const selectedValue = useMemo(() => items.find((item) => item.displayName === value || item.name === value) ? value : "", [items, value]);
 
   return (
-    <div className="grid gap-3 rounded-2xl bg-white/45 p-3">
-      <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-        <span className="flex items-center gap-2 text-sm font-medium text-porcelain">
+    <div className="grid min-w-0 gap-3 rounded-2xl bg-white/45 p-3">
+      <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+        <span className="flex min-w-0 flex-wrap items-center gap-2 text-sm font-medium text-porcelain">
           {label}
           {required ? <span className="rounded-full bg-[#f8e8e8] px-2 py-0.5 text-xs text-[#7F1D1D]">*</span> : null}
         </span>
-        <span className="inline-flex rounded-full border border-[#e4ded0] bg-[#fbf8ef] p-1 text-xs">
+        <span className="inline-flex max-w-full rounded-full border border-[#e4ded0] bg-[#fbf8ef] p-1 text-xs">
           <button className={`rounded-full px-3 py-1 ${mode === "library" ? "bg-white text-[#7F1D1D]" : "text-[#5f5b52]"}`} type="button" onClick={() => setMode("library")}>
             已有资料
           </button>
@@ -76,8 +76,8 @@ export function MasterDataSelector({
       ) : (
         <input className="form-input" placeholder={otherPlaceholder || "请填写"} required={required} value={value} onChange={(event) => onChange(event.target.value)} />
       )}
-      {helperText || message ? <p className="text-xs leading-6 text-[#8a6b3e]">{message || helperText}</p> : null}
-      {error ? <p className="text-xs leading-6 text-[#7F1D1D]">{error}</p> : null}
+      {helperText || message ? <p className="min-w-0 break-words text-xs leading-6 text-[#8a6b3e]">{message || helperText}</p> : null}
+      {error ? <p className="min-w-0 break-words text-xs leading-6 text-[#7F1D1D]">{error}</p> : null}
     </div>
   );
 }
