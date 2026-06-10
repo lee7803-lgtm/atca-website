@@ -21,18 +21,22 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-4 max-w-sm text-sm leading-6 text-white/70 sm:mt-5">
-            本网站用于 ITCA / 国际道教与文化协会的协会介绍、认证申请、会员申请、证书核验与合作联系等信息服务。
+            本网站用于 ITCA / 国际道教与文化协会的协会介绍、规章制度、发展中心、会员认证、证书查验、发展合作、数据中心与用户服务等信息。
           </p>
         </div>
         <div>
           <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">网站导航</p>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-1">
-            <Link href="/association">关于协会</Link>
-            <Link href="/certification">认证体系</Link>
-            <Link href="/membership">会员申请</Link>
-            <Link href="/member-query">会员查询</Link>
-            <Link href="/certificate-query">证书核验</Link>
-            <Link href="/contact">联系合作</Link>
+            <Link href="/intro">介绍</Link>
+            <Link href="/rules">规章制度</Link>
+            <Link href="/faith">道教信仰</Link>
+            <Link href="/doctrine">教理教义</Link>
+            <Link href="/exchange">文化交流</Link>
+            <Link href="/development">发展中心</Link>
+            <Link href="/membership">会员认证</Link>
+            <Link href="/certificate-query">证书查验</Link>
+            <Link href="/cooperation">发展合作</Link>
+            <Link href="/data">数据中心</Link>
           </div>
         </div>
         <div>
@@ -46,7 +50,7 @@ export function Footer() {
             <Link href="/certificate-query">证书核验入口</Link>
             <Link href="/member-query">会员查询入口</Link>
             <Link href="/application/query">申请进度查询</Link>
-            <Link href="/membership">隐私政策与服务条款</Link>
+            <Link href="/account">登录 / 用户中心</Link>
           </div>
         </div>
         <div>

@@ -147,7 +147,7 @@ export default function CertificationPage() {
         <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。
           <br />
-          本认证属于 ITCA / 国际道教与文化协会认证与备案体系内的资料审核、身份记录与证书核验服务，不具备政府机关行政许可、职业准入或宗教职务任命效力。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。
+          认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化双语展示和公众查询支持。不得表述为官方道士证、政府宗教资格认证、法定宗教职务证明，或替代中国道教协会、世界道教联合会等机构认证。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。
         </div>
         <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="inline-flex max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification/taoist-priest">

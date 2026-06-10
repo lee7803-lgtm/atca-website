@@ -48,8 +48,13 @@ export default async function AdminPage() {
           <AdminSectionCard title="优先处理入口">
             <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
               <AdminEntryCard href="/admin/workbench" title="审核工作台" text="按优先级查看申请、支付与通知待办。" />
+              <AdminEntryCard href="/admin/users" title="用户管理" text="规划注册用户、会员、认证申请人和历史申请绑定。" />
+              <AdminEntryCard href="/admin/roles" title="角色权限" text="查看 V2.0 管理员角色和后台 RBAC 权限体系。" />
               <AdminEntryCard href="/admin/applications" title="会员申请" text="处理会员审核、有效期、联系方式修正与记录治理。" />
               <AdminEntryCard href="/admin/certification-applications" title="认证申请" text="处理材料审核、证书生成、下发与证书状态。" />
+              <AdminEntryCard href="/admin/content" title="内容管理" text="承接介绍、规章制度、信仰、教义、文化交流和公告。" />
+              <AdminEntryCard href="/admin/development" title="发展中心" text="维护六大发展中心、专委会、课程活动和项目合作。" />
+              <AdminEntryCard href="/admin/data-center" title="数据中心" text="治理公开文化资料库和最小公开字段边界。" />
               <AdminEntryCard href="/admin/master-data" title="基础资料" text="维护推荐人、引荐人、宫观、机构与所属组织。" />
             </div>
           </AdminSectionCard>
