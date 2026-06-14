@@ -4,20 +4,22 @@ import { AdminLogoutButton } from "@/app/admin/AdminLogoutButton";
 import { BrandMark } from "@/components/BrandMark";
 
 const navItems = [
-  { href: "/admin", label: "总览" },
-  { href: "/admin/workbench", label: "审核工作台" },
-  { href: "/admin/users", label: "用户管理" },
-  { href: "/admin/roles", label: "角色权限" },
-  { href: "/admin/permissions", label: "权限模块" },
-  { href: "/admin/applications", label: "会员申请" },
-  { href: "/admin/certification-applications", label: "认证申请" },
-  { href: "/admin/payments", label: "支付订单" },
-  { href: "/admin/notifications", label: "通知记录" },
-  { href: "/admin/content", label: "内容 CMS" },
-  { href: "/admin/development", label: "发展中心" },
-  { href: "/admin/data-center", label: "资料中心" },
-  { href: "/admin/audit-logs", label: "操作记录" },
-  { href: "/admin/master-data", label: "基础资料" }
+  { href: "/admin", label: "工作台", note: "待办、指标、异常" },
+  { href: "/admin/applications", label: "申请管理", note: "会员 / 机构申请" },
+  { href: "/admin/workbench", label: "审核中心", note: "初审、复审、补件" },
+  { href: "/admin/payments", label: "财务中心", note: "订单、凭证、Bank Transfer" },
+  { href: "/admin/applications", label: "会员中心", note: "会员、续期、有效期" },
+  { href: "/admin/certification-applications", label: "认证与证书中心", note: "认证、证书、下发" },
+  { href: "/admin/content", label: "内容 CMS", note: "频道、制度、版本" },
+  { href: "/admin/development", label: "发展中心管理", note: "六大发展中心" },
+  { href: "/admin/development#course-activity", label: "课程活动中心", note: "预留 / 后续接入", reserved: true },
+  { href: "/admin/development#cooperation", label: "合作中心", note: "预留 / 后续接入", reserved: true },
+  { href: "/admin/data-center", label: "数据中心", note: "公开授权、纠错撤回" },
+  { href: "/admin/notifications", label: "通知中心", note: "通知记录、失败重试" },
+  { href: "/admin/workbench#risk", label: "争议与风控", note: "预留 / 需审计", reserved: true },
+  { href: "/admin/roles", label: "权限与组织", note: "角色、权限、职责分离" },
+  { href: "/admin/master-data", label: "系统配置", note: "基础资料、标准配置" },
+  { href: "/admin/audit-logs", label: "审计日志", note: "只读、不可篡改" }
 ];
 
 export function AdminShell({ children, isAuthed }: { children: ReactNode; isAuthed: boolean }) {
@@ -51,13 +53,20 @@ export function AdminShell({ children, isAuthed }: { children: ReactNode; isAuth
             <BrandMark size="sm" />
             <span>
               <span className="block text-xs font-semibold tracking-[0.22em] text-[#1B1B1B]">ITCA</span>
-              <span className="block text-xs text-[#6b5a4e]">后台管理台</span>
+              <span className="block text-xs text-[#6b5a4e]">SaaS 运营后台</span>
             </span>
           </Link>
+          <div className="mt-5 rounded-xl border border-[#ead7a5] bg-[#fff8df] p-3 text-xs leading-6 text-[#8a6b3e]">
+            高风险模块需权限控制、操作原因、二次确认和审计留痕；预留模块先进入建设中壳层，不执行生产数据操作。
+          </div>
           <nav className="mt-7 grid gap-1">
             {navItems.map((item) => (
-              <Link className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#5f5b52] transition hover:bg-white hover:text-[#7F1D1D]" href={item.href} key={item.href}>
-                {item.label}
+              <Link className="rounded-lg px-3 py-2.5 text-sm font-medium text-[#5f5b52] transition hover:bg-white hover:text-[#7F1D1D]" href={item.href} key={`${item.href}-${item.label}`}>
+                <span className="flex items-center justify-between gap-2">
+                  <span>{item.label}</span>
+                  {item.reserved ? <span className="rounded-full bg-[#fbf0ec] px-2 py-0.5 text-[10px] text-[#7F1D1D]">建设中</span> : null}
+                </span>
+                <span className="mt-1 block text-xs font-normal leading-5 text-[#8a8175]">{item.note}</span>
               </Link>
             ))}
           </nav>
@@ -73,7 +82,7 @@ export function AdminShell({ children, isAuthed }: { children: ReactNode; isAuth
             <div className="flex flex-col gap-3 xl:flex-row xl:items-center xl:justify-between">
               <div>
                 <p className="text-xs font-semibold uppercase tracking-[0.24em] text-gold">Operations Console</p>
-                <p className="mt-1 text-sm text-[#5f5b52]">审核、支付、通知与基础资料治理</p>
+                <p className="mt-1 text-sm text-[#5f5b52]">SaaS 化运营后台：申请、审核、财务、证书、内容、数据、通知、权限与审计</p>
               </div>
               <nav className="flex gap-2 overflow-x-auto pb-1 lg:hidden">
                 {navItems.map((item) => (

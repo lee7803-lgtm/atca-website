@@ -6,7 +6,7 @@ import { certificationPathLabels, type CertificateQueryResult } from "@/types/ce
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "证书核验详情｜国际道教与文化协会 ITCA"
+  title: "证书公开核验详情｜国际道教与文化协会 ITCA"
 };
 
 type CertificateDetailPageProps = {
@@ -44,9 +44,9 @@ export default async function CertificateDetailPage({ params, searchParams }: Ce
     <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
       <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-10">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Verification</p>
-        <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">证书核验详情</h1>
+        <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">证书公开核验详情</h1>
         <p className="mt-5 max-w-2xl text-sm leading-8 text-[#5f5b52]">
-          本页仅展示公开证书核验字段。公开核验信息用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息，不等同于证书原件。
+          本页仅展示证书公开核验字段。公开核验信息用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息，不等同于证书原件。
         </p>
 
         <div className="mt-8 grid gap-3">
@@ -63,7 +63,7 @@ export default async function CertificateDetailPage({ params, searchParams }: Ce
         </div>
 
         <Link className="mt-8 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href="/certificate-query">
-          返回证书核验
+          返回证书公开核验
         </Link>
       </section>
     </main>
@@ -75,12 +75,12 @@ function ProtectedPrompt({ message }: { message: string }) {
     <main className="mx-auto max-w-4xl px-5 py-8 sm:px-8 sm:py-12 lg:py-16">
       <section className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-center shadow-aureate sm:p-10">
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certificate Verification</p>
-        <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">请先完成证书核验</h1>
+        <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain sm:text-4xl">请先完成证书公开核验</h1>
         <p className="mx-auto mt-5 max-w-2xl text-sm leading-8 text-[#5f5b52]">
-          {message || "请先完成证书核验。为保护持证人信息，请返回证书查询页面，输入证书编号与持证人姓名进行核验。"}
+          {message || "请先完成证书公开核验。为保护持证人信息，请返回证书公开核验页面，输入证书编号与持证人姓名进行核验。"}
         </p>
         <Link className="mt-7 inline-flex w-full rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href="/certificate-query">
-          前往证书核验
+          前往证书公开核验
         </Link>
       </section>
     </main>

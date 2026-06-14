@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Fragment } from "react";
 import { AdminPageHeader, AdminSectionCard, AdminStatCard, AdminStatusBadge } from "@/components/admin/AdminUI";
 import {
   cmsAssets,
   cmsBlockLibrary,
+  cmsChannelHomeTemplateFields,
   cmsChannels,
   cmsContentItems,
   cmsReviewItems,
@@ -10,6 +12,7 @@ import {
   formatCmsStatus,
   formatRiskLevel,
   getCmsChannel,
+  getCmsEditableChannels,
   type CmsPublishStatus,
   type CmsRiskLevel
 } from "@/lib/v3/cms";
@@ -53,19 +56,32 @@ export function CmsQuickLinks() {
 }
 
 export function CmsDashboard() {
-  const reviewCount = cmsChannels.filter((item) => item.status === "review").length + cmsReviewItems.filter((item) => item.status === "review").length;
-  const legalCount = cmsChannels.filter((item) => item.status === "legal_review").length + cmsReviewItems.filter((item) => item.status === "legal_review").length;
-  const protectedCount = cmsChannels.filter((item) => item.protectedRoute).length;
+  const editableChannels = getCmsEditableChannels();
+  const reviewCount = editableChannels.filter((item) => item.status === "review").length + cmsReviewItems.filter((item) => item.status === "review").length;
+  const protectedCount = editableChannels.filter((item) => item.protectedRoute).length;
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6">
       <AdminPageHeader actions={<CmsQuickLinks />} eyebrow="CMS V3.0" intro="内容管理 V3.0 用于管理顶部导航、频道页面、受控版式、发布审核、媒体库和版本记录；第一版使用结构化配置数据，不连接数据库。" title="内容管理工作台" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-        <AdminStatCard label="频道栏目" note="包含顶部导航和核心频道页" value={cmsChannels.length} />
+        <AdminStatCard label="一级频道" note="顶部导航固定 11 个一级入口" value={cmsChannels.length} />
+        <AdminStatCard label="页面与二级栏目" note="包含关于协会下规章制度等子页面" value={editableChannels.length} />
         <AdminStatCard label="核心保护入口" note="隐藏或改路径需二次确认" value={protectedCount} />
         <AdminStatCard label="待审核" note="包含频道页和内容条目" value={reviewCount} />
-        <AdminStatCard label="待合规确认" note="认证、道医、数据公开等高风险内容" value={legalCount} />
       </div>
+      <AdminSectionCard title="频道首页模板字段">
+        <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+          {cmsChannelHomeTemplateFields.map((field) => (
+            <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4" key={field.id}>
+              <div className="flex items-center justify-between gap-3">
+                <h3 className="font-medium text-porcelain">{field.title}</h3>
+                <AdminStatusBadge tone={field.required ? "warning" : "neutral"}>{field.required ? "必需" : "可选"}</AdminStatusBadge>
+              </div>
+              <p className="mt-2 text-sm leading-7 text-[#5f5b52]">{field.description}</p>
+            </div>
+          ))}
+        </div>
+      </AdminSectionCard>
       <AdminSectionCard title="V3.0 内容治理原则">
         <div className="mt-5 grid gap-4 lg:grid-cols-3">
           <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
@@ -74,7 +90,7 @@ export function CmsDashboard() {
           </div>
           <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
             <h3 className="font-medium text-porcelain">核心入口保护</h3>
-            <p className="mt-2 text-sm leading-7 text-[#5f5b52]">首页、会员、认证、查询核验、申请进度等入口可以管理说明文案，但不能被 CMS 绕开业务逻辑。</p>
+            <p className="mt-2 text-sm leading-7 text-[#5f5b52]">首页、会员、认证、查询核验、申请进度等入口可以管理说明文案，但不能被 CMS 绕开业务逻辑。规章制度归属关于协会二级栏目，不作为顶部一级频道。</p>
           </div>
           <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
             <h3 className="font-medium text-porcelain">审核留痕</h3>
@@ -105,25 +121,48 @@ export function CmsChannelTable() {
           </thead>
           <tbody>
             {cmsChannels.map((channel) => (
-              <tr className="border-b border-[#eee7da] last:border-b-0" key={channel.id}>
-                <td className="px-4 py-4 text-[#5f5b52]">{String(channel.sortOrder).padStart(2, "0")}</td>
-                <td className="px-4 py-4">
-                  <div className="font-medium text-porcelain">{channel.label}</div>
-                  {channel.previousLabel ? <div className="mt-1 text-xs text-[#8a6b3e]">原显示名：{channel.previousLabel}</div> : null}
-                </td>
-                <td className="px-4 py-4 text-[#5f5b52]">
-                  <div>{channel.path}</div>
-                  {channel.alias ? <div className="mt-1 text-xs text-[#8a6b3e]">兼容路径：{channel.alias}</div> : null}
-                </td>
-                <td className="px-4 py-4"><AdminStatusBadge tone={riskTone(channel.riskLevel)}>{formatRiskLevel(channel.riskLevel)}</AdminStatusBadge></td>
-                <td className="px-4 py-4"><AdminStatusBadge tone={statusTone(channel.status)}>{formatCmsStatus(channel.status)}</AdminStatusBadge></td>
-                <td className="px-4 py-4 text-[#5f5b52]">{channel.ownerRole}</td>
-                <td className="px-4 py-4">
-                  <Link className="rounded-full border border-[#d8d0bf] bg-white px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/admin/content/pages/${channel.id}/edit`}>
-                    编辑页面
-                  </Link>
-                </td>
-              </tr>
+              <Fragment key={channel.id}>
+                <tr className="border-b border-[#eee7da]">
+                  <td className="px-4 py-4 text-[#5f5b52]">{String(channel.sortOrder).padStart(2, "0")}</td>
+                  <td className="px-4 py-4">
+                    <div className="font-medium text-porcelain">{channel.label}</div>
+                    {channel.previousLabel ? <div className="mt-1 text-xs text-[#8a6b3e]">原显示名：{channel.previousLabel}</div> : null}
+                  </td>
+                  <td className="px-4 py-4 text-[#5f5b52]">
+                    <div>{channel.path}</div>
+                    {channel.alias ? <div className="mt-1 text-xs text-[#8a6b3e]">兼容路径：{channel.alias}</div> : null}
+                  </td>
+                  <td className="px-4 py-4"><AdminStatusBadge tone={riskTone(channel.riskLevel)}>{formatRiskLevel(channel.riskLevel)}</AdminStatusBadge></td>
+                  <td className="px-4 py-4"><AdminStatusBadge tone={statusTone(channel.status)}>{formatCmsStatus(channel.status)}</AdminStatusBadge></td>
+                  <td className="px-4 py-4 text-[#5f5b52]">{channel.ownerRole}</td>
+                  <td className="px-4 py-4">
+                    <Link className="rounded-full border border-[#d8d0bf] bg-white px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/admin/content/pages/${channel.id}/edit`}>
+                      编辑页面
+                    </Link>
+                  </td>
+                </tr>
+                {channel.subChannels?.map((child) => (
+                  <tr className="border-b border-[#eee7da] bg-[#fbf8ef]/55" key={child.id}>
+                    <td className="px-4 py-4 text-[#5f5b52]">{`${String(channel.sortOrder).padStart(2, "0")}-${child.sortOrder}`}</td>
+                    <td className="px-4 py-4">
+                      <div className="font-medium text-porcelain">二级：{child.label}</div>
+                      <div className="mt-1 text-xs text-[#8a6b3e]">归属：{channel.label}</div>
+                    </td>
+                    <td className="px-4 py-4 text-[#5f5b52]">
+                      <div>{child.path}</div>
+                      {child.alias ? <div className="mt-1 text-xs text-[#8a6b3e]">兼容路径：{child.alias}</div> : null}
+                    </td>
+                    <td className="px-4 py-4"><AdminStatusBadge tone={riskTone(child.riskLevel)}>{formatRiskLevel(child.riskLevel)}</AdminStatusBadge></td>
+                    <td className="px-4 py-4"><AdminStatusBadge tone={statusTone(child.status)}>{formatCmsStatus(child.status)}</AdminStatusBadge></td>
+                    <td className="px-4 py-4 text-[#5f5b52]">{child.ownerRole}</td>
+                    <td className="px-4 py-4">
+                      <Link className="rounded-full border border-[#d8d0bf] bg-white px-3 py-1.5 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={`/admin/content/pages/${child.id}/edit`}>
+                        编辑页面
+                      </Link>
+                    </td>
+                  </tr>
+                ))}
+              </Fragment>
             ))}
           </tbody>
         </table>
@@ -133,6 +172,8 @@ export function CmsChannelTable() {
 }
 
 export function CmsPagesTable() {
+  const channels = getCmsEditableChannels();
+
   return (
     <AdminSectionCard title="频道页面">
       <div className="mt-5 overflow-x-auto">
@@ -147,11 +188,12 @@ export function CmsPagesTable() {
             </tr>
           </thead>
           <tbody>
-            {cmsChannels.map((channel) => (
+            {channels.map((channel) => (
               <tr className="border-b border-[#eee7da] last:border-b-0" key={channel.id}>
                 <td className="px-4 py-4">
                   <div className="font-medium text-porcelain">{channel.label}</div>
                   <div className="mt-1 text-xs text-[#5f5b52]">{channel.description}</div>
+                  {channel.parentId ? <div className="mt-1 text-xs text-[#8a6b3e]">二级栏目，归属：关于协会</div> : null}
                 </td>
                 <td className="px-4 py-4 text-[#5f5b52]">{channel.seoTitle}</td>
                 <td className="px-4 py-4 text-[#5f5b52]">{channel.blocks.length} 个区块</td>
@@ -280,6 +322,17 @@ export function CmsEditorMock({ channelId }: { channelId: string }) {
             </label>
             <div className="rounded-xl border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-4 leading-7 text-[#5f5b52]">
               查询核验、申请表单、支付确认、证书 vt、公开 DTO 和 Storage 隐私边界不允许通过 CMS 属性面板修改。
+            </div>
+            <div className="rounded-xl border border-[#e4ded0] bg-white p-4">
+              <h3 className="font-medium text-porcelain">频道首页支持字段</h3>
+              <div className="mt-3 grid gap-2">
+                {cmsChannelHomeTemplateFields.map((field) => (
+                  <div className="rounded-lg bg-[#fbf8ef] px-3 py-2 text-[#5f5b52]" key={field.id}>
+                    {field.title}
+                    {field.required ? <span className="ml-2 text-xs text-[#8a6b3e]">必需</span> : null}
+                  </div>
+                ))}
+              </div>
             </div>
           </div>
         </AdminSectionCard>

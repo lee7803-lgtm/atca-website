@@ -36,7 +36,7 @@ const certificateStatusText: Record<string, string> = {
 const typeText: Record<string, string> = {
   personal_member: "个人会员申请",
   organization_member: "机构会员申请",
-  taoist_certification: "道士资格认证申请"
+  taoist_certification: "道教文化认证建档申请"
 };
 
 export default function ApplicationQueryPage() {
@@ -185,7 +185,7 @@ function ApplicationQueryContent() {
         actions={[
           { label: "查询申请", href: "/application/query" },
           { label: "会员核验", href: "/member-query" },
-          { label: "证书核验", href: "/certificate-query" }
+          { label: "查询核验", href: "/verification" }
         ]}
         eyebrow="Application Query"
         title="申请查询"
@@ -843,7 +843,7 @@ function QueryPageFallback() {
         <div className="rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Application Query</p>
           <h1 className="mt-3 font-serif text-3xl text-porcelain">申请查询</h1>
-          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人通过申请编号和登记联系方式查询个人会员申请、机构会员申请、道士资格认证申请、证书生成情况及正式证书 PDF 下发状态。</p>
+          <p className="mt-4 text-sm leading-8 text-[#5f5b52]">用于申请人通过申请编号和登记联系方式查询个人会员申请、机构会员申请、道教文化认证建档申请、证书生成情况及正式证书 PDF 下发状态。</p>
           <div className="mt-7 grid gap-5">
             <label className="grid gap-3 rounded-2xl bg-white/45 p-3">
               <span className="text-sm font-medium text-porcelain">申请编号</span>

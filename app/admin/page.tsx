@@ -50,9 +50,9 @@ export default async function AdminPage() {
   return (
     <section className="mx-auto grid max-w-7xl gap-6">
       <AdminPageHeader
-        eyebrow="Dashboard"
-        intro="秘书处用于处理审核优先级、会员 / 认证申请、支付、通知、安全审计和基础资料治理的运营总览。"
-        title="后台总览"
+        eyebrow="Operations Workbench"
+        intro="SaaS 化运营后台用于处理申请、审核、财务、会员、认证证书、内容、发展中心、数据、通知、权限与审计。高风险模块需权限、审计和二次确认。"
+        title="工作台"
       />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AdminStatCard label="会员待审核" note={stats?.memberMessage || "已提交 / 待处理 / 审核中 / 需补充资料"} value={stats?.memberPending ?? "—"} />
@@ -60,17 +60,24 @@ export default async function AdminPage() {
         <AdminStatCard label="支付待处理" note={stats?.paymentMessage || "待付款 / 人工确认 / 支付失败"} value={stats?.paymentPending ?? "—"} />
         <AdminStatCard label="通知待处理" note={stats?.notificationMessage || "待发送 / 发送失败"} value={stats?.notificationPending ?? "—"} />
       </div>
-      <AdminSectionCard title="优先处理入口">
+      <AdminSectionCard title="SaaS 化一级模块">
         <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-          <AdminEntryCard href="/admin/workbench" title="审核工作台" text="按优先级查看申请、支付与通知待办。" />
-          <AdminEntryCard href="/admin/users" title="用户管理" text="管理注册用户、会员、认证申请人和历史申请关联。" />
-          <AdminEntryCard href="/admin/roles" title="角色权限" text="查看管理员角色、权限范围和操作边界。" />
-          <AdminEntryCard href="/admin/applications" title="会员申请" text="处理会员审核、有效期、联系方式修正与记录治理。" />
-          <AdminEntryCard href="/admin/certification-applications" title="认证申请" text="处理材料审核、证书生成、下发与证书状态。" />
-          <AdminEntryCard href="/admin/content" title="内容管理" text="维护介绍、规章制度、信仰、教义、文化交流和公告。" />
-          <AdminEntryCard href="/admin/development" title="发展中心" text="维护六大发展中心、专委会、课程活动和项目合作。" />
-          <AdminEntryCard href="/admin/data-center" title="资料中心" text="治理公开文化资料库和最小公开字段边界。" />
-          <AdminEntryCard href="/admin/master-data" title="基础资料" text="维护推荐人、引荐人、宫观、机构与所属组织。" />
+          <AdminEntryCard href="/admin" title="工作台" text="待办、超时、异常、关键指标与下一步提示。" />
+          <AdminEntryCard href="/admin/applications" title="申请管理" text="承接会员、机构和历史申请的列表、详情、补件与记录治理。" />
+          <AdminEntryCard href="/admin/workbench" title="审核中心" text="按优先级聚合初审、复审、财务和通知待办，只读分流到详情页。" />
+          <AdminEntryCard href="/admin/payments" title="财务中心" text="保留 Bank Transfer 订单、凭证、人工确认、取消和审计入口。" />
+          <AdminEntryCard href="/admin/applications" title="会员中心" text="映射现有会员申请、会员编号、有效期、续期和会员公开核验资料。" />
+          <AdminEntryCard href="/admin/certification-applications" title="认证与证书中心" text="保留认证申请、材料审核、证书生成、PDF、下发和状态维护入口。" />
+          <AdminEntryCard href="/admin/content" title="内容 CMS" text="维护关于协会、制度、频道首页、公告、媒体、审核和版本记录。" />
+          <AdminEntryCard href="/admin/development" title="发展中心管理" text="维护六大发展中心、专委会、项目、合作机构、成果和风险边界。" />
+          <AdminEntryCard href="/admin/development#course-activity" title="课程活动中心" text="建设中 / 后续接入：课程、报名、签到、结业、活动与退款联动。" />
+          <AdminEntryCard href="/admin/development#cooperation" title="合作中心" text="建设中 / 后续接入：合作线索、负责人、协议、成果归档和关闭原因。" />
+          <AdminEntryCard href="/admin/data-center" title="数据中心" text="治理八类公开资料库、授权、敏感等级、纠错、撤回和归档。" />
+          <AdminEntryCard href="/admin/notifications" title="通知中心" text="保留 notification_logs、发送状态、失败重试和后台待办基础。" />
+          <AdminEntryCard href="/admin/workbench#risk" title="争议与风控" text="建设中 / 后续接入：投诉、申诉、纠错、退款争议和高风险事件。" />
+          <AdminEntryCard href="/admin/roles" title="权限与组织" text="管理角色、权限、职责冲突和管理员组织边界；权限变更需审计。" />
+          <AdminEntryCard href="/admin/master-data" title="系统配置" text="维护基础资料、标准配置和受控选项；生产配置变更需二次确认。" />
+          <AdminEntryCard href="/admin/audit-logs" title="审计日志" text="只读查询高风险操作、财务事件关联和后台关键变更记录。" />
         </div>
       </AdminSectionCard>
     </section>

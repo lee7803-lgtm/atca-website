@@ -69,7 +69,7 @@ export default function MemberQueryPage() {
         actions={[
           { label: "会员公开核验", href: "/member-query" },
           { label: "会员申请", href: "/membership" },
-          { label: "证书核验", href: "/certificate-query" }
+          { label: "查询核验", href: "/verification" }
         ]}
         eyebrow="Member Verification"
         title="会员公开核验"

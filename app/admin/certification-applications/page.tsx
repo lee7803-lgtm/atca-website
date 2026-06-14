@@ -144,7 +144,7 @@ export default async function AdminCertificationApplicationsPage({ searchParams 
         <div>
           <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Certification Applications</p>
           <h1 className="mt-3 font-serif text-4xl leading-tight text-porcelain">认证申请管理</h1>
-          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看道士资格认证申请，按状态、申请编号、姓名、道名或推荐人筛选申请记录。</p>
+          <p className="mt-4 max-w-2xl text-sm leading-8 text-[#5f5b52]">查看道教文化认证建档申请，按状态、申请编号、姓名、道名或推荐人筛选申请记录。</p>
         </div>
         <div className="flex flex-col gap-3 sm:flex-row">
           <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href="/admin">返回后台首页</Link>
@@ -268,7 +268,7 @@ function formatDateOnly(value?: string | null) {
 function formatCertificationType(item: CertificationApplicationAdminRecord) {
   if (item.requestedLevel) return certificationLevelLabels[item.requestedLevel] || item.requestedLevel;
   if (item.approvedLevel) return certificationLevelLabels[item.approvedLevel] || item.approvedLevel;
-  return "道士资格认证";
+  return "道教文化认证建档";
 }
 
 function formatUnifiedStatus(item: CertificationApplicationAdminRecord, certificate?: CertificateQueryResult) {

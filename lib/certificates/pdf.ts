@@ -191,7 +191,7 @@ export async function generateCertificatePdf({ application, certificate, photo }
   doc.fillColor("#273331").fontSize(28).text("国际道教与文化协会", 0, 96, { align: "center" });
   doc.fillColor("#6f6252").fontSize(9).text("International Taoisme And Cultural Association", 0, 135, { align: "center", characterSpacing: 1.2 });
   doc.moveTo(210, 160).lineTo(pageWidth - 210, 160).lineWidth(0.8).strokeColor("#b08a45").stroke();
-  doc.fillColor("#7F1D1D").fontSize(22).text("道士资格认证证书", 0, 176, { align: "center" });
+  doc.fillColor("#7F1D1D").fontSize(22).text("道教文化认证建档证书", 0, 176, { align: "center" });
 
   const photoX = 72;
   const photoY = 238;
@@ -227,7 +227,7 @@ export async function generateCertificatePdf({ application, certificate, photo }
   doc.rect(72, 560, pageWidth - 144, 64).fillAndStroke("#fbf8ef", "#e4ded0");
   doc.rect(72, 560, 4, 64).fill("#7F1D1D");
   doc.fillColor("#5f5b52").fontSize(10).text(
-    "核验提示：请访问 ITCA 官网证书核验页面，使用证书编号与持证人姓名共同核验。本证书 PDF 仅供持证人与授权场景使用，公开核验以官网实时结果为准；公众页面不提供 PDF 下载。",
+    "核验提示：请访问 ITCA 官网证书公开核验页面，使用证书编号与持证人姓名共同核验。本证书 PDF 仅供持证人与授权场景使用，公开核验以官网实时结果为准；公众页面不提供 PDF 下载。",
     88,
     574,
     { width: pageWidth - 176, lineGap: 4 }

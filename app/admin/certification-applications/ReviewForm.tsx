@@ -67,7 +67,7 @@ const internalReviewTemplates = [
 
 function buildReviewNote(reviewNote: string, taoistRank: string) {
   const cleaned = reviewNote.replace(/\n?证书等级 \/ 项目：.*$/m, "").trim();
-  const rankLine = `证书等级 / 项目：${taoistRank || "道士资格认证"}`;
+  const rankLine = `证书等级 / 项目：${taoistRank || "道教文化认证建档"}`;
   return cleaned ? `${cleaned}\n${rankLine}` : rankLine;
 }
 
@@ -161,7 +161,7 @@ export function CertificationReviewForm({
   const [approvedPath, setApprovedPath] = useState<CertificationPath | "">(initialApprovedPath);
   const [approvedLevel, setApprovedLevel] = useState<CertificationLevel | "">(initialApprovedLevel);
   const [committeeReviewNote, setCommitteeReviewNote] = useState(initialCommitteeReviewNote);
-  const [taoistRank, setTaoistRank] = useState("道士资格认证");
+  const [taoistRank, setTaoistRank] = useState("道教文化认证建档");
   const [isSaving, setIsSaving] = useState(false);
   const [message, setMessage] = useState("");
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
@@ -183,27 +183,27 @@ export function CertificationReviewForm({
     return [
       {
         label: "审核通过通知",
-        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已通过审核。后续将根据协会流程生成证书记录，并完成证书下发安排。请继续保留申请编号，以便查询申请结果和证书生成情况。`
+        text: `您好，您的 ITCA 道教文化认证建档申请（申请编号：${applicationNo}）已通过审核。后续将根据协会流程生成证书记录，并完成证书下发安排。请继续保留申请编号，以便查询申请结果和证书生成情况。`
       },
       {
         label: "补充材料通知",
-        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）尚需补充材料。请登录申请查询页面，使用申请编号与登记联系方式查询申请状态，并根据页面提示补充相关资料。协会将在收到补充资料后继续复核。`
+        text: `您好，您的 ITCA 道教文化认证建档申请（申请编号：${applicationNo}）尚需补充材料。请登录申请查询页面，使用申请编号与登记联系方式查询申请状态，并根据页面提示补充相关资料。协会将在收到补充资料后继续复核。`
       },
       {
         label: "审核未通过通知",
-        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）经审核暂未通过。您可通过申请查询页面查看审核反馈。如需再次申请，请根据协会后续说明重新准备资料。`
+        text: `您好，您的 ITCA 道教文化认证建档申请（申请编号：${applicationNo}）经审核暂未通过。您可通过申请查询页面查看审核反馈。如需再次申请，请根据协会后续说明重新准备资料。`
       },
       {
         label: "证书已生成通知",
-        text: `您好，您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已生成证书记录。证书编号为：${currentCertificateNo}。请继续关注证书下发状态，并以官网公开核验信息为准。`
+        text: `您好，您的 ITCA 道教文化认证建档申请（申请编号：${applicationNo}）已生成证书记录。证书编号为：${currentCertificateNo}。请继续关注证书下发状态，并以官网公开核验信息为准。`
       },
       {
         label: "证书已下发通知",
-        text: `您好，您的 ITCA 道士资格认证证书已完成下发。证书编号为：${currentCertificateNo}。您可通过官网证书核验入口进行公开核验。请妥善保存证书编号。`
+        text: `您好，您的 ITCA 道教文化认证建档证书已完成下发。证书编号为：${currentCertificateNo}。您可通过官网证书公开核验入口进行公开核验。请妥善保存证书编号。`
       },
       {
         label: "已补充审核中通知",
-        text: `您好，您补充提交的资料已收到。您的 ITCA 道士资格认证申请（申请编号：${applicationNo}）已进入审核阶段，请等待后续审核结果。`
+        text: `您好，您补充提交的资料已收到。您的 ITCA 道教文化认证建档申请（申请编号：${applicationNo}）已进入审核阶段，请等待后续审核结果。`
       }
     ];
   }, [applicationNo, certificateNo]);

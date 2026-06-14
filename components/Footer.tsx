@@ -21,35 +21,38 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-4 max-w-sm text-sm leading-6 text-white/70 sm:mt-5">
-            本网站用于 ITCA / 国际道教与文化协会的协会介绍、规章制度、发展中心、会员体系、认证体系、证书查验、发展合作、资料中心与用户服务等信息。
+            本网站用于 ITCA / 国际道教与文化协会的关于协会、道教文化、发展中心、会员体系、认证体系、查询核验、发展合作、资料中心与用户服务等信息。
           </p>
         </div>
         <div>
           <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">网站导航</p>
           <div className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-1">
-            <Link href="/intro">介绍</Link>
-            <Link href="/rules">规章制度</Link>
+            <Link href="/intro">关于协会</Link>
             <Link href="/faith">道教信仰</Link>
             <Link href="/doctrine">教理教义</Link>
             <Link href="/exchange">文化交流</Link>
             <Link href="/development">发展中心</Link>
             <Link href="/membership">会员体系</Link>
             <Link href="/certification">认证体系</Link>
-            <Link href="/certificate-query">证书查验</Link>
+            <Link href="/verification">查询核验</Link>
             <Link href="/cooperation">发展合作</Link>
             <Link href="/data">资料中心</Link>
           </div>
         </div>
         <div>
-          <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">服务说明</p>
+          <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">关于与服务</p>
           <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-2 lg:grid-cols-2">
-            {["网站说明", "申请须知", "资料使用说明", "核验说明", "重要提示"].map((item) => (
-              <span key={item}>{item}</span>
-            ))}
+            <Link href="/intro">协会介绍</Link>
+            <Link href="/rules">规章制度</Link>
+            <Link href="/organization">组织架构</Link>
+            <Link href="/contact">联系协会</Link>
+            <Link href="/membership">会员申请</Link>
+            <Link href="/certification">认证体系</Link>
           </div>
           <div className="mt-4 grid grid-cols-1 gap-2 text-sm text-white/70 sm:grid-cols-2 lg:grid-cols-2">
-            <Link href="/certificate-query">证书核验入口</Link>
-            <Link href="/member-query">会员查询入口</Link>
+            <Link href="/verification">查询核验</Link>
+            <Link href="/certificate-query">证书公开核验</Link>
+            <Link href="/member-query">会员公开核验</Link>
             <Link href="/application/query">申请进度查询</Link>
             <Link href="/account/login">登录 / 注册</Link>
             <Link href="/admin">管理入口</Link>

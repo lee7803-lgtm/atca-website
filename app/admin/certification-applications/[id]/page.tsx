@@ -723,7 +723,7 @@ function FormalCertificatePreview({
             <h3 className="mt-4 font-serif text-3xl leading-tight text-[#273331] sm:text-5xl">国际道教与文化协会</h3>
             <p className="mt-3 text-sm uppercase tracking-[0.18em] text-[#6f6252]">International Taoisme And Cultural Association</p>
             <div className="mx-auto mt-5 h-px w-48 bg-[#b08a45]" />
-            <p className="mt-5 font-serif text-2xl text-[#7F1D1D] sm:text-3xl">道士资格认证证书</p>
+            <p className="mt-5 font-serif text-2xl text-[#7F1D1D] sm:text-3xl">道教文化认证建档证书</p>
           </div>
 
           <div className="relative z-10 mt-10 grid gap-8 lg:grid-cols-[12rem_1fr] lg:items-start">
@@ -751,7 +751,7 @@ function FormalCertificatePreview({
               </div>
 
               <div className="mt-2 border-l-4 border-[#7F1D1D] bg-[#fbf8ef] px-4 py-3 text-sm leading-7 text-[#5f5b52]">
-                核验提示：请访问 ITCA 官网证书核验页面，使用证书编号与持证人姓名共同核验。本证书 PDF 仅供持证人与授权场景使用，公开核验以官网实时结果为准；公众页面不提供 PDF 下载。
+                核验提示：请访问 ITCA 官网证书公开核验页面，使用证书编号与持证人姓名共同核验。本证书 PDF 仅供持证人与授权场景使用，公开核验以官网实时结果为准；公众页面不提供 PDF 下载。
               </div>
             </div>
           </div>
@@ -760,7 +760,7 @@ function FormalCertificatePreview({
             <div className="grid gap-2 border border-[#b08a45] bg-[#fbf8ef] p-3 text-center text-xs leading-6 text-[#8a6b3e]">
               {verificationQrCode ? (
                 // eslint-disable-next-line @next/next/no-img-element -- Server-generated data URL contains only the public certificate query URL.
-                <img alt="证书核验二维码" className="mx-auto h-28 w-28" src={verificationQrCode} />
+                <img alt="证书公开核验二维码" className="mx-auto h-28 w-28" src={verificationQrCode} />
               ) : null}
               <span>扫码进入官网核验</span>
               <span className="break-all text-[10px] leading-4 text-[#5f5b52]">{verificationUrl}</span>

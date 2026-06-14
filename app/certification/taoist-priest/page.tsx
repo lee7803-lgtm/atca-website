@@ -48,7 +48,7 @@ const steps: Step[] = [
       {
         title: "身份与联络资料",
         fields: [
-          { id: "certificationType", label: "申请认证类型", kind: "select", required: true, options: ["道士资格认证"] },
+          { id: "certificationType", label: "申请认证类型", kind: "select", required: true, options: ["道教文化认证建档"] },
           {
             id: "certificationPath",
             label: "传承体系",
@@ -80,7 +80,7 @@ const steps: Step[] = [
   {
     title: "师承信息",
     icon: "structure",
-    help: "师承信息是道士资格认证的重要审核内容，请尽量填写真实、完整、可核验的资料。",
+    help: "师承信息是道教文化认证建档的重要审核内容，请尽量填写真实、完整、可核验的资料。",
     groups: [
       {
         title: "传承与师父资料",
@@ -175,7 +175,7 @@ const steps: Step[] = [
           { id: "dataUseConfirm", label: "我同意 ITCA 将本人提交的资料用于认证申请审核、资料核对、证书记录建立及后续联系。", kind: "checkbox", required: true },
           { id: "reviewConfirm", label: "我理解申请提交后将进入人工审核，审核结果以 ITCA 审核记录为准。", kind: "checkbox", required: true },
           { id: "supplementConfirm", label: "我理解如资料不完整，ITCA 可要求补充材料；如资料不实，ITCA 可驳回申请或撤销相关记录。", kind: "checkbox", required: true },
-          { id: "certificatePublicConfirm", label: "我同意审核通过并生成证书后，证书编号、姓名、认证类型、签发日期及证书状态等必要信息可用于官网证书核验。", kind: "checkbox", required: true },
+          { id: "certificatePublicConfirm", label: "我同意审核通过并生成证书后，证书编号、姓名、认证类型、签发日期及证书状态等必要信息可用于官网证书公开核验。", kind: "checkbox", required: true },
           { id: "termsPrivacyConfirm", label: "我已阅读并同意《申请须知》《资料使用说明》《服务条款》《隐私政策》。", kind: "checkbox", required: true }
         ]
       }
@@ -235,7 +235,7 @@ const textareaTemplates: Record<string, { hint: string; template: string }> = {
 
 第一，希望对本人已有的相关学习、实践和服务经历进行规范登记。
 
-第二，希望通过 ITCA 的审核流程，获得相应的认证记录与证书核验信息。
+第二，希望通过 ITCA 的审核流程，获得相应的认证记录与证书公开核验信息。
 
 第三，希望未来在相关文化交流、学习传播、活动参与或服务场景中，更规范地展示本人身份与经历。
 
@@ -332,7 +332,7 @@ function getFileHint(fieldId: string) {
 export default function TaoistPriestCertificationPage() {
   const router = useRouter();
   const [current, setCurrent] = useState(0);
-  const [values, setValues] = useState<Record<string, string>>({ certificationType: "道士资格认证" });
+  const [values, setValues] = useState<Record<string, string>>({ certificationType: "道教文化认证建档" });
   const [files, setFiles] = useState<Record<string, File>>({});
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -557,12 +557,12 @@ export default function TaoistPriestCertificationPage() {
           { label: "证书公开核验", href: "/certificate-query" }
         ]}
         eyebrow="Taoist Priest Certification"
-        title="道士资格认证"
-        subtitle="Taoist Qualification Certification"
-        intro="道士资格认证用于登记身份资料、师承关系、修学经历与证明材料，服务协会认证审核、档案建立与证书核验。"
+        title="道教文化认证建档"
+        subtitle="Taoist Cultural Certification Filing"
+        intro="道教文化认证建档用于登记身份资料、师承关系、修学经历与证明材料，服务协会认证审核、档案建立与证书公开核验。"
         imageSrc="/images/itca/03-service-certification.png"
         imagePosition="center 52%"
-        visualDescription="围绕申请资料、身份备案、审核流程与证书核验，建立规范、可信、可追溯的认证服务体系。"
+        visualDescription="围绕申请资料、身份备案、审核流程与证书公开核验，建立规范、可信、可追溯的认证服务体系。"
         visualEyebrow="ITCA Certification"
         visualMark="Credential"
         visualSeal="认证"
@@ -677,7 +677,7 @@ export default function TaoistPriestCertificationPage() {
                 <h3 className="font-serif text-xl text-porcelain">认证说明与适用范围</h3>
                 <p className="mt-3">提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。</p>
                 <p className="mt-3">申报认证等级仅作为审核参考，最终核定等级将根据资料完整性、师承证明、资质凭证、实践经历、推荐材料及认证委员会审核意见确定。</p>
-                <p className="mt-3">本认证属于 ITCA / 国际道教与文化协会认证与备案体系内的资料审核、身份记录与证书核验服务，不具备政府机关行政许可、职业准入或宗教职务任命效力。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。</p>
+                <p className="mt-3">本认证属于 ITCA / 国际道教与文化协会认证建档体系内的资料审核、身份记录与证书公开核验服务，不构成政府许可、行政执业资格或法定从业资质。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。</p>
               </div>
             </div>
           ) : null}

@@ -15,7 +15,7 @@ const memberTypes = [
     text: "适用于关注道教文化、传统文化交流、协会活动、学习研修或认证相关服务的个人申请人。",
     href: "/member/apply",
     icon: "individual" as IconBadgeName,
-    labels: ["道教文化学习者", "道教文化研究者", "道教文化传播者", "道士资格认证申请人"]
+    labels: ["道教文化学习者", "道教文化研究者", "道教文化传播者", "认证建档申请人"]
   },
   {
     title: "机构会员",
@@ -29,7 +29,7 @@ const memberTypes = [
 const purposes: Array<{ title: string; text: string; icon: IconBadgeName }> = [
   { title: "参与协会活动", text: "用于了解并参与协会后续组织的文化交流、经典学习、活动联络等事项。", icon: "international" },
   { title: "建立会员档案", text: "用于登记会员基础资料、联系方式、学习或机构背景及后续沟通信息。", icon: "membership" },
-  { title: "对接认证服务", text: "会员可进一步了解道士资格认证相关说明，但会员身份不等于认证身份。", icon: "certification" },
+  { title: "对接认证建档服务", text: "会员可进一步了解道教文化认证建档相关说明，但会员身份不等于认证建档状态。", icon: "certification" },
   { title: "开展合作联系", text: "机构会员可作为文化交流、活动合作、资料对接及后续合作沟通的基础。", icon: "cooperation" }
 ];
 
@@ -91,7 +91,7 @@ export default function MembershipPage() {
         eyebrow="Membership"
         title="会员体系"
         subtitle="Membership Application"
-        intro="ITCA 会员体系用于说明个人会员、机构会员申请范围、资料要求、会员服务、会籍管理和活动参与方式。会员身份属于协会会员服务体系，不等同于资格认证。"
+        intro="ITCA 会员体系用于说明个人会员、机构会员申请范围、资料要求、会员服务、会籍管理和活动参与方式。会员身份属于协会会员服务体系，不等同于认证建档状态。"
         backgroundImageSrc="/images/atca/member-gathering.jpg"
         backgroundImagePosition="center 48%"
         imageSrc="/images/itca/04-service-membership.png"
@@ -149,9 +149,9 @@ export default function MembershipPage() {
 
       <MembershipSection eyebrow="Notice" title="会员身份与认证体系的关系" compact>
         <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          会员身份属于协会会员服务与档案管理体系。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
+          会员身份属于协会会员服务与档案管理体系。申请道教文化认证建档或道士认证建档需另行提交认证申请材料，并按认证流程审核。
           <br />
-          认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化展示和公众查询支持。相关认证不等同于政府宗教资格认证、法定宗教职务证明，也不替代其他机构依法依规开展的认证或管理。
+          本认证为 ITCA 协会认证建档，用于文化交流、会员服务和协会内部记录场景中的参考信息，不构成政府许可、行政执业资格或法定从业资质。
         </div>
         <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>

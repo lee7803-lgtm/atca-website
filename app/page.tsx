@@ -17,10 +17,10 @@ const portalEntries: Array<{ href: string; icon: IconBadgeName; text: string; ti
   { href: "/culture", icon: "value", title: "道教文化", text: "阅读道教信仰、教理教义、经典思想、宫观文化和当代文化表达。" },
   { href: "/development", icon: "cooperation", title: "发展中心", text: "查看协会在文化研究、教育传播、国际交流和项目共建方面的专业平台。" },
   { href: "/membership", icon: "membership", title: "会员体系", text: "了解个人会员、机构会员、会员服务、会籍状态和会员申请方式。" },
-  { href: "/certification", icon: "certification", title: "认证体系", text: "了解道士资格认证申请、资料审核、证书签发和公开核验说明。" },
+  { href: "/certification", icon: "certification", title: "认证体系", text: "了解道教文化认证建档申请、资料审核、证书签发和公开核验说明。" },
   { href: "/#announcements", icon: "certificate", title: "公告资讯", text: "查看协会公告、认证通知、会员服务说明和公开信息更新。" },
   { href: "/data", icon: "query", title: "资料中心", text: "查看机构、个人、平台、传承、课程、活动和基地等公开资料结构。" },
-  { href: "/certificate-query", icon: "query", title: "查询核验", text: "进入证书公开核验、会员公开核验和申请进度查询入口。" },
+  { href: "/verification", icon: "query", title: "查询核验", text: "进入证书公开核验、会员公开核验和申请进度查询入口。" },
   { href: "/cooperation", icon: "contact", title: "联系我们", text: "联系协会秘书处，提交机构合作、文化交流、课程活动和资料更正事项。" }
 ];
 
@@ -57,7 +57,7 @@ export default function Home() {
         actions={[
           { href: "/intro", label: "了解协会" },
           { href: "/membership", label: "会员体系", variant: "secondary" },
-          { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }
+          { href: "/verification", label: "查询核验", variant: "secondary" }
         ]}
         atmosphere="gate"
         backgroundImageSrc="/images/atca/hero-architecture.jpg"
@@ -77,7 +77,7 @@ export default function Home() {
         <div className="mx-auto grid max-w-7xl gap-px bg-[#d8d0bf] sm:grid-cols-2 lg:grid-cols-4">
           {[
             ["个人会员申请", "/member/apply"],
-            ["道士资格认证申请", "/certification/taoist-priest"],
+            ["道教文化认证建档申请", "/certification/taoist-priest"],
             ["申请进度查询", "/application/query"],
             ["证书公开核验", "/certificate-query"]
           ].map(([label, href]) => (
@@ -149,7 +149,7 @@ export default function Home() {
                 <h2 className="mt-5 font-serif text-4xl leading-tight text-[#F5E7C4] sm:text-[2.8rem]">公告资讯</h2>
               </div>
               <p className="max-w-md text-sm leading-8 text-white/82">
-                协会通过官网发布认证、会员、证书核验、文化交流和合作联系相关信息。涉及具体申请或合作事项，以协会秘书处正式确认为准。
+                协会通过官网发布认证、会员、证书公开核验、文化交流和合作联系相关信息。涉及具体申请或合作事项，以协会秘书处正式确认为准。
               </p>
             </div>
           </article>

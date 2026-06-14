@@ -10,17 +10,17 @@ export const metadata: Metadata = {
 };
 
 const profileItems = [
-  ["协会定位", "ITCA 官网作为国际道教与文化协会相关展示与服务平台，用于协会介绍、认证申请、会员申请、证书核验与合作联系。", "association"],
-  ["服务范围", "协会当前重点提供道士资格认证申请、个人会员与机构会员申请、证书核验说明及文化合作联络等信息服务。", "certification"],
-  ["服务说明", "认证服务用于资料审核、记录建档、证书核验及文化交流场景中的参考信息。", "value"]
+  ["协会定位", "ITCA 官网作为国际道教与文化协会相关展示与服务平台，用于协会介绍、认证申请、会员申请、证书公开核验与合作联系。", "association"],
+  ["服务范围", "协会当前重点提供道教文化认证建档申请、个人会员与机构会员申请、证书公开核验说明及文化合作联络等信息服务。", "certification"],
+  ["服务说明", "认证服务用于资料审核、记录建档、证书公开核验及文化交流场景中的参考信息。", "value"]
 ] as const;
 
 const values = [
   ["尊重传统", "尊重道教传承、师承关系与文化脉络，在资料登记、认证审核与文化交流中保持对传统的敬畏。", "value"],
   ["规范认证", "依照协会流程审核认证申请，推动认证记录有据可查、流程说明清晰。", "certification"],
   ["国际交流", "面向不同国家和地区，促进道教文化、传统文化与相关机构之间的交流合作。", "international"],
-  ["公开透明", "通过官网公开协会信息、认证须知、会员申请与证书核验事项，减少信息不对称。", "query"],
-  ["稳健发展", "立足认证、会员与证书核验等基础工作，逐步拓展文化交流与合作服务。", "cooperation"]
+  ["公开透明", "通过官网公开协会信息、认证须知、会员申请与证书公开核验事项，减少信息不对称。", "query"],
+  ["稳健发展", "立足认证、会员与证书公开核验等基础工作，逐步拓展文化交流与合作服务。", "cooperation"]
 ] as const;
 
 const structure = [
@@ -34,7 +34,7 @@ const structure = [
 
 const functions = [
   ["道教文化交流", "组织和推动道教文化、传统文化、经典学习与道教文化国际交流相关事项。", "international"],
-  ["道士资格认证", "围绕道士身份、师承信息、宗派背景、修道经历与相关证明材料开展认证与备案。", "certification"],
+  ["道教文化认证建档", "围绕道士身份、师承信息、宗派背景、修道经历与相关证明材料开展协会认证建档。", "certification"],
   ["会员组织管理", "受理个人会员与机构会员申请，建立会员档案，推动会员服务与协会事务参与。", "membership"],
   ["资料备案与核验", "整理认证、会员与证书相关记录，为公开核验和服务工作提供依据。", "query"],
   ["合作与活动组织", "推动宫观道堂、文化机构、传统文化组织与相关合作方之间的交流与活动合作。", "cooperation"]
@@ -78,7 +78,7 @@ export default function AssociationPage() {
         ]}
         eyebrow="About ITCA"
         title="关于协会"
-        intro="ITCA 官网用于协会介绍、认证申请、会员申请、证书核验与合作联系等信息服务，服务道教文化传承与国际交流。"
+        intro="ITCA 官网用于协会介绍、认证申请、会员申请、证书公开核验与合作联系等信息服务，服务道教文化传承与国际交流。"
         backgroundImageSrc="/images/atca/about-cultural-space.jpg"
         backgroundImagePosition="center 48%"
         imageSrc="/images/itca/02-home-association.png"
@@ -107,7 +107,7 @@ export default function AssociationPage() {
       <AssociationSection eyebrow="Mission" title="宗旨使命" tone="soft">
         <div className="grid gap-5 md:grid-cols-2">
           <InfoCard icon={<AssociationIcon name="value" />} title="宗旨" text="弘扬道教清净自然、济世利人、尊师重道的文化精神，促进道教文化与传统文化在国际语境中的交流、传承与规范发展。" />
-          <InfoCard icon={<AssociationIcon name="cooperation" />} title="使命" text="服务道士资格认证申请、资料建档、会员工作、文化交流与机构合作，推动相关事务规范有序开展。" />
+          <InfoCard icon={<AssociationIcon name="cooperation" />} title="使命" text="服务道教文化认证建档申请、资料建档、会员工作、文化交流与机构合作，推动相关事务规范有序开展。" />
         </div>
       </AssociationSection>
 

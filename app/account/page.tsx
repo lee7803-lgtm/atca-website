@@ -44,7 +44,7 @@ export default function AccountPage() {
         actions={[
           { href: "/account/login", label: "登录 / 注册" },
           { href: "/application/query", label: "申请进度查询", variant: "secondary" },
-          { href: "/certificate-query", label: "证书查验", variant: "secondary" }
+          { href: "/verification", label: "查询核验", variant: "secondary" }
         ]}
         atmosphere="credential"
         eyebrow="Account"

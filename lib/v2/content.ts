@@ -48,9 +48,9 @@ export type V2PageData = {
 
 export const publicBoundaries = {
   certification:
-    "协会认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化展示和公众查询支持。相关认证不等同于政府宗教资格认证、法定宗教职务证明，也不替代其他机构依法依规开展的认证或管理。",
+    "本认证为 ITCA 协会认证建档，用于文化交流、会员服务和协会内部记录场景中的参考信息，不构成政府许可、行政执业资格或法定从业资质。公开核验只证明协会公开登记状态，不替代任何政府、监管机构或专业机构核查。",
   daoMedicine:
-    "道医中医相关栏目仅用于文化研究、养生资料整理和交流展示，不构成医疗诊断、治疗建议或药品功效承诺。涉及健康问题时，应咨询具备资质的专业人员。",
+    "道医中医相关栏目仅用于文化研究、养生资料整理和交流展示，不构成医疗诊断、治疗建议或药品功效承诺，不替代医生建议。涉及健康问题时，应咨询具备资质的专业人员。",
   yijing:
     "易学与东方认知相关内容仅作传统文化研究、认知辅助和自我理解参考，不替代医疗、法律、金融、心理治疗等专业判断，也不作确定性预测承诺。",
   data:
@@ -60,7 +60,7 @@ export const publicBoundaries = {
 export const serviceEntries = [
   { href: "/member/apply", label: "个人会员申请" },
   { href: "/organization/apply", label: "机构会员申请" },
-  { href: "/certification/taoist-priest", label: "道士资格认证申请" },
+  { href: "/certification/taoist-priest", label: "道教文化认证建档申请" },
   { href: "/application/query", label: "申请进度查询" },
   { href: "/certificate-query", label: "证书公开核验" },
   { href: "/member-query", label: "会员公开核验" }
@@ -156,37 +156,50 @@ export const rbacPermissionModules = [
 export const v2Pages: Record<string, V2PageData> = {
   intro: {
     actions: [
-      { href: "/membership", label: "了解会员体系" },
-      { href: "/cooperation", label: "联系合作", variant: "secondary" }
+      { href: "/membership", label: "会员申请" },
+      { href: "/certification", label: "认证体系", variant: "secondary" },
+      { href: "/contact", label: "联系协会", variant: "secondary" }
     ],
     atmosphere: "gate",
     backgroundImageSrc: "/images/atca/about-cultural-space.jpg",
     eyebrow: "About ITCA",
     imageSrc: "/images/itca/02-home-association.png",
-    intro: "国际道教与文化协会 ITCA 面向道教文化传承、会员服务、认证建档、国际交流和机构合作，提供公开、稳健、可查询的官网信息服务。",
+    intro: "关于协会栏目用于说明 ITCA 的协会定位、治理公开、组织架构和联系入口，帮助公众、会员、申请人和合作伙伴理解官网信息边界。",
     metadataTitle: "关于协会｜国际道教与文化协会 ITCA",
     sections: [
       {
         afterHero: true,
+        actions: [
+          { href: "/rules", label: "查看规章制度" },
+          { href: "/organization", label: "组织架构", variant: "secondary" },
+          { href: "/contact", label: "联系协会", variant: "secondary" }
+        ],
+        eyebrow: "Channel Guide",
+        intro: "本频道承接协会介绍、规章制度、组织架构和联系协会，不把制度页作为独立一级频道。",
+        notice: "关于协会内容用于公开说明协会门户、会员服务、认证建档、文化交流和合作联系。公开信息以官网发布版本和协会秘书处确认为准，不作超出协会服务范围的资质表述。",
+        title: "栏目导语"
+      },
+      {
         cards: [
-          { icon: "value", title: "协会宗旨", text: "弘扬道教清净自然、济世利人的文化精神，推动道教文化与中华传统文化在国际语境中的交流与传承。" },
-          { icon: "structure", title: "协会使命", text: "服务会员、认证、文化交流与资料整理工作，推动相关记录规范留存、办理流程清晰可循。" },
-          { icon: "association", title: "协会定位", text: "作为面向公众、会员、申请人、文化机构和合作伙伴的协会门户，提供介绍、申请、核验、公告与合作信息。" },
-          { icon: "international", title: "国际视野", text: "面向不同国家和地区推动宫观道堂、文化机构、研究单位和传统文化组织之间的交流互鉴。" }
+          { icon: "association", title: "协会定位", text: "ITCA 官网作为协会门户，提供协会介绍、会员服务、认证建档、查询核验、文化交流和发展合作等公开信息入口。" },
+          { icon: "value", title: "宗旨使命", text: "弘扬道教清净自然、济世利人的文化精神，推动道教文化与中华传统文化在国际语境中的交流、传承与规范表达。" },
+          { icon: "international", title: "服务对象", text: "面向公众、会员、认证申请人、文化学习者、研究者、机构伙伴和国际交流对象提供清晰的栏目分流。" },
+          { icon: "query", title: "官网边界", text: "官网公开信息用于协会服务和文化交流说明，不构成政府许可、行政执业资格或其他法定从业证明。" }
         ],
         eyebrow: "Profile",
-        intro: "协会介绍页帮助公众了解 ITCA 的基本定位、服务对象和官网信息边界。",
+        intro: "协会介绍先说明定位、宗旨、服务对象和官网功能边界，再进入制度、组织和联系路径。",
         title: "协会介绍"
       },
       {
         cards: [
-          { href: "/certification/taoist-priest", icon: "certification", title: "认证申请人", text: "可了解认证范围、申请材料、审核流程和证书公开核验方式。" },
-          { href: "/membership", icon: "membership", title: "会员与学习者", text: "可了解个人会员、机构会员、会员服务、文化交流和活动参与方式。" },
-          { href: "/cooperation", icon: "institution", title: "机构与合作伙伴", text: "可了解文化交流、课程活动、研究合作、资料整理和项目共建方式。" }
+          { href: "/rules", icon: "structure", title: "协会章程与总则", text: "公开协会宗旨、组织治理、公共事务处理原则和制度更新机制。" },
+          { href: "/rules", icon: "membership", title: "会员规则", text: "说明个人会员、机构会员申请、审核、会籍状态、续期、暂停和终止规则。" },
+          { href: "/rules", icon: "certification", title: "认证建档规则", text: "说明协会认证建档的材料、审核、证书签发、公开核验和复核边界。" },
+          { href: "/rules", icon: "value", title: "隐私与资料公开", text: "说明公开字段授权、资料更正、撤回公开、投诉申诉和敏感材料处理原则。" }
         ],
-        eyebrow: "Audience",
-        intro: "官网服务对象包括会员、认证申请人、文化爱好者、研究者、机构伙伴和国际交流对象。",
-        title: "服务对象",
+        eyebrow: "Governance",
+        intro: "规章制度作为关于协会下的治理公开内容，提供制度分类、版本和适用说明。",
+        title: "规章制度",
         tone: "soft"
       },
       {
@@ -194,11 +207,37 @@ export const v2Pages: Record<string, V2PageData> = {
           { icon: "structure", title: "理事会", text: "统筹协会发展方向、重大事项审议和协会公共事务。" },
           { icon: "association", title: "秘书处", text: "负责日常协调、资料受理、信息记录、会员沟通与对外联系。" },
           { icon: "certification", title: "认证委员会", text: "负责认证材料审核、认证标准维护、评审建议和证书记录管理。" },
-          { icon: "value", title: "专家顾问委员会", text: "为文化研究、学术交流、课程建设和专业议题提供咨询支持。" }
+          { icon: "value", title: "专家顾问委员会", text: "为文化研究、学术交流、课程建设和专业议题提供咨询支持。" },
+          { icon: "cooperation", title: "发展中心", text: "承接文化研究、教育传播、国际交流、项目共建、资料整理和相关合作方向。" }
         ],
         eyebrow: "Organization",
-        intro: "组织与委员会信息用于说明协会各项工作的基本分工。",
+        intro: "组织架构至少覆盖理事会、秘书处、认证委员会、专家顾问委员会和发展中心，公开说明各项工作的基本分工。",
         title: "组织与委员会"
+      },
+      {
+        actions: [
+          { href: "/member/apply", label: "个人会员申请" },
+          { href: "/organization/apply", label: "机构会员申请", variant: "secondary" },
+          { href: "/certification/taoist-priest", label: "认证建档申请", variant: "secondary" },
+          { href: "/cooperation", label: "发展合作", variant: "secondary" },
+          { href: "/contact", label: "资料更正", variant: "secondary" }
+        ],
+        cards: [
+          { href: "/membership", icon: "membership", title: "会员申请", text: "了解个人会员、机构会员、会员服务、会籍管理和会员公开核验。" },
+          { href: "/certification", icon: "certification", title: "认证申请", text: "了解道教文化认证建档、道士认证建档、材料要求、审核流程和证书公开核验。" },
+          { href: "/cooperation", icon: "cooperation", title: "发展合作", text: "提交机构合作、课程活动、国际交流、文创合作和资料共建等沟通事项。" },
+          { href: "/contact", icon: "query", title: "资料更正", text: "对公开资料、会员信息、证书公开核验或资料中心内容提出更正、撤回或人工复核需求。" }
+        ],
+        eyebrow: "Contact",
+        intro: "联系协会提供会员申请、认证申请、发展合作和资料更正入口，方便不同事项进入对应流程。",
+        title: "联系协会",
+        tone: "soft"
+      }
+    ],
+    boundaryNotices: [
+      {
+        title: "协会信息边界",
+        text: "关于协会栏目用于公开介绍协会定位、制度、组织和联系入口。相关会员、认证和核验信息属于协会服务与公开登记说明，不构成政府许可、行政执业资格或法定从业资质。"
       }
     ],
     title: "关于协会",
@@ -207,15 +246,25 @@ export const v2Pages: Record<string, V2PageData> = {
     visualTitle: "关于协会"
   },
   rules: {
-    actions: [{ href: "/application/query", label: "申请进度查询" }, { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }],
+    actions: [{ href: "/intro", label: "返回关于协会" }, { href: "/verification", label: "查询核验", variant: "secondary" }],
     atmosphere: "credential",
-    eyebrow: "Rules",
+    eyebrow: "About ITCA / Rules",
     imageSrc: "/images/itca/03-service-certification.png",
-    intro: "规章制度栏目公开协会治理、会员管理、认证建档、证书核验、信息公开、合作管理和复核处置等基础规则。",
-    metadataTitle: "规章制度｜国际道教与文化协会 ITCA",
+    intro: "本页为“关于协会 / 规章制度”下的制度公开页，保留 `/rules` 历史访问路径，但不作为顶部一级频道。",
+    metadataTitle: "关于协会 · 规章制度｜国际道教与文化协会 ITCA",
     sections: [
       {
         afterHero: true,
+        actions: [
+          { href: "/intro", label: "返回关于协会" },
+          { href: "/application/query", label: "申请进度查询", variant: "secondary" },
+          { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }
+        ],
+        intro: "规章制度并入关于协会频道，用于公开治理、会员、认证、核验、资料公开、合作和投诉申诉等规则。",
+        notice: "历史路径 `/rules` 继续保留，方便旧链接访问。后续如规范为 `/about/rules`，应保留兼容跳转说明。",
+        title: "关于协会 · 规章制度"
+      },
+      {
         cards: [
           { icon: "structure", title: "协会章程与总则", text: "说明协会宗旨、组织架构、会员权益、公共事务处理原则和制度更新机制。" },
           { icon: "membership", title: "会员管理规则", text: "说明个人会员、机构会员申请、审核、会籍状态、续期、暂停和终止规则。" },
@@ -226,17 +275,22 @@ export const v2Pages: Record<string, V2PageData> = {
         ],
         eyebrow: "Governance",
         intro: "规章制度为申请、认证、会员、核验和合作提供统一说明，减少信息不对称。",
-        title: "制度栏目"
+        title: "制度分类"
       },
       {
-        notice: "协会将根据实际工作需要持续完善相关规则。涉及具体申请、核验、合作或复核事项，以官网公开信息和协会秘书处确认为准。",
-        title: "制度适用说明",
+        notice: "制度内容应记录版本、发布日期、生效日期、适用范围和秘书处/法务确认状态。涉及认证、数据公开、费用、退款、道医中医或易学内容时，发布前进入加强审核。",
+        title: "版本与修订",
         tone: "soft"
+      },
+      {
+        notice: "协会将根据实际工作需要持续完善相关规则。涉及具体申请、核验、合作或复核事项，以官网公开信息和协会秘书处确认为准。公开核验只证明协会公开登记状态，不替代政府、监管机构或专业机构核查。",
+        title: "制度适用说明",
+        tone: "default"
       }
     ],
     boundaryNotices: [{ title: "认证边界说明", text: publicBoundaries.certification }],
-    title: "规章制度",
-    visualDescription: "公开制度用于说明申请、认证、会员、核验和合作事项的处理原则。",
+    title: "关于协会 · 规章制度",
+    visualDescription: "规章制度是关于协会下的治理公开内容，用于说明申请、认证、会员、核验和合作事项的处理原则。",
     visualSeal: "制度",
     visualTitle: "制度与边界"
   },
@@ -475,7 +529,7 @@ export const developmentPageData: Record<string, V2PageData> = {
         title: "中心方向"
       },
       {
-        notice: "养生实践相关内容仅作文化学习和活动交流参考，不构成医疗诊断、治疗建议或功效承诺。",
+        notice: "养生实践相关内容仅作文化学习和活动交流参考，不构成医疗诊断、治疗建议或功效承诺，不替代医生建议。",
         title: "内容边界",
         tone: "soft"
       }
@@ -505,7 +559,7 @@ export const developmentPageData: Record<string, V2PageData> = {
         title: "中心方向"
       },
       {
-        notice: "文化创意合作服务于文化传播和公共展示，不改变协会认证规则，也不替代认证审核或证书核验。",
+        notice: "文化创意合作服务于文化传播和公共展示，不改变协会认证规则，也不替代认证审核或证书公开核验。",
         title: "合作说明",
         tone: "soft"
       }
@@ -534,7 +588,7 @@ export const developmentPageData: Record<string, V2PageData> = {
         title: "教育体系"
       },
       {
-        notice: "课程学习证明与资格认证应清晰区分。学习记录不等同于职业许可、法定资质或宗教职务证明。",
+        notice: "课程学习证明与协会认证建档、职业许可应清晰区分。学习记录不等同于职业许可、法定资质或宗教职务证明。",
         title: "学习证明说明",
         tone: "soft"
       }
@@ -621,7 +675,7 @@ export const developmentPageData: Record<string, V2PageData> = {
     ],
     boundaryNotices: [{ title: "道医中医文化边界", text: publicBoundaries.daoMedicine }],
     title: "道医中医文化发展中心",
-    visualDescription: "文化研究和养生资料展示必须与医疗诊疗、治疗建议明确区分。",
+    visualDescription: "文化研究和养生资料展示必须与医疗诊疗、治疗建议明确区分，不替代医生建议。",
     visualSeal: "道医",
     visualTitle: "道医中医文化"
   }

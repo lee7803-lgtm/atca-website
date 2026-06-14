@@ -12,8 +12,16 @@ type NavItem = {
 
 const navItems = [
   { href: "/", label: "首页" },
-  { href: "/intro", label: "关于协会" },
-  { href: "/rules", label: "规章制度" },
+  {
+    href: "/intro",
+    label: "关于协会",
+    children: [
+      { href: "/intro", label: "协会介绍" },
+      { href: "/rules", label: "规章制度" },
+      { href: "/organization", label: "组织架构" },
+      { href: "/contact", label: "联系协会" }
+    ]
+  },
   { href: "/faith", label: "道教信仰" },
   { href: "/doctrine", label: "教理教义" },
   { href: "/exchange", label: "文化交流" },
@@ -31,7 +39,7 @@ const navItems = [
   },
   { href: "/membership", label: "会员体系" },
   { href: "/certification", label: "认证体系" },
-  { href: "/certificate-query", label: "查询核验" },
+  { href: "/verification", label: "查询核验" },
   { href: "/cooperation", label: "发展合作" },
   { href: "/data", label: "资料中心" }
 ] satisfies NavItem[];

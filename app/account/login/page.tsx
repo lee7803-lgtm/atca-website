@@ -41,8 +41,8 @@ export default function AccountLoginPage() {
           <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white" href="/application/query">
             申请进度查询
           </Link>
-          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/certificate-query">
-            证书查验
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/verification">
+            查询核验
           </Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member-query">
             会员查询

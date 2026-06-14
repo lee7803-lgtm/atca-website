@@ -23,11 +23,11 @@ export const paymentResultText: Record<PublicPaymentStatus, string> = {
 export const paymentBusinessTypeText: Record<string, string> = {
   personal_member_application: "个人会员申请",
   organization_member_application: "机构会员申请",
-  taoist_certification_application: "道士资格认证申请",
+  taoist_certification_application: "道教文化认证建档申请",
   personal_member_renewal: "个人会员续期",
   organization_member_renewal: "机构会员续期",
-  taoist_certification_renewal: "道士资格认证续期",
-  taoist_certification_rereview: "道士资格认证复审",
+  taoist_certification_renewal: "道教文化认证建档续期",
+  taoist_certification_rereview: "道教文化认证建档复审",
   certificate_reissue: "证书补发",
   manual_adjustment: "人工调整"
 };

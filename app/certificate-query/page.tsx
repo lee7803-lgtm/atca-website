@@ -71,6 +71,7 @@ export default function CertificateQueryPage() {
     <>
       <PageHero
         actions={[
+          { label: "查询核验频道", href: "/verification" },
           { label: "证书公开核验", href: "/certificate-query" },
           { label: "会员公开核验", href: "/member-query" },
           { label: "申请查询", href: "/application/query" }
@@ -79,7 +80,7 @@ export default function CertificateQueryPage() {
         backgroundImageSrc="/images/atca/certificate-verification.jpg"
         backgroundImagePosition="center 50%"
         imageSrc="/images/itca/05-service-verification.png"
-        intro="证书公开核验面向公众、合作方及第三方机构，用于核验证书是否已纳入 ITCA / 国际道教与文化协会认证备案记录，以及当前证书状态是否有效。"
+        intro="证书公开核验是查询核验频道下的证书子入口，用于核验证书是否已纳入 ITCA / 国际道教与文化协会公开登记记录，以及当前证书公开状态。"
         subtitle="Public Certificate Verification"
         title="证书公开核验"
         visualDescription="通过证书编号与持证人姓名核验证书公开信息。本页面不能查询申请进度，不提供证书打印，也不展示道装证件照。"
@@ -94,8 +95,11 @@ export default function CertificateQueryPage() {
           <form className="rounded-2xl border border-[#d8d0bf] bg-white/92 p-6 shadow-aureate sm:p-8" onSubmit={submitQuery}>
             <div className="mb-6 rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
               <p className="mb-3">请输入证书编号与持证人姓名，用于核验公开证书信息。核验结果不展示道装证件照、申请编号、联系方式、上传材料、审核反馈或后台审核备注。</p>
-              <p>本页面不能查询申请进度，也不提供证书打印。申请人如需查询申请进度、申请结果或查看 / 打印证书，请前往申请查询。</p>
-              <Link className="mt-3 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/application/query">
+              <p>本页面不能查询申请进度，也不提供证书打印。申请人如需查询申请进度、申请结果或查看 / 打印证书，请前往申请查询；如需选择其他核验类型，请返回查询核验频道。</p>
+              <Link className="mt-3 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:w-auto" href="/verification">
+                返回查询核验
+              </Link>
+              <Link className="mt-3 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:ml-3 sm:w-auto" href="/application/query">
                 前往申请查询
               </Link>
               <Link className="mt-3 inline-flex w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink sm:ml-3 sm:w-auto" href="/member-query">
@@ -133,10 +137,10 @@ export default function CertificateQueryPage() {
                 <ResultRow label="有效期开始" value={certificate.validFrom || "有效期未设置"} />
                 <ResultRow label="有效期截止" value={certificate.validUntil || "有效期未设置"} />
                 <ResultRow label="统一状态" value={certificate.effectiveStatusLabel || statusText[certificate.effectiveStatus || certificate.status] || certificate.status} />
-                <ResultRow label="核验说明" value="本页面用于确认该证书是否为 ITCA / 国际道教与文化协会记录在册的认证信息。公开核验信息不等同于证书原件。" />
+                <ResultRow label="核验说明" value="本页面用于确认该证书是否为 ITCA / 国际道教与文化协会公开登记的协会认证建档信息。公开核验信息不等同于证书原件，也不构成政府许可、行政执业资格或法定从业资质。" />
                 {certificateDetailHref ? (
                   <Link className="mt-2 inline-flex w-full justify-center rounded-full bg-[#7F1D1D] px-7 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href={certificateDetailHref}>
-                    查看证书核验详情
+                    查看证书公开核验详情
                   </Link>
                 ) : null}
                 <div className="mt-2 rounded-xl border border-[#e4ded0] bg-white px-4 py-3 text-sm leading-7 text-[#5f5b52]">
@@ -152,7 +156,7 @@ export default function CertificateQueryPage() {
 
       <Section title="核验说明" tone="soft">
         <div className="border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          本页面仅展示证书公开核验信息，不展示道装证件照，不提供证书打印或下载。认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化展示和公众查询支持。相关认证不等同于政府宗教资格认证、法定宗教职务证明，也不替代其他机构依法依规开展的认证或管理。
+          本页面仅展示证书公开核验信息，不展示道装证件照、联系方式、申请材料、后台备注、管理员信息或私有 Storage path，不提供证书打印或下载。公开核验只证明协会公开登记状态，不替代任何政府、监管机构或专业机构核查；相关认证建档不构成政府许可、行政执业资格或法定从业资质。
         </div>
       </Section>
     </>

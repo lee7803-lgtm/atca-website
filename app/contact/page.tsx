@@ -10,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 const categories: Array<{ title: string; text: string; icon: IconBadgeName }> = [
-  { title: "认证咨询", text: "用于了解道士资格认证的申请条件、材料要求、审核流程与证书核验事项。", icon: "certification" },
+  { title: "认证咨询", text: "用于了解道教文化认证建档的申请条件、材料要求、审核流程与证书公开核验事项。", icon: "certification" },
   { title: "会员申请", text: "用于了解个人会员、机构会员申请范围、申请资料、审核流程与后续沟通事项。", icon: "membership" },
   { title: "机构合作", text: "面向宫观道堂、文化机构、传统文化组织及相关合作方，沟通合作方向与资料对接。", icon: "institution" },
   { title: "文化交流", text: "用于联系道教文化、传统文化、经典学习、活动交流及道教文化国际交流相关事项。", icon: "international" },

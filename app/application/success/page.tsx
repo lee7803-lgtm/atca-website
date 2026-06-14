@@ -16,7 +16,7 @@ type SuccessPageProps = {
 
 export default function ApplicationSuccessPage({ searchParams }: SuccessPageProps) {
   const applicationNumber = searchParams?.number?.trim() || "";
-  const applicationType = searchParams?.type === "organization" ? "机构会员申请" : searchParams?.type === "certification" ? "道士资格认证申请" : "个人会员申请";
+  const applicationType = searchParams?.type === "organization" ? "机构会员申请" : searchParams?.type === "certification" ? "道教文化认证建档申请" : "个人会员申请";
   const returnHref = searchParams?.type === "organization" ? "/organization/apply" : searchParams?.type === "certification" ? "/certification" : "/member/apply";
   const returnLabel = searchParams?.type === "certification" ? "返回认证体系" : "返回对应申请页";
   const queryLabel = searchParams?.type === "certification" ? "查询认证申请进度" : "查询申请进度";
