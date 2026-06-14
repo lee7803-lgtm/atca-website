@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
 import { PageHero } from "@/components/PageHero";
 import { findPublicPaymentOrderByOrderNo } from "@/lib/supabase/server";
 import { formatPaymentAmount, formatPaymentDateTime, formatPaymentProvider, paymentBusinessTypeText, paymentStatusText } from "@/lib/payment-display";
@@ -10,7 +9,7 @@ export const dynamic = "force-dynamic";
 export default async function PaymentCheckoutPage({ searchParams }: { searchParams: { orderNo?: string } }) {
   const orderNo = searchParams.orderNo?.trim() || "";
   const order = orderNo ? await findPublicPaymentOrderByOrderNo(orderNo) : null;
-  if (!order) notFound();
+  if (!order) return <PaymentEntryNotice />;
 
   const needsManualConfirmation = order.status === "pending_payment" || order.status === "manual_review";
 
@@ -62,6 +61,47 @@ export default async function PaymentCheckoutPage({ searchParams }: { searchPara
             返回申请进度查询
           </Link>
         </div>
+      </main>
+    </>
+  );
+}
+
+function PaymentEntryNotice() {
+  return (
+    <>
+      <PageHero
+        actions={[
+          { label: "申请进度查询", href: "/application/query" },
+          { label: "返回首页", href: "/", variant: "secondary" }
+        ]}
+        eyebrow="Payment"
+        title="付款流程提示"
+        subtitle="Payment Access"
+        intro="请从申请进度查询页面进入支付流程。付款信息需与具体申请记录和订单记录关联，官网不提供脱离申请上下文的独立付款入口。"
+        imageSrc="/images/itca/05-service-verification.png"
+        imagePosition="center 58%"
+        visualDescription="支付事项需从申请进度或订单详情进入，便于核对申请编号、订单金额和付款状态。"
+        visualEyebrow="Payment Notice"
+        visualMark="PAY"
+        visualSeal="付款"
+        visualTitle="付款流程"
+      />
+      <main className="mx-auto w-full max-w-4xl min-w-0 overflow-x-hidden px-5 py-10 sm:px-8 lg:py-16">
+        <section className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-white/94 p-6 text-sm leading-8 text-[#5f5b52] shadow-aureate sm:p-8">
+          <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Notice</p>
+          <h1 className="mt-3 font-serif text-3xl leading-tight text-porcelain">请从申请进度查询页面进入支付流程。</h1>
+          <p className="mt-5">
+            若您已提交个人会员、机构会员或认证申请，请使用申请编号和联系信息查询办理进度，并根据页面显示的订单说明进入付款流程。
+          </p>
+          <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
+            <Link className="w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" href="/application/query">
+              前往申请进度查询
+            </Link>
+            <Link className="w-full rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink sm:w-auto" href="/">
+              返回首页
+            </Link>
+          </div>
+        </section>
       </main>
     </>
   );

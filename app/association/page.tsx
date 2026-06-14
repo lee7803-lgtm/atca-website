@@ -36,7 +36,7 @@ const functions = [
   ["道教文化交流", "组织和推动道教文化、传统文化、经典学习与道教文化国际交流相关事项。", "international"],
   ["道士资格认证", "围绕道士身份、师承信息、宗派背景、修道经历与相关证明材料开展认证与备案。", "certification"],
   ["会员组织管理", "受理个人会员与机构会员申请，建立会员档案，推动会员服务与协会事务参与。", "membership"],
-  ["资料备案与核验", "整理认证、会员与证书相关记录，为后续核验和服务工作提供依据。", "query"],
+  ["资料备案与核验", "整理认证、会员与证书相关记录，为公开核验和服务工作提供依据。", "query"],
   ["合作与活动组织", "推动宫观道堂、文化机构、传统文化组织与相关合作方之间的交流与活动合作。", "cooperation"]
 ] as const;
 
@@ -143,7 +143,7 @@ export default function AssociationPage() {
         </div>
       </AssociationSection>
 
-      <AssociationSection eyebrow="Next Step" title="后续事项" tone="soft" compact>
+      <AssociationSection eyebrow="Related Links" title="相关入口" tone="soft" compact>
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification">了解认证体系</Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/membership">申请会员</Link>

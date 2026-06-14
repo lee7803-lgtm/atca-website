@@ -21,7 +21,7 @@ export function Footer() {
             </div>
           </div>
           <p className="mt-4 max-w-sm text-sm leading-6 text-white/70 sm:mt-5">
-            本网站用于 ITCA / 国际道教与文化协会的协会介绍、规章制度、发展中心、会员认证、证书查验、发展合作、数据中心与用户服务等信息。
+            本网站用于 ITCA / 国际道教与文化协会的协会介绍、规章制度、发展中心、会员体系、认证体系、证书查验、发展合作、资料中心与用户服务等信息。
           </p>
         </div>
         <div>
@@ -33,10 +33,11 @@ export function Footer() {
             <Link href="/doctrine">教理教义</Link>
             <Link href="/exchange">文化交流</Link>
             <Link href="/development">发展中心</Link>
-            <Link href="/membership">会员认证</Link>
+            <Link href="/membership">会员体系</Link>
+            <Link href="/certification">认证体系</Link>
             <Link href="/certificate-query">证书查验</Link>
             <Link href="/cooperation">发展合作</Link>
-            <Link href="/data">数据中心</Link>
+            <Link href="/data">资料中心</Link>
           </div>
         </div>
         <div>
@@ -50,7 +51,8 @@ export function Footer() {
             <Link href="/certificate-query">证书核验入口</Link>
             <Link href="/member-query">会员查询入口</Link>
             <Link href="/application/query">申请进度查询</Link>
-            <Link href="/account">登录 / 用户中心</Link>
+            <Link href="/account/login">登录 / 注册</Link>
+            <Link href="/admin">管理入口</Link>
           </div>
         </div>
         <div>

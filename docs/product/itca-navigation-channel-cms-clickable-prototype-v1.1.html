@@ -1,0 +1,928 @@
+<!doctype html>
+<html lang="zh-Hans">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ITCA 导航栏目与频道 CMS 低保真交互原型 v1.1</title>
+  <style>
+    :root {
+      --bg: #f7f1e6;
+      --paper: #fffdf8;
+      --ink: #24211d;
+      --muted: #6f685f;
+      --line: #d8d0bf;
+      --soft: #fbf8ef;
+      --red: #7f1d1d;
+      --gold: #8a6b3e;
+      --green: #2f6f52;
+      --blue: #275f8f;
+      --shadow: 0 14px 32px rgba(80, 54, 36, 0.1);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans SC", "Microsoft YaHei", Arial, sans-serif;
+      line-height: 1.6;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    .shell {
+      min-height: 100vh;
+    }
+
+    .prototype-top {
+      position: sticky;
+      top: 0;
+      z-index: 20;
+      border-bottom: 1px solid var(--line);
+      background: rgba(247, 241, 230, 0.96);
+      backdrop-filter: blur(10px);
+    }
+
+    .notice-bar {
+      border-bottom: 1px solid #e6ddcf;
+      background: #eee5d8;
+      padding: 6px 18px;
+      text-align: center;
+      color: var(--gold);
+      font-size: 12px;
+      letter-spacing: 0.08em;
+    }
+
+    .brand-row {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 14px 18px;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      min-width: 220px;
+      font-weight: 700;
+    }
+
+    .brand-mark {
+      display: grid;
+      width: 36px;
+      height: 36px;
+      place-items: center;
+      border: 1px solid var(--gold);
+      border-radius: 50%;
+      color: var(--red);
+      font-size: 13px;
+    }
+
+    .mode-tabs {
+      display: flex;
+      flex: 1;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: center;
+    }
+
+    .tab,
+    .ghost-btn,
+    .primary-btn,
+    .nav-btn,
+    .side-btn,
+    .small-btn {
+      border: 1px solid var(--line);
+      background: #fff;
+      color: var(--ink);
+      border-radius: 10px;
+      padding: 9px 13px;
+      transition: 0.16s ease;
+    }
+
+    .tab.active,
+    .nav-btn.active,
+    .side-btn.active {
+      border-color: var(--red);
+      background: #f7e9e2;
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .primary-btn {
+      border-color: var(--red);
+      background: var(--red);
+      color: white;
+      font-weight: 700;
+    }
+
+    .ghost-btn {
+      background: var(--soft);
+    }
+
+    .small-btn {
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 13px;
+    }
+
+    .main {
+      max-width: 1440px;
+      margin: 0 auto;
+      padding: 22px 18px 48px;
+    }
+
+    .panel {
+      border: 1px solid var(--line);
+      background: var(--paper);
+      box-shadow: var(--shadow);
+    }
+
+    .section-title {
+      margin: 0 0 6px;
+      font-size: 22px;
+    }
+
+    .muted {
+      color: var(--muted);
+    }
+
+    .pill-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border: 1px solid #e4ded0;
+      background: #f8f7f3;
+      padding: 5px 9px;
+      color: #66594d;
+      font-size: 12px;
+    }
+
+    .grid {
+      display: grid;
+      gap: 16px;
+    }
+
+    .grid.two {
+      grid-template-columns: minmax(0, 1fr) minmax(300px, 0.48fr);
+    }
+
+    .grid.three {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .frontend-nav {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      padding: 10px;
+      border: 1px solid var(--line);
+      background: #fbf8ef;
+      margin-bottom: 16px;
+    }
+
+    .nav-btn {
+      white-space: nowrap;
+      padding: 8px 10px;
+      font-size: 13px;
+    }
+
+    .hero {
+      min-height: 270px;
+      padding: 36px;
+      background: linear-gradient(135deg, #fffaf0 0%, #f1e1cb 100%);
+      display: grid;
+      align-content: center;
+      gap: 14px;
+    }
+
+    .hero h1 {
+      margin: 0;
+      font-size: 36px;
+      letter-spacing: 0;
+    }
+
+    .hero p {
+      max-width: 720px;
+      margin: 0;
+      color: #4e463e;
+    }
+
+    .card {
+      border: 1px solid #e4ded0;
+      background: #fff;
+      padding: 18px;
+    }
+
+    .card h3 {
+      margin: 0 0 8px;
+      font-size: 17px;
+    }
+
+    .wire-row {
+      display: grid;
+      gap: 12px;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .wire-box {
+      min-height: 96px;
+      border: 1px dashed #b9ad99;
+      background: #fffdf8;
+      padding: 14px;
+    }
+
+    .boundary {
+      border-left: 4px solid var(--red);
+      background: #fbf8ef;
+      padding: 16px;
+      color: #5f5b52;
+    }
+
+    .admin-layout {
+      display: grid;
+      grid-template-columns: 240px minmax(0, 1fr);
+      gap: 16px;
+    }
+
+    .sidebar {
+      display: grid;
+      align-content: start;
+      gap: 8px;
+      padding: 14px;
+    }
+
+    .side-btn {
+      width: 100%;
+      text-align: left;
+      background: #fff;
+    }
+
+    .admin-main {
+      min-height: 620px;
+      padding: 18px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      background: #fff;
+    }
+
+    th,
+    td {
+      border-bottom: 1px solid #ece4d8;
+      padding: 10px;
+      text-align: left;
+      vertical-align: top;
+      font-size: 14px;
+    }
+
+    th {
+      background: #fbf8ef;
+      color: #4f473e;
+      font-weight: 700;
+    }
+
+    .status {
+      display: inline-flex;
+      padding: 4px 8px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .status.published {
+      background: #e5f2ea;
+      color: var(--green);
+    }
+
+    .status.review {
+      background: #eef4fb;
+      color: var(--blue);
+    }
+
+    .status.draft {
+      background: #fbefd9;
+      color: #8a5a16;
+    }
+
+    .editor {
+      display: grid;
+      grid-template-columns: 220px minmax(0, 1fr) 280px;
+      gap: 14px;
+      min-height: 610px;
+    }
+
+    .block-tree,
+    .properties,
+    .preview {
+      border: 1px solid #e4ded0;
+      background: #fff;
+      padding: 14px;
+    }
+
+    .block-item {
+      width: 100%;
+      margin-bottom: 8px;
+      border: 1px solid #e4ded0;
+      background: #fbf8ef;
+      padding: 9px;
+      text-align: left;
+    }
+
+    .block-item.active {
+      border-color: var(--red);
+      color: var(--red);
+      font-weight: 700;
+    }
+
+    .field {
+      display: grid;
+      gap: 5px;
+      margin-bottom: 12px;
+    }
+
+    .field input,
+    .field textarea,
+    .field select {
+      width: 100%;
+      border: 1px solid var(--line);
+      background: #fffdf8;
+      padding: 9px;
+    }
+
+    .mini-preview {
+      display: grid;
+      gap: 12px;
+    }
+
+    .preview-block {
+      border: 1px dashed #cdbf9f;
+      padding: 16px;
+      background: #fffdf8;
+    }
+
+    .phone {
+      width: min(390px, 100%);
+      margin: 0 auto;
+      border: 10px solid #2b2824;
+      border-radius: 28px;
+      background: #fffdf8;
+      overflow: hidden;
+      box-shadow: var(--shadow);
+    }
+
+    .phone-top {
+      padding: 14px;
+      background: #f5ead9;
+      font-weight: 700;
+    }
+
+    .phone-scroll {
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 10px;
+      border-bottom: 1px solid #e4ded0;
+    }
+
+    .phone-chip {
+      white-space: nowrap;
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 7px 10px;
+      font-size: 13px;
+    }
+
+    .phone-body {
+      padding: 14px;
+      display: grid;
+      gap: 12px;
+    }
+
+    .flow-steps {
+      display: grid;
+      grid-template-columns: repeat(7, minmax(0, 1fr));
+      gap: 8px;
+    }
+
+    .flow-step {
+      border: 1px solid var(--line);
+      background: #fff;
+      padding: 12px;
+      text-align: center;
+      font-size: 13px;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .grid.two,
+      .grid.three,
+      .wire-row,
+      .admin-layout,
+      .editor,
+      .flow-steps {
+        grid-template-columns: 1fr;
+      }
+
+      .brand-row {
+        align-items: stretch;
+        flex-direction: column;
+      }
+
+      .brand {
+        min-width: 0;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <header class="prototype-top">
+      <div class="notice-bar">低保真交互原型 · 不连接数据库 · 不包含生产代码</div>
+      <div class="brand-row">
+        <div class="brand">
+          <div class="brand-mark">ITCA</div>
+          <div>
+            <div>国际道教与文化协会</div>
+            <div class="muted" style="font-size:12px">Navigation + Channel CMS Prototype v1.1</div>
+          </div>
+        </div>
+        <div class="mode-tabs" id="modeTabs"></div>
+      </div>
+    </header>
+
+    <main class="main">
+      <section id="viewFrontend"></section>
+      <section id="viewAdmin" class="hidden"></section>
+      <section id="viewMobile" class="hidden"></section>
+      <section id="viewFlow" class="hidden"></section>
+    </main>
+  </div>
+
+  <script>
+    const channels = [
+      { key: "home", label: "首页", path: "/", protected: true, summary: "官网门户入口，承接核心业务入口、公告、发展中心推荐和查询核验。", blocks: ["Hero 首屏", "快捷入口", "公告摘要", "发展中心推荐", "认证/会员说明"] },
+      { key: "about", label: "关于协会", oldLabel: "介绍", path: "/intro", alias: "/about", protected: true, summary: "介绍协会定位、宗旨使命、组织架构、服务对象和发展历程。", blocks: ["协会简介", "宗旨使命", "组织架构", "服务对象", "发展历程"] },
+      { key: "rules", label: "规章制度", path: "/rules", protected: true, summary: "公开章程、会员规则、认证规则、证书核验、资料公开和投诉申诉规则。", blocks: ["制度分类", "制度列表", "重点制度摘要", "版本与修订", "适用说明"] },
+      { key: "faith", label: "道教信仰", path: "/faith", protected: false, summary: "以公众语言介绍信仰文化、宫观文化、修行生活和公共表达边界。", blocks: ["基础介绍", "文化主题", "文章列表", "术语解释", "边界说明"] },
+      { key: "doctrine", label: "教理教义", path: "/doctrine", protected: false, summary: "承接经典导读、思想主题、学习路径、术语库和课程关联。", blocks: ["经典导读", "思想主题", "学习路径", "术语库", "关联课程"] },
+      { key: "exchange", label: "文化交流", path: "/exchange", protected: false, summary: "展示交流动态、会议访问、项目案例、活动报道和合作入口。", blocks: ["交流动态", "项目展示", "活动报道", "合作入口", "资料沉淀"] },
+      { key: "development", label: "发展中心", path: "/development", protected: true, summary: "六大发展中心入口，承接专委会、项目、课程活动、合作和成果沉淀。", blocks: ["中心入口", "六大发展中心", "项目与计划", "课程活动", "成果展示"] },
+      { key: "membership", label: "会员体系", path: "/membership", protected: true, summary: "会员类型、权益、申请流程、费用有效期、续期和会员核验入口。", blocks: ["会员类型", "权益说明", "申请流程", "费用与有效期", "FAQ"] },
+      { key: "certification", label: "认证体系", path: "/certification", protected: true, summary: "认证类型、申请材料、审核流程、证书说明、费用和合规边界。", blocks: ["认证类型", "申请材料", "审核流程", "证书说明", "合规边界"] },
+      { key: "verify", label: "查询核验", path: "/certificate-query", protected: true, summary: "短期指向证书核验，后续可扩展为证书、会员和申请进度查询聚合页。", blocks: ["证书公开核验", "会员公开核验", "申请进度查询", "边界说明", "FAQ"] },
+      { key: "cooperation", label: "发展合作", path: "/cooperation", protected: false, summary: "合作类型、合作流程、案例展示、提交说明和授权边界。", blocks: ["合作类型", "合作流程", "合作案例", "提交说明", "边界说明"] },
+      { key: "data", label: "资料中心", path: "/data", protected: true, summary: "机构库、个人库、平台库、传承库、课程库、产品库、活动库和基地库。", blocks: ["八类数据库入口", "数据列表", "数据详情", "授权说明", "纠错撤回"] }
+    ];
+
+    const adminModules = [
+      { key: "dashboard", label: "CMS 工作台" },
+      { key: "channels", label: "栏目管理" },
+      { key: "pages", label: "页面管理" },
+      { key: "editor", label: "页面编辑器" },
+      { key: "library", label: "版式库" },
+      { key: "review", label: "审核发布" },
+      { key: "assets", label: "媒体库" },
+      { key: "revisions", label: "版本记录" }
+    ];
+
+    const modes = [
+      { key: "frontend", label: "前台频道原型" },
+      { key: "admin", label: "后台 CMS 原型" },
+      { key: "mobile", label: "移动端导航" },
+      { key: "flow", label: "审核流程" }
+    ];
+
+    const state = {
+      mode: "frontend",
+      channel: "about",
+      admin: "dashboard",
+      selectedBlock: 0,
+      pageStatus: "草稿",
+      blocks: ["Hero 首屏", "协会简介", "组织架构", "服务对象", "发展历程"]
+    };
+
+    function $(id) {
+      return document.getElementById(id);
+    }
+
+    function activeChannel() {
+      return channels.find((item) => item.key === state.channel) || channels[0];
+    }
+
+    function renderModeTabs() {
+      $("modeTabs").innerHTML = modes.map((mode) => `
+        <button class="tab ${state.mode === mode.key ? "active" : ""}" onclick="setMode('${mode.key}')">${mode.label}</button>
+      `).join("");
+    }
+
+    function setMode(mode) {
+      state.mode = mode;
+      render();
+    }
+
+    function setChannel(key) {
+      state.channel = key;
+      if (key === "about") {
+        state.blocks = ["Hero 首屏", "协会简介", "组织架构", "服务对象", "发展历程"];
+      } else {
+        state.blocks = [...activeChannel().blocks];
+      }
+      state.selectedBlock = 0;
+      render();
+    }
+
+    function setAdmin(key) {
+      state.admin = key;
+      render();
+    }
+
+    function setSelectedBlock(index) {
+      state.selectedBlock = index;
+      render();
+    }
+
+    function addBlock(name) {
+      state.blocks.push(name);
+      state.selectedBlock = state.blocks.length - 1;
+      state.pageStatus = "草稿";
+      render();
+    }
+
+    function submitReview() {
+      state.pageStatus = "待审核";
+      state.admin = "review";
+      state.mode = "admin";
+      render();
+    }
+
+    function publishPage() {
+      state.pageStatus = "已发布";
+      render();
+    }
+
+    function renderFrontend() {
+      const channel = activeChannel();
+      $("viewFrontend").innerHTML = `
+        <div class="frontend-nav">
+          ${channels.map((item) => `<button class="nav-btn ${state.channel === item.key ? "active" : ""}" onclick="setChannel('${item.key}')">${item.label}</button>`).join("")}
+        </div>
+        <div class="grid two">
+          <div class="panel">
+            <div class="hero">
+              <div class="pill-row">
+                <span class="pill">路径 ${channel.path}</span>
+                ${channel.alias ? `<span class="pill">兼容 ${channel.alias}</span>` : ""}
+                ${channel.protected ? `<span class="pill">核心入口保护</span>` : ""}
+              </div>
+              <h1>${channel.label}</h1>
+              ${channel.oldLabel ? `<p class="muted">当前顶部导航建议由“${channel.oldLabel}”改为“${channel.label}”。短期保留 ${channel.path}，后续可规范到 ${channel.alias}。</p>` : ""}
+              <p>${channel.summary}</p>
+              <div class="pill-row">
+                <button class="primary-btn" onclick="setMode('admin'); setAdmin('editor')">进入后台编辑此页</button>
+                <button class="ghost-btn" onclick="setMode('mobile')">查看移动端</button>
+              </div>
+            </div>
+            <div style="padding:18px" class="grid">
+              <div>
+                <h2 class="section-title">频道页面结构</h2>
+                <p class="muted">以下区块均应由后台受控版式库管理，业务表单和查询逻辑不由 CMS 修改。</p>
+              </div>
+              <div class="wire-row">
+                ${channel.blocks.map((block, index) => `
+                  <div class="wire-box">
+                    <strong>${String(index + 1).padStart(2, "0")} ${block}</strong>
+                    <p class="muted">${blockDescription(block)}</p>
+                  </div>
+                `).join("")}
+              </div>
+              <div class="boundary">
+                <strong>边界提示</strong>
+                <div>查询核验、申请提交、支付确认、证书 vt、公开 DTO、安全校验不能被 CMS 配置绕开。</div>
+              </div>
+            </div>
+          </div>
+          <aside class="panel" style="padding:18px">
+            <h2 class="section-title">后台可管理项</h2>
+            <div class="grid">
+              <div class="card">
+                <h3>页面信息</h3>
+                <p class="muted">标题、简介、SEO、主视觉、按钮、发布时间、审核人。</p>
+              </div>
+              <div class="card">
+                <h3>内容区块</h3>
+                <p class="muted">Hero、卡片组、列表、FAQ、时间线、边界说明、CTA。</p>
+              </div>
+              <div class="card">
+                <h3>保护规则</h3>
+                <p class="muted">核心路径、查询入口、申请入口需要二次确认和审计记录。</p>
+              </div>
+            </div>
+          </aside>
+        </div>
+      `;
+    }
+
+    function blockDescription(block) {
+      const map = {
+        "Hero 首屏": "标题、简介、按钮、背景图和视觉标识。",
+        "快捷入口": "会员、认证、查询、合作等核心入口。",
+        "制度列表": "制度编号、版本、生效日期、附件。",
+        "组织架构": "理事会、秘书处、委员会和发展中心。",
+        "证书公开核验": "证书编号加持证人姓名，成功后短期 vt。",
+        "会员公开核验": "会员编号加姓名或机构名称，只返回公开 DTO。",
+        "申请进度查询": "申请编号加登记联系方式。"
+      };
+      return map[block] || "后台可配置标题、摘要、链接、图片、排序和显示状态。";
+    }
+
+    function renderAdmin() {
+      $("viewAdmin").innerHTML = `
+        <div class="admin-layout">
+          <nav class="panel sidebar">
+            ${adminModules.map((item) => `<button class="side-btn ${state.admin === item.key ? "active" : ""}" onclick="setAdmin('${item.key}')">${item.label}</button>`).join("")}
+          </nav>
+          <section class="panel admin-main">${renderAdminModule()}</section>
+        </div>
+      `;
+    }
+
+    function renderAdminModule() {
+      if (state.admin === "channels") return renderChannelsModule();
+      if (state.admin === "pages") return renderPagesModule();
+      if (state.admin === "editor") return renderEditorModule();
+      if (state.admin === "library") return renderLibraryModule();
+      if (state.admin === "review") return renderReviewModule();
+      if (state.admin === "assets") return renderAssetsModule();
+      if (state.admin === "revisions") return renderRevisionsModule();
+      return renderDashboardModule();
+    }
+
+    function renderDashboardModule() {
+      return `
+        <h1 class="section-title">CMS 工作台</h1>
+        <p class="muted">用于查看待审核、草稿、高风险内容和近期发布。</p>
+        <div class="grid three" style="margin-top:16px">
+          ${["待审核 12", "待法务 3", "草稿 28", "已发布 96", "下架待确认 4", "核心路径变更 1"].map((item) => `<div class="card"><h3>${item}</h3><p class="muted">点击进入对应任务列表。</p></div>`).join("")}
+        </div>
+        <div class="card" style="margin-top:16px">
+          <h3>近期风险提醒</h3>
+          <p>道医中医文化发展中心、认证体系、规章制度和费用退款相关内容需加强审核。</p>
+        </div>
+      `;
+    }
+
+    function renderChannelsModule() {
+      return `
+        <div class="pill-row" style="justify-content:space-between; margin-bottom:12px">
+          <div>
+            <h1 class="section-title">栏目管理</h1>
+            <p class="muted">管理顶部导航、二级导航、路径、排序和显示状态。</p>
+          </div>
+          <div class="pill-row">
+            <button class="ghost-btn">新增栏目</button>
+            <button class="primary-btn">保存排序</button>
+          </div>
+        </div>
+        <table>
+          <thead><tr><th>排序</th><th>显示名称</th><th>路径</th><th>显示</th><th>保护</th><th>发布状态</th><th>操作</th></tr></thead>
+          <tbody>
+            ${channels.map((item, index) => `
+              <tr>
+                <td>${String(index + 1).padStart(2, "0")}</td>
+                <td><strong>${item.label}</strong>${item.oldLabel ? `<div class="muted">原名称：${item.oldLabel}</div>` : ""}</td>
+                <td>${item.path}${item.alias ? `<div class="muted">兼容：${item.alias}</div>` : ""}</td>
+                <td>是</td>
+                <td>${item.protected ? "是" : "否"}</td>
+                <td><span class="status published">已发布</span></td>
+                <td><button class="small-btn" onclick="setChannel('${item.key}'); setAdmin('editor')">编辑页面</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderPagesModule() {
+      return `
+        <h1 class="section-title">页面管理</h1>
+        <p class="muted">频道页、子频道页、制度页、文章页统一进入页面管理。</p>
+        <table style="margin-top:14px">
+          <thead><tr><th>页面</th><th>路径</th><th>类型</th><th>状态</th><th>更新时间</th><th>操作</th></tr></thead>
+          <tbody>
+            ${channels.slice(0, 8).map((item, index) => `
+              <tr>
+                <td>${item.label}</td>
+                <td>${item.path}</td>
+                <td>${item.key === "rules" ? "制度频道" : "频道页"}</td>
+                <td><span class="status ${index % 3 === 0 ? "review" : "published"}">${index % 3 === 0 ? "待审核" : "已发布"}</span></td>
+                <td>2026-06-11</td>
+                <td><button class="small-btn" onclick="setChannel('${item.key}'); setAdmin('editor')">编辑</button></td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderEditorModule() {
+      const channel = activeChannel();
+      const selected = state.blocks[state.selectedBlock] || state.blocks[0];
+      return `
+        <div class="pill-row" style="justify-content:space-between; margin-bottom:12px">
+          <div>
+            <h1 class="section-title">页面编辑器：${channel.label}</h1>
+            <p class="muted">状态：<span class="status ${state.pageStatus === "已发布" ? "published" : state.pageStatus === "待审核" ? "review" : "draft"}">${state.pageStatus}</span> 路径：${channel.path}</p>
+          </div>
+          <div class="pill-row">
+            <button class="ghost-btn" onclick="state.pageStatus='草稿'; render()">保存草稿</button>
+            <button class="ghost-btn" onclick="setMode('frontend')">预览前台</button>
+            <button class="primary-btn" onclick="submitReview()">提交审核</button>
+          </div>
+        </div>
+        <div class="editor">
+          <aside class="block-tree">
+            <strong>区块树</strong>
+            <div style="margin-top:12px">
+              ${state.blocks.map((block, index) => `<button class="block-item ${state.selectedBlock === index ? "active" : ""}" onclick="setSelectedBlock(${index})">${index + 1}. ${block}</button>`).join("")}
+            </div>
+            <hr />
+            <button class="small-btn" onclick="addBlock('FAQ')">添加 FAQ</button>
+            <button class="small-btn" onclick="addBlock('边界说明框')">添加边界说明</button>
+            <button class="small-btn" onclick="addBlock('文章列表')">添加文章列表</button>
+          </aside>
+          <section class="preview">
+            <strong>页面预览</strong>
+            <div class="mini-preview" style="margin-top:12px">
+              ${state.blocks.map((block, index) => `
+                <div class="preview-block">
+                  <strong>${block}</strong>
+                  <p class="muted">${index === state.selectedBlock ? "当前选中，右侧可编辑属性。" : "后台配置后前台展示。"}</p>
+                </div>
+              `).join("")}
+            </div>
+          </section>
+          <aside class="properties">
+            <strong>属性面板</strong>
+            <div class="field" style="margin-top:12px">
+              <label>当前区块</label>
+              <input value="${selected}" />
+            </div>
+            <div class="field">
+              <label>标题</label>
+              <input value="${selected}" />
+            </div>
+            <div class="field">
+              <label>摘要</label>
+              <textarea rows="4">这里编辑区块说明、卡片摘要或边界提示。</textarea>
+            </div>
+            <div class="field">
+              <label>显示规则</label>
+              <select><option>所有访客可见</option><option>仅会员可见</option><option>后台预览</option></select>
+            </div>
+            <div class="boundary">
+              核心业务表单、查询接口、证书 vt 规则不在属性面板中开放修改。
+            </div>
+          </aside>
+        </div>
+      `;
+    }
+
+    function renderLibraryModule() {
+      const blocks = ["Hero 首屏", "三/六卡片组", "富文本区块", "图文区块", "时间线", "文件下载列表", "FAQ", "公告列表", "文章列表", "活动课程列表", "数据库入口组", "边界说明框", "CTA 操作区"];
+      return `
+        <h1 class="section-title">版式库</h1>
+        <p class="muted">使用受控版式，不开放任意 HTML。</p>
+        <div class="grid three" style="margin-top:16px">
+          ${blocks.map((block) => `<div class="card"><h3>${block}</h3><p class="muted">可添加到页面编辑器。</p><button class="small-btn" onclick="addBlock('${block}'); setAdmin('editor')">添加到当前页</button></div>`).join("")}
+        </div>
+      `;
+    }
+
+    function renderReviewModule() {
+      return `
+        <h1 class="section-title">审核发布</h1>
+        <p class="muted">高风险内容必须经过秘书处、法务或业务负责人确认。</p>
+        <table style="margin-top:14px">
+          <thead><tr><th>内容</th><th>风险</th><th>当前状态</th><th>审核人</th><th>操作</th></tr></thead>
+          <tbody>
+            <tr><td>${activeChannel().label} 页面草稿</td><td>普通</td><td><span class="status review">${state.pageStatus === "待审核" ? "待审核" : "未提交"}</span></td><td>秘书处</td><td><button class="small-btn" onclick="publishPage()">审核通过并发布</button></td></tr>
+            <tr><td>道医中医文化发展中心</td><td>高风险</td><td><span class="status review">待法务确认</span></td><td>法务/秘书处</td><td><button class="small-btn">退回修改</button></td></tr>
+            <tr><td>规章制度 V1.1</td><td>制度</td><td><span class="status review">待秘书处确认</span></td><td>秘书处</td><td><button class="small-btn">查看差异</button></td></tr>
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderAssetsModule() {
+      return `
+        <h1 class="section-title">媒体库</h1>
+        <p class="muted">图片、PDF 和公开附件可进入媒体库；申请材料和证件不得进入公开媒体库。</p>
+        <div class="grid three" style="margin-top:16px">
+          <div class="card"><h3>about-cultural-space.jpg</h3><p class="muted">关于协会主视觉，已填写 alt 和来源。</p></div>
+          <div class="card"><h3>rules-v1.1.pdf</h3><p class="muted">制度 PDF，版本：v1.1，生效日期待确认。</p></div>
+          <div class="card"><h3>exchange-event-001.jpg</h3><p class="muted">活动图片，需确认肖像授权。</p></div>
+        </div>
+      `;
+    }
+
+    function renderRevisionsModule() {
+      return `
+        <h1 class="section-title">版本记录</h1>
+        <p class="muted">页面和内容发布、下架、路径修改、核心栏目隐藏都必须留痕。</p>
+        <table style="margin-top:14px">
+          <thead><tr><th>时间</th><th>对象</th><th>动作</th><th>操作者</th><th>说明</th></tr></thead>
+          <tbody>
+            <tr><td>2026-06-11</td><td>介绍</td><td>改名申请</td><td>超级管理员</td><td>显示名调整为关于协会</td></tr>
+            <tr><td>2026-06-11</td><td>规章制度</td><td>新增区块</td><td>内容管理员</td><td>新增制度列表区块</td></tr>
+            <tr><td>2026-06-11</td><td>发展中心</td><td>内容审核</td><td>秘书处</td><td>高风险内容待法务确认</td></tr>
+          </tbody>
+        </table>
+      `;
+    }
+
+    function renderMobile() {
+      const channel = activeChannel();
+      $("viewMobile").innerHTML = `
+        <div class="phone">
+          <div class="phone-top">ITCA 国际道教与文化协会</div>
+          <div class="phone-scroll">
+            ${channels.map((item) => `<button class="phone-chip" onclick="setChannel('${item.key}')">${item.label}</button>`).join("")}
+          </div>
+          <div class="phone-body">
+            <div class="preview-block">
+              <strong>${channel.label}</strong>
+              <p class="muted">${channel.summary}</p>
+            </div>
+            ${channel.blocks.slice(0, 4).map((block) => `<div class="preview-block">${block}</div>`).join("")}
+            <div class="boundary">移动端不依赖 hover。发展中心二级栏目在频道页内以卡片方式展示。</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function renderFlow() {
+      $("viewFlow").innerHTML = `
+        <div class="panel" style="padding:22px">
+          <h1 class="section-title">内容发布流程</h1>
+          <p class="muted">本流程用于频道页、制度、公告、文章、发展中心内容和资料中心公开内容。</p>
+          <div class="flow-steps" style="margin-top:18px">
+            ${["草稿", "预览", "提交审核", "高风险确认", "审核通过", "发布", "下架/归档"].map((step) => `<div class="flow-step"><strong>${step}</strong></div>`).join("")}
+          </div>
+          <div class="grid two" style="margin-top:18px">
+            <div class="card">
+              <h3>必须加强审核</h3>
+              <p>认证、资格、证书、会员权益、道医、中医、养生、易学、AI 解读、费用、退款、隐私、未成年人、国际分会、机构互认。</p>
+            </div>
+            <div class="card">
+              <h3>不可由 CMS 绕开</h3>
+              <p>申请提交、查询核验、支付确认、证书 vt、公开 DTO、后台权限、Storage path 隐私边界。</p>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function render() {
+      renderModeTabs();
+      $("viewFrontend").classList.toggle("hidden", state.mode !== "frontend");
+      $("viewAdmin").classList.toggle("hidden", state.mode !== "admin");
+      $("viewMobile").classList.toggle("hidden", state.mode !== "mobile");
+      $("viewFlow").classList.toggle("hidden", state.mode !== "flow");
+      renderFrontend();
+      renderAdmin();
+      renderMobile();
+      renderFlow();
+    }
+
+    render();
+  </script>
+</body>
+</html>
+

@@ -1,11 +1,11 @@
 import type { Metadata } from "next";
 import { AdminV2LinkActions, AdminV2Page } from "@/components/admin/AdminV2Page";
 import { requireAdminPage } from "@/lib/admin/require-admin";
-import { v2Boundaries } from "@/lib/v2/content";
+import { publicBoundaries } from "@/lib/v2/content";
 
 export const dynamic = "force-dynamic";
 export const metadata: Metadata = {
-  title: "数据中心管理｜国际道教与文化协会 ITCA"
+  title: "资料中心管理｜国际道教与文化协会 ITCA"
 };
 
 const items = [
@@ -22,13 +22,12 @@ export default function AdminDataCenterPage() {
 
   return (
     <AdminV2Page
-      actions={<AdminV2LinkActions links={[{ href: "/data", label: "前台数据中心" }, { href: "/admin/audit-logs", label: "操作日志" }]} />}
+      actions={<AdminV2LinkActions links={[{ href: "/data", label: "前台资料中心" }, { href: "/admin/audit-logs", label: "操作日志" }]} />}
       eyebrow="Data Center"
-      intro="数据中心管理用于审核和治理机构、个人、平台、传承、课程、产品、活动和基地等公开文化资料。"
+      intro="资料中心管理用于审核和治理机构、个人、平台、传承、课程、产品、活动和基地等公开文化资料。"
       items={items}
-      notice={v2Boundaries.data}
-      title="数据中心管理"
+      notice={publicBoundaries.data}
+      title="资料中心管理"
     />
   );
 }
-

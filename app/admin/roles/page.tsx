@@ -15,11 +15,10 @@ export default function AdminRolesPage() {
     <AdminV2Page
       actions={<AdminV2LinkActions links={[{ href: "/admin/permissions", label: "权限模块" }, { href: "/admin/users", label: "用户管理" }]} />}
       eyebrow="Roles"
-      intro="RBAC 角色用于将后台操作从单一管理员能力升级为角色化、权限化、可审计的管理体系。"
+      intro="角色权限用于将后台操作按岗位职责划分为可见、可读、可写、可审核和可审计的管理范围。"
       items={rbacRoles.map((role) => ({ badge: role.key, text: role.text, title: role.title }))}
-      notice="本页面为 V2.0 RBAC 角色体系设计入口；现有 ADMIN_PASSWORD fallback 继续可用，不影响 V1.3 后台登录。"
+      notice="现有管理员密码兼容登录方式继续可用，不影响会员申请、认证审核、支付确认、通知和基础资料管理流程。"
       title="角色权限"
     />
   );
 }
-

@@ -26,6 +26,27 @@ export default async function AdminPage() {
   const isAuthed = isConfigured && isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value);
   const stats = isAuthed ? await getDashboardStats() : null;
 
+  if (!isConfigured) {
+    return (
+      <section className="mx-auto max-w-lg">
+        <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-5 text-sm leading-7 text-[#7F1D1D]">
+          后台密码尚未配置，请先完成服务端后台密码环境配置。
+        </div>
+      </section>
+    );
+  }
+
+  if (!isAuthed) {
+    return (
+      <section className="mx-auto max-w-lg rounded-2xl border border-[#e4ded0] bg-white/94 p-6 shadow-aureate sm:p-8">
+        <p className="text-xs font-medium uppercase tracking-[0.28em] text-gold">Admin</p>
+        <h1 className="mt-3 font-serif text-3xl text-porcelain">管理员登录</h1>
+        <p className="mt-3 text-sm leading-7 text-[#5f5b52]">本入口仅供协会授权管理人员使用。请使用管理员密码进入后台。</p>
+        <AdminLoginForm />
+      </section>
+    );
+  }
+
   return (
     <section className="mx-auto grid max-w-7xl gap-6">
       <AdminPageHeader
@@ -33,35 +54,25 @@ export default async function AdminPage() {
         intro="秘书处用于处理审核优先级、会员 / 认证申请、支付、通知、安全审计和基础资料治理的运营总览。"
         title="后台总览"
       />
-      {!isConfigured ? (
-        <div className="border-l-4 border-[#7F1D1D] bg-[#fbf0ec] p-5 text-sm leading-7 text-[#7F1D1D]">
-          后台密码尚未配置，请先完成服务端后台密码环境配置。
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        <AdminStatCard label="会员待审核" note={stats?.memberMessage || "已提交 / 待处理 / 审核中 / 需补充资料"} value={stats?.memberPending ?? "—"} />
+        <AdminStatCard label="认证待审核" note={stats?.certificationMessage || "已提交 / 审核中 / 需补充资料"} value={stats?.certificationPending ?? "—"} />
+        <AdminStatCard label="支付待处理" note={stats?.paymentMessage || "待付款 / 人工确认 / 支付失败"} value={stats?.paymentPending ?? "—"} />
+        <AdminStatCard label="通知待处理" note={stats?.notificationMessage || "待发送 / 发送失败"} value={stats?.notificationPending ?? "—"} />
+      </div>
+      <AdminSectionCard title="优先处理入口">
+        <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+          <AdminEntryCard href="/admin/workbench" title="审核工作台" text="按优先级查看申请、支付与通知待办。" />
+          <AdminEntryCard href="/admin/users" title="用户管理" text="管理注册用户、会员、认证申请人和历史申请关联。" />
+          <AdminEntryCard href="/admin/roles" title="角色权限" text="查看管理员角色、权限范围和操作边界。" />
+          <AdminEntryCard href="/admin/applications" title="会员申请" text="处理会员审核、有效期、联系方式修正与记录治理。" />
+          <AdminEntryCard href="/admin/certification-applications" title="认证申请" text="处理材料审核、证书生成、下发与证书状态。" />
+          <AdminEntryCard href="/admin/content" title="内容管理" text="维护介绍、规章制度、信仰、教义、文化交流和公告。" />
+          <AdminEntryCard href="/admin/development" title="发展中心" text="维护六大发展中心、专委会、课程活动和项目合作。" />
+          <AdminEntryCard href="/admin/data-center" title="资料中心" text="治理公开文化资料库和最小公开字段边界。" />
+          <AdminEntryCard href="/admin/master-data" title="基础资料" text="维护推荐人、引荐人、宫观、机构与所属组织。" />
         </div>
-      ) : isAuthed ? (
-        <>
-          <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <AdminStatCard label="会员待审核" note={stats?.memberMessage || "已提交 / 待处理 / 审核中 / 需补充资料"} value={stats?.memberPending ?? "—"} />
-            <AdminStatCard label="认证待审核" note={stats?.certificationMessage || "已提交 / 审核中 / 需补充资料"} value={stats?.certificationPending ?? "—"} />
-            <AdminStatCard label="支付待处理" note={stats?.paymentMessage || "待付款 / 人工确认 / 支付失败"} value={stats?.paymentPending ?? "—"} />
-            <AdminStatCard label="通知待处理" note={stats?.notificationMessage || "待发送 / 发送失败"} value={stats?.notificationPending ?? "—"} />
-          </div>
-          <AdminSectionCard title="优先处理入口">
-            <div className="mt-5 grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-              <AdminEntryCard href="/admin/workbench" title="审核工作台" text="按优先级查看申请、支付与通知待办。" />
-              <AdminEntryCard href="/admin/users" title="用户管理" text="规划注册用户、会员、认证申请人和历史申请绑定。" />
-              <AdminEntryCard href="/admin/roles" title="角色权限" text="查看 V2.0 管理员角色和后台 RBAC 权限体系。" />
-              <AdminEntryCard href="/admin/applications" title="会员申请" text="处理会员审核、有效期、联系方式修正与记录治理。" />
-              <AdminEntryCard href="/admin/certification-applications" title="认证申请" text="处理材料审核、证书生成、下发与证书状态。" />
-              <AdminEntryCard href="/admin/content" title="内容管理" text="承接介绍、规章制度、信仰、教义、文化交流和公告。" />
-              <AdminEntryCard href="/admin/development" title="发展中心" text="维护六大发展中心、专委会、课程活动和项目合作。" />
-              <AdminEntryCard href="/admin/data-center" title="数据中心" text="治理公开文化资料库和最小公开字段边界。" />
-              <AdminEntryCard href="/admin/master-data" title="基础资料" text="维护推荐人、引荐人、宫观、机构与所属组织。" />
-            </div>
-          </AdminSectionCard>
-        </>
-      ) : (
-        <AdminLoginForm />
-      )}
+      </AdminSectionCard>
     </section>
   );
 }

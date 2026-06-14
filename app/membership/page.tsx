@@ -6,7 +6,7 @@ import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
 
 export const metadata: Metadata = {
-  title: "会员认证｜国际道教与文化协会 ITCA"
+  title: "会员体系｜国际道教与文化协会 ITCA"
 };
 
 const memberTypes = [
@@ -89,21 +89,21 @@ export default function MembershipPage() {
           { label: "会员公开核验", href: "/member-query" }
         ]}
         eyebrow="Membership"
-        title="会员认证"
+        title="会员体系"
         subtitle="Membership Application"
-        intro="ITCA 会员认证用于发布个人会员、机构会员申请说明与资料要求，服务会员登记、审核沟通、会员档案、活动参与和后续联系。会员身份不等同于资格认证。"
+        intro="ITCA 会员体系用于说明个人会员、机构会员申请范围、资料要求、会员服务、会籍管理和活动参与方式。会员身份属于协会会员服务体系，不等同于资格认证。"
         backgroundImageSrc="/images/atca/member-gathering.jpg"
         backgroundImagePosition="center 48%"
         imageSrc="/images/itca/04-service-membership.png"
         imagePosition="center 46%"
-        visualDescription="为会员提供申请登记、资料提交、服务对接与后续参与协会活动的基础入口。"
+        visualDescription="为会员提供申请登记、资料提交、服务对接与参与协会活动的基础入口。"
         visualEyebrow="Membership Service"
         visualMark="Member"
         visualSeal="会员"
         visualTitle="会员组织服务"
       />
 
-      <MembershipSection eyebrow="Application Notice" title="会员认证须知" compact afterHero>
+      <MembershipSection eyebrow="Application Notice" title="会员申请须知" compact afterHero>
         <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           申请人可根据自身情况选择个人会员或机构会员类型提交资料。协会秘书处将依据提交信息进行初步审核，并在需要时与申请人联系补充相关材料。申请提交后，请保存页面显示的申请编号，以便后续查询办理进度。
         </div>
@@ -147,11 +147,11 @@ export default function MembershipPage() {
         </div>
       </MembershipSection>
 
-      <MembershipSection eyebrow="Notice" title="会员身份与认证边界" compact>
+      <MembershipSection eyebrow="Notice" title="会员身份与认证体系的关系" compact>
         <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           会员身份属于协会会员服务与档案管理体系。申请道士资格认证需另行提交认证申请材料，并按认证流程审核。
           <br />
-          认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化双语展示和公众查询支持。不得表述为官方道士证、政府宗教资格认证、法定宗教职务证明，或替代中国道教协会、世界道教联合会等机构认证。
+          认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化展示和公众查询支持。相关认证不等同于政府宗教资格认证、法定宗教职务证明，也不替代其他机构依法依规开展的认证或管理。
         </div>
         <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/member/apply">申请个人会员</Link>

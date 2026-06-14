@@ -93,7 +93,7 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Open Project" title="当前开放认证" tone="soft">
+      <CertificationSection eyebrow="Open Project" title="开放认证项目" tone="soft">
         <div className="grid min-w-0 gap-6 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
           <InfoCard icon={<CertificationIcon name="certification" />} title="道士资格认证" text="道士资格认证围绕申请人的身份资料、师承关系、宗派背景、修道经历与相关证明文件进行审核，用于协会备案、证书签发及后续核验。" />
           <div className="min-h-full min-w-0 overflow-hidden rounded-2xl border border-gold/35 bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
@@ -137,9 +137,9 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
-      <CertificationSection eyebrow="Future" title="后续认证项目说明" tone="soft" compact>
+      <CertificationSection eyebrow="Scope" title="其他认证项目说明" tone="soft" compact>
         <div className="min-w-0 overflow-hidden rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
-          ITCA 当前仅开放道士资格认证。其他认证项目将根据协会制度建设、认证标准完善及实际工作安排另行公告。未正式公告前，不作为开放申请项目。
+          ITCA 官网目前公开道士资格认证申请入口。其他认证项目如需开放，将以协会正式公告和对应申请说明为准；未公告前不作为开放申请项目。
         </div>
       </CertificationSection>
 
@@ -147,7 +147,7 @@ export default function CertificationPage() {
         <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
           提交认证申请前，请确认所填写资料真实、完整、可核验。ITCA 将根据申请人提交的身份资料、师承信息、学习经历、实践记录及相关证明材料进行审核与建档。
           <br />
-          认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化双语展示和公众查询支持。不得表述为官方道士证、政府宗教资格认证、法定宗教职务证明，或替代中国道教协会、世界道教联合会等机构认证。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。
+          认证服务主要用于资料核验、身份背景认证、师承与学习经历归档、国际化展示和公众查询支持。相关认证不等同于政府宗教资格认证、法定宗教职务证明，也不替代其他机构依法依规开展的认证或管理。认证结果不得用于与道教文化、协会活动、文化交流无关的商业宣传或误导性用途。
         </div>
         <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="inline-flex max-w-full rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919]" href="/certification/taoist-priest">

@@ -9,13 +9,13 @@ export type Announcement = {
 export const announcements: Announcement[] = [
   {
     slug: "official-website-launch",
-    title: "ITCA 官网初版上线说明",
+    title: "ITCA 官网服务说明",
     date: "2026-05-16",
     summary: "本网站用于发布协会介绍、认证申请、会员申请、证书核验与合作联系等信息服务。",
     body: [
-      "ITCA 官网初版已开放基础信息服务，内容包括协会介绍、认证体系说明、个人会员申请、机构会员申请、证书核验与联系合作入口。",
+      "ITCA 官网开放协会基础信息服务，内容包括协会介绍、认证体系说明、个人会员申请、机构会员申请、证书核验与联系合作入口。",
       "官网将作为申请资料提交、进度查询、证书公开核验及协会信息说明的统一入口。相关申请与证书信息以 ITCA 官方审核及登记记录为准。",
-      "后续网站内容将围绕认证申请服务、会员服务、资料使用说明及核验说明持续完善。"
+      "网站内容围绕认证申请服务、会员服务、资料使用说明及核验说明保持更新。"
     ]
   },
   {
@@ -31,7 +31,7 @@ export const announcements: Announcement[] = [
   },
   {
     slug: "certificate-verification-build",
-    title: "ITCA 证书核验功能建设说明",
+    title: "ITCA 证书核验功能说明",
     date: "2026-05-16",
     summary: "证书核验入口用于公众核验公开证书信息，证书状态以官网核验结果为准。",
     body: [

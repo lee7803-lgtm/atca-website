@@ -76,6 +76,14 @@ a {
   background: rgba(216, 181, 106, 0.32);
 }
 
+.scrollbar-none {
+  scrollbar-width: none;
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+
 .grain {
   position: fixed;
   inset: 0;

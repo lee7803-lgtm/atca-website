@@ -13,14 +13,36 @@ const navItems = [
   { href: "/admin/certification-applications", label: "认证申请" },
   { href: "/admin/payments", label: "支付订单" },
   { href: "/admin/notifications", label: "通知记录" },
-  { href: "/admin/content", label: "内容管理" },
+  { href: "/admin/content", label: "内容 CMS" },
   { href: "/admin/development", label: "发展中心" },
-  { href: "/admin/data-center", label: "数据中心" },
+  { href: "/admin/data-center", label: "资料中心" },
   { href: "/admin/audit-logs", label: "操作记录" },
   { href: "/admin/master-data", label: "基础资料" }
 ];
 
 export function AdminShell({ children, isAuthed }: { children: ReactNode; isAuthed: boolean }) {
+  if (!isAuthed) {
+    return (
+      <div className="min-h-screen bg-[#f5efe4] text-ink">
+        <header className="border-b border-[#e4ded0] bg-[#fbf8ef]/95 px-5 py-4">
+          <div className="mx-auto flex max-w-5xl items-center justify-between gap-4">
+            <Link className="flex min-w-0 items-center gap-3" href="/">
+              <BrandMark size="sm" />
+              <span className="min-w-0">
+                <span className="block text-xs font-semibold tracking-[0.22em] text-[#1B1B1B]">ITCA</span>
+                <span className="block text-xs text-[#6b5a4e]">管理入口</span>
+              </span>
+            </Link>
+            <Link className="shrink-0 rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-sm font-semibold text-ink" href="/">
+              返回前台
+            </Link>
+          </div>
+        </header>
+        <main className="mx-auto w-full max-w-5xl px-5 py-8 sm:px-8 lg:py-12">{children}</main>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f5efe4] text-ink">
       <div className="mx-auto flex min-h-screen max-w-[1600px]">

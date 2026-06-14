@@ -4,27 +4,30 @@ import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { InfoCard, NoticeBox, Section } from "@/components/Section";
 import { V2BoundaryNotice } from "@/components/v2/V2InfoPage";
-import { developmentCenters, v2Boundaries, v2BusinessLoop } from "@/lib/v2/content";
+import { announcements } from "@/lib/announcements";
+import { developmentCenters, publicBoundaries, serviceEntries } from "@/lib/v2/content";
 
 export const metadata: Metadata = {
   title: "国际道教与文化协会 ITCA 官网"
 };
 
 const portalEntries: Array<{ href: string; icon: IconBadgeName; text: string; title: string }> = [
-  { href: "/intro", icon: "association", title: "介绍", text: "协会宗旨、使命、定位、服务对象和国际合作方向。" },
-  { href: "/rules", icon: "structure", title: "规章制度", text: "协会章程、会员管理、认证建档、隐私和核验规则。" },
-  { href: "/faith", icon: "value", title: "道教信仰", text: "道法自然、济世利人、宫观文化、修行生活和当代价值。" },
-  { href: "/doctrine", icon: "certificate", title: "教理教义", text: "经典导读、伦理修身、生命修炼、术语解释和学习路径。" },
-  { href: "/exchange", icon: "international", title: "文化交流", text: "国际交流、文化研究、课程研修、机构合作和活动记录。" },
-  { href: "/development", icon: "cooperation", title: "发展中心", text: "六大发展中心、专委会、项目合作、课程活动和研究方向。" },
-  { href: "/cooperation", icon: "institution", title: "发展合作", text: "机构、课程、活动、产业、品牌和数据中心入驻合作入口。" },
-  { href: "/data", icon: "query", title: "数据中心", text: "机构库、个人库、平台库、传承库、课程库、活动库和基地库。" }
+  { href: "/intro", icon: "association", title: "协会介绍", text: "了解 ITCA 的宗旨、使命、组织定位、服务对象和国际交流方向。" },
+  { href: "/organization", icon: "structure", title: "组织与委员会", text: "了解理事会、秘书处、认证委员会、专家顾问委员会等组织分工。" },
+  { href: "/culture", icon: "value", title: "道教文化", text: "阅读道教信仰、教理教义、经典思想、宫观文化和当代文化表达。" },
+  { href: "/development", icon: "cooperation", title: "发展中心", text: "查看协会在文化研究、教育传播、国际交流和项目共建方面的专业平台。" },
+  { href: "/membership", icon: "membership", title: "会员体系", text: "了解个人会员、机构会员、会员服务、会籍状态和会员申请方式。" },
+  { href: "/certification", icon: "certification", title: "认证体系", text: "了解道士资格认证申请、资料审核、证书签发和公开核验说明。" },
+  { href: "/#announcements", icon: "certificate", title: "公告资讯", text: "查看协会公告、认证通知、会员服务说明和公开信息更新。" },
+  { href: "/data", icon: "query", title: "资料中心", text: "查看机构、个人、平台、传承、课程、活动和基地等公开资料结构。" },
+  { href: "/certificate-query", icon: "query", title: "查询核验", text: "进入证书公开核验、会员公开核验和申请进度查询入口。" },
+  { href: "/cooperation", icon: "contact", title: "联系我们", text: "联系协会秘书处，提交机构合作、文化交流、课程活动和资料更正事项。" }
 ];
 
-const userAndAdmin = [
-  { href: "/account", icon: "individual" as IconBadgeName, title: "用户中心", text: "承接我的资料、我的会员、我的认证、我的证书、订单、通知、补充资料和申请进度。" },
-  { href: "/account/login", icon: "membership" as IconBadgeName, title: "登录 / 注册入口", text: "提供 V2.0 用户系统入口；正式账号能力以后续 SQL 草案和人工数据库变更为准。" },
-  { href: "/admin/roles", icon: "structure" as IconBadgeName, title: "后台 RBAC", text: "新增角色、权限、用户管理、内容管理、发展中心和数据中心管理规划入口。" }
+const audience = [
+  ["会员与申请人", "个人会员、机构会员、认证申请人可通过官网了解申请条件、提交资料、查询进度并核验证书状态。"],
+  ["文化机构与合作伙伴", "宫观道堂、文化机构、研究单位、课程团队和国际伙伴可通过官网了解合作方向与联系路径。"],
+  ["公众与研究者", "公众、学习者和研究者可通过官网了解道教文化、教理教义、公告资讯和公开资料。"]
 ];
 
 function HomeIcon({ name }: { name: IconBadgeName }) {
@@ -41,7 +44,7 @@ function HomeEntryCard({ href, icon, text, title }: { href: string; icon: IconBa
   return (
     <InfoCard icon={<HomeIcon name={icon} />} text={text} title={title}>
       <Link className="inline-flex text-sm font-semibold text-[#8a6b3e] transition hover:text-[#7F1D1D]" href={href}>
-        进入栏目
+        查看详情
       </Link>
     </InfoCard>
   );
@@ -52,32 +55,31 @@ export default function Home() {
     <>
       <PageHero
         actions={[
-          { href: "/membership", label: "会员认证" },
-          { href: "/certificate-query", label: "证书查验", variant: "secondary" },
-          { href: "/development", label: "发展中心", variant: "secondary" },
-          { href: "/account", label: "登录 / 用户中心", variant: "secondary" }
+          { href: "/intro", label: "了解协会" },
+          { href: "/membership", label: "会员体系", variant: "secondary" },
+          { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }
         ]}
         atmosphere="gate"
         backgroundImageSrc="/images/atca/hero-architecture.jpg"
-        eyebrow="Official Portal · ITCA V2.0"
+        eyebrow="Official Portal · ITCA"
         imageSrc="/images/itca/01-home-hero.png"
-        intro="ITCA 官网 V2.0 在 V1.3 申请、审核、支付、证书、核验、通知和后台基础资料管理闭环之上，升级为覆盖导航栏目、发展中心、会员认证、数据中心、用户系统和后台 RBAC 的协会门户。"
+        intro="国际道教与文化协会 ITCA 官网面向会员、认证申请人、文化机构、研究者和公众，提供协会介绍、道教文化、会员体系、认证体系、查询核验、发展中心、公告资讯和合作联系等信息服务。"
         subtitle="International Taoisme And Cultural Association"
         title="国际道教与文化协会"
-        visualDescription="延续 V1.3 稳健浅色视觉，不照搬 HTML 原型深色样式；以导航升级版信息架构承接长期门户建设。"
-        visualEyebrow="V2 Portal"
+        visualDescription="以稳健、克制、清晰的官网门户，服务道教文化传承、会员发展、认证建档与国际交流合作。"
+        visualEyebrow="Official Portal"
         visualMark="ITCA"
-        visualSeal="V2.0"
-        visualTitle="协会门户升级"
+        visualSeal="协会"
+        visualTitle="文化传承与协会服务"
       />
 
       <section className="border-y border-[#d8d0bf] bg-[#efe4d3]">
         <div className="mx-auto grid max-w-7xl gap-px bg-[#d8d0bf] sm:grid-cols-2 lg:grid-cols-4">
           {[
-            ["会员认证", "/membership"],
-            ["证书查验", "/certificate-query"],
-            ["发展合作", "/cooperation"],
-            ["数据中心", "/data"]
+            ["个人会员申请", "/member/apply"],
+            ["道士资格认证申请", "/certification/taoist-priest"],
+            ["申请进度查询", "/application/query"],
+            ["证书公开核验", "/certificate-query"]
           ].map(([label, href]) => (
             <Link className="bg-[#f7f1e6] px-5 py-5 text-center text-sm font-medium text-[#33251F] transition hover:bg-white hover:text-[#8F1F2D] lg:py-6" href={href} key={label}>
               {label}
@@ -88,68 +90,104 @@ export default function Home() {
 
       <Section
         afterHero
-        eyebrow="Information Architecture"
-        intro="V2.0 顶部导航按导航升级版固化，覆盖介绍、制度、信仰、教义、交流、发展中心、会员认证、证书查验、合作和数据中心。"
-        title="V2.0 门户结构"
+        eyebrow="About ITCA"
+        intro="ITCA 以道教文化传承、会员服务、认证建档、文化交流和国际合作为主要工作方向，官网承担公开信息发布、申请指引、查询核验与合作联系职能。"
+        title="协会定位"
       >
-        <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid min-w-0 gap-5 md:grid-cols-3">
+          {audience.map(([title, text], index) => (
+            <InfoCard icon={<HomeIcon name={index === 0 ? "membership" : index === 1 ? "institution" : "international"} />} index={`0${index + 1}`} key={title} text={text} title={title} />
+          ))}
+        </div>
+      </Section>
+
+      <Section eyebrow="Portal Navigation" intro="官网栏目按照公众浏览、会员服务、认证核验、文化研究和合作交流的常用路径组织，便于快速进入所需信息。" title="主要栏目导览" tone="soft">
+        <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {portalEntries.map((item) => (
-            <HomeEntryCard key={item.href} {...item} />
+            <HomeEntryCard key={`${item.href}-${item.title}`} {...item} />
           ))}
         </div>
       </Section>
 
-      <Section eyebrow="Development Centers" intro="发展中心作为 V2.0 的重点频道，承接专委会、课程、项目、合作机构和公开资料沉淀。" title="六大发展中心" tone="soft">
-        <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
-          {developmentCenters.map((item) => (
-            <HomeEntryCard href={item.href || "/development"} icon={item.icon || "cooperation"} key={item.title} text={item.text} title={item.title} />
-          ))}
-        </div>
-      </Section>
-
-      <Section eyebrow="V1.3 Compatibility" intro="V2.0 页面扩展不得破坏 V1.3 已有业务闭环；以下入口继续保留并可直接访问。" title="V1.3 业务闭环保留">
-        <NoticeBox>
-          申请、审核、支付、证书、核验、通知和后台基础资料管理仍沿用现有业务链路。本次升级只增加门户结构、用户入口和 RBAC 管理规划，不改变现有 API 合约和数据库执行状态。
-        </NoticeBox>
-        <div className="mt-7 grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-          {v2BusinessLoop.map((item) => (
-            <Link className="rounded-xl border border-[#e4ded0] bg-white/92 px-4 py-3 text-center text-sm font-semibold text-ink shadow-[0_10px_24px_rgba(31,42,40,0.035)] transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={item.href} key={item.href}>
+      <Section eyebrow="Services" intro="以下入口保留已验证的申请、查询和核验流程。支付事项应从申请进度或订单上下文进入。" title="服务入口">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {serviceEntries.map((item) => (
+            <Link className="rounded-xl border border-[#e4ded0] bg-white/92 px-4 py-4 text-center text-sm font-semibold text-ink shadow-[0_10px_24px_rgba(31,42,40,0.035)] transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={item.href} key={item.href}>
               {item.label}
             </Link>
           ))}
         </div>
       </Section>
 
-      <Section eyebrow="User And RBAC" intro="用户系统和后台 RBAC 是 V2.0 后续业务承载的基础，本轮先落成页面入口、功能地图和 SQL 草案，不执行 SQL。" title="用户系统与后台权限体系" tone="soft">
-        <div className="grid min-w-0 gap-5 md:grid-cols-3">
-          {userAndAdmin.map((item) => (
-            <HomeEntryCard key={item.href} {...item} />
+      <Section eyebrow="Development Centers" intro="发展中心是协会推动文化研究、教育传播、国际交流、项目共建和资料整理的专业化平台。" title="发展中心" tone="soft">
+        <NoticeBox>
+          发展中心以文化交流、研究合作、课程活动、项目共建和资料整理为主要方向。涉及养生、道医中医、易学认知等内容时，坚持文化研究和交流展示定位，不作医疗功效承诺或确定性预测承诺。
+        </NoticeBox>
+        <div className="mt-7 grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-3">
+          {developmentCenters.map((item) => (
+            <HomeEntryCard href={item.href || "/development"} icon={item.icon || "cooperation"} key={item.title} text={item.text} title={item.title} />
           ))}
         </div>
       </Section>
 
-      <Section eyebrow="Boundaries" title="内容边界说明">
+      <Section eyebrow="Query And Verification" intro="查询核验入口用于公众、申请人和合作方核对申请、会员与证书的公开状态。" title="查询核验">
+        <div className="grid min-w-0 gap-5 md:grid-cols-3">
+          <HomeEntryCard href="/application/query" icon="query" text="申请人可凭申请编号和登记联系方式查询办理进度、审核反馈和付款说明。" title="申请进度查询" />
+          <HomeEntryCard href="/certificate-query" icon="certificate" text="公众可通过证书编号与持证人姓名核验证书公开登记信息和当前状态。" title="证书公开核验" />
+          <HomeEntryCard href="/member-query" icon="membership" text="公众可根据公开查询条件核验会员登记信息和会员状态。" title="会员公开核验" />
+        </div>
+      </Section>
+
+      <section className="section-surface-soft" id="announcements">
+        <div className="mx-auto grid max-w-7xl gap-7 px-5 py-20 sm:px-8 lg:grid-cols-[0.82fr_1.18fr] lg:items-stretch lg:py-28">
+          <article className="relative overflow-hidden rounded-[1.85rem] bg-[#7F1D1D] p-8 text-white shadow-[0_22px_58px_rgba(127,29,29,0.16)] sm:p-10">
+            <div className="absolute -right-14 -top-16 h-44 w-44 rounded-full border border-white/12" aria-hidden="true" />
+            <div className="absolute bottom-0 right-0 h-36 w-48 rounded-tl-[6rem] bg-white/8" aria-hidden="true" />
+            <div className="relative flex min-h-full flex-col justify-between gap-12">
+              <div>
+                <p className="text-xs uppercase tracking-[0.28em] text-[#e4cf97]">Announcement</p>
+                <h2 className="mt-5 font-serif text-4xl leading-tight text-[#F5E7C4] sm:text-[2.8rem]">公告资讯</h2>
+              </div>
+              <p className="max-w-md text-sm leading-8 text-white/82">
+                协会通过官网发布认证、会员、证书核验、文化交流和合作联系相关信息。涉及具体申请或合作事项，以协会秘书处正式确认为准。
+              </p>
+            </div>
+          </article>
+          <article className="rounded-[1.85rem] border border-[#e4ded0] bg-white/92 p-7 shadow-[0_18px_48px_rgba(31,42,40,0.055)] sm:p-9">
+            <div className="divide-y divide-[#e4ded0]">
+              {announcements.map((item) => (
+                <Link className="block py-5 transition hover:bg-[#fbf8ef] first:pt-0 last:pb-0 sm:px-3" href={`/announcements/${item.slug}`} key={item.slug}>
+                  <h3 className="text-lg font-medium text-[#1B1B1B]">{item.title}</h3>
+                  <p className="mt-2 text-xs text-[#8a6b3e]">{item.date}</p>
+                  <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{item.summary}</p>
+                </Link>
+              ))}
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <Section eyebrow="Boundaries" title="重要说明">
         <div className="grid min-w-0 gap-5 lg:grid-cols-2">
-          <V2BoundaryNotice text={v2Boundaries.certification} title="认证边界" />
-          <V2BoundaryNotice text={v2Boundaries.daoMedicine} title="道医中医边界" />
-          <V2BoundaryNotice text={v2Boundaries.yijing} title="易学与东方认知边界" />
-          <V2BoundaryNotice text={v2Boundaries.data} title="数据中心边界" />
+          <V2BoundaryNotice text={publicBoundaries.certification} title="认证边界" />
+          <V2BoundaryNotice text={publicBoundaries.daoMedicine} title="道医中医文化边界" />
+          <V2BoundaryNotice text={publicBoundaries.yijing} title="易学认知边界" />
+          <V2BoundaryNotice text={publicBoundaries.data} title="资料中心公开边界" />
         </div>
       </Section>
 
       <section className="bg-[#2A1F1A] px-5 py-16 text-white sm:px-8 lg:py-18">
         <div className="mx-auto flex max-w-7xl flex-col gap-7 md:flex-row md:items-center md:justify-between">
           <div>
-            <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd7a]">Next Step</p>
-            <h2 className="mt-4 font-serif text-3xl leading-tight text-[#F5E7C4] sm:text-4xl">申请、查询与合作服务</h2>
+            <p className="text-xs uppercase tracking-[0.24em] text-[#d8bd7a]">Contact</p>
+            <h2 className="mt-4 font-serif text-3xl leading-tight text-[#F5E7C4] sm:text-4xl">联系协会秘书处</h2>
             <p className="mt-4 max-w-2xl text-sm leading-7 text-white/82">
-              继续使用 V1.3 稳定业务入口提交申请、查询进度、核验证书或联系协会秘书处。
+              如需咨询会员申请、认证核验、文化交流或机构合作事项，请通过官网联系入口与协会秘书处沟通。
             </p>
           </div>
           <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap md:justify-end">
-            <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/certification/taoist-priest">申请认证</Link>
-            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/certificate-query">证书查验</Link>
-            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/cooperation">发展合作</Link>
+            <Link className="rounded-xl bg-[#A97A3D] px-6 py-3.5 text-center text-sm font-semibold text-[#fffaf0] transition hover:bg-[#b88745]" href="/cooperation">联系我们</Link>
+            <Link className="rounded-xl border border-white/25 bg-white/10 px-6 py-3.5 text-center text-sm font-semibold text-white transition hover:bg-white/14" href="/application/query">申请进度查询</Link>
           </div>
         </div>
       </section>

@@ -19,10 +19,10 @@ export default function AccountLoginPage() {
         atmosphere="credential"
         eyebrow="Account Access"
         imageSrc="/images/itca/04-service-membership.png"
-        intro="登录 / 注册入口用于 V2.0 用户系统。当前不执行 SQL、不修改数据库；正式账号能力以后续 SQL 草案经人工确认执行后启用。"
+        intro="登录 / 注册入口用于用户中心服务。账号系统建设中，开放前请继续使用申请进度查询、证书公开核验和会员公开核验入口办理相关事项。"
         subtitle="Login And Registration"
         title="登录 / 注册"
-        visualDescription="保留 V1.3 申请查询、支付、证书核验和通知链路，账号绑定只作为后续关联入口。"
+        visualDescription="用户中心开放后，将逐步提供资料、会员、认证、证书、订单和通知集中查看服务。"
         visualEyebrow="User Access"
         visualMark="Account"
         visualSeal="登录"
@@ -35,7 +35,7 @@ export default function AccountLoginPage() {
 
       <Section eyebrow="Compatibility" title="当前可用入口" tone="soft">
         <NoticeBox>
-          用户系统数据库未执行前，请继续使用申请编号、手机号 / 邮箱、证书编号和姓名完成 V1.3 查询与核验。后台审核、支付、通知和证书流程不受影响。
+          如需办理申请、查询进度或核验公开信息，请继续使用官网现有入口。支付事项请从申请进度查询页面进入对应订单。
         </NoticeBox>
         <div className="mt-7 flex min-w-0 flex-col gap-3 sm:flex-row sm:flex-wrap">
           <Link className="rounded-full bg-[#7F1D1D] px-6 py-3 text-center text-sm font-semibold text-white" href="/application/query">
@@ -52,4 +52,3 @@ export default function AccountLoginPage() {
     </>
   );
 }
-

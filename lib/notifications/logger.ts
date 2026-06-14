@@ -97,6 +97,6 @@ export function isMissingTableError(value: string, status?: number) {
 }
 
 export function normalizeNotificationError(value: string) {
-  if (isMissingTableError(value)) return "通知记录表尚未创建，请先执行 SQL。";
+  if (isMissingTableError(value)) return "通知记录暂未完成环境配置，请联系技术管理员处理。";
   return "通知记录暂时无法写入。";
 }

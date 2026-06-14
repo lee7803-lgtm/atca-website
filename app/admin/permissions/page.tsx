@@ -34,11 +34,11 @@ export default function AdminPermissionsPage() {
       actions={<AdminV2LinkActions links={[{ href: "/admin/roles", label: "角色权限" }, { href: "/admin/audit-logs", label: "操作日志" }]} />}
       eyebrow="Permissions"
       intro="权限模块定义后台可见、可读、可写、可审核、可导出和可配置的能力边界。"
-      notice="正式权限校验需要 SQL 草案、服务端 guard 和审计策略一起落地。本轮不改变现有后台 API 权限判断。"
+      notice="权限管理以不影响既有申请、审核、支付、证书、通知和基础资料流程为前提，所有关键操作应保留操作记录。"
       title="权限模块"
     >
       <AdminV2SimpleTable
-        columns={["权限模块", "主管角色", "权限范围", "V1.3 兼容要求"]}
+        columns={["权限模块", "主管角色", "权限范围", "业务流程要求"]}
         rows={rbacPermissionModules.map((module) => [
           module,
           owners[module] || "超级管理员",
@@ -49,4 +49,3 @@ export default function AdminPermissionsPage() {
     </AdminV2Page>
   );
 }
-

@@ -60,7 +60,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ success: true, entry });
   } catch (error) {
     if (error instanceof MasterDataTableMissingError) {
-      return NextResponse.json({ success: false, message: "基础资料表尚未配置，请先执行 SQL。" }, { status: 503 });
+      return NextResponse.json({ success: false, message: "基础资料暂未完成环境配置，请联系技术管理员处理。" }, { status: 503 });
     }
     return NextResponse.json({ success: false, message: "基础资料暂时无法保存。" }, { status: 500 });
   }
@@ -90,7 +90,7 @@ export async function PATCH(request: Request) {
     return NextResponse.json({ success: true, entry });
   } catch (error) {
     if (error instanceof MasterDataTableMissingError) {
-      return NextResponse.json({ success: false, message: "基础资料表尚未配置，请先执行 SQL。" }, { status: 503 });
+      return NextResponse.json({ success: false, message: "基础资料暂未完成环境配置，请联系技术管理员处理。" }, { status: 503 });
     }
     return NextResponse.json({ success: false, message: "基础资料暂时无法保存。" }, { status: 500 });
   }

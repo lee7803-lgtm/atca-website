@@ -30,7 +30,7 @@ export default async function AdminNotificationsPage() {
     logs = await listNotificationLogs();
   } catch (error) {
     if (error instanceof NotificationTableMissingError) {
-      message = "通知记录表尚未创建，请先执行 SQL：supabase/v1-3-notifications.sql。";
+      message = "通知记录暂未完成环境配置，请联系技术管理员处理。";
       messageTone = "info";
     } else {
       message = "通知记录暂时无法读取，请确认 Supabase 配置和 notification_logs 表是否已部署。";
