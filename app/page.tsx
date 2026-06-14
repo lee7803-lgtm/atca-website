@@ -30,6 +30,13 @@ const audience = [
   ["公众与研究者", "公众、学习者和研究者可通过官网了解道教文化、教理教义、公告资讯和公开资料。"]
 ];
 
+const portalOperations = [
+  ["协会门户", "承接关于协会、治理公开、组织架构、联系协会和资料更正入口。", "已发布"],
+  ["业务闭环", "保留会员申请、机构申请、认证建档申请、申请查询、公开核验、付款和补件路径。", "已可用"],
+  ["公开内容更新", "公告、发展中心动态、资料中心内容和重点推荐将按协会实际发布节奏更新。", "持续维护"],
+  ["公开边界", "认证、会员、资料公开、道医中医和易学内容均展示合规边界。", "已发布"]
+];
+
 function HomeIcon({ name }: { name: IconBadgeName }) {
   return (
     <IconBadge
@@ -47,6 +54,23 @@ function HomeEntryCard({ href, icon, text, title }: { href: string; icon: IconBa
         查看详情
       </Link>
     </InfoCard>
+  );
+}
+
+function HomeRowList({ rows }: { rows: string[][] }) {
+  return (
+    <div className="grid min-w-0 gap-3">
+      {rows.map(([title, text, status], index) => (
+        <article className="grid min-w-0 gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-[0_10px_24px_rgba(31,42,40,0.035)] md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center" key={title}>
+          <div>
+            <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
+            <h3 className="mt-2 text-base font-semibold text-porcelain">{title}</h3>
+          </div>
+          <p className="text-sm leading-7 text-[#5f5b52]">{text}</p>
+          <span className="rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-3 py-1 text-center text-xs font-semibold text-[#66594d]">{status}</span>
+        </article>
+      ))}
+    </div>
   );
 }
 
@@ -101,7 +125,7 @@ export default function Home() {
         </div>
       </Section>
 
-      <Section eyebrow="Portal Navigation" intro="官网栏目按照公众浏览、会员服务、认证核验、文化研究和合作交流的常用路径组织，便于快速进入所需信息。" title="主要栏目导览" tone="soft">
+      <Section eyebrow="Featured Portal" intro="优先展示协会定位、业务闭环、公告资讯、查询核验、发展中心和资料中心等常用内容，帮助访客从首页进入关键服务。" title="门户重点推荐" tone="soft">
         <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-5">
           {portalEntries.map((item) => (
             <HomeEntryCard key={`${item.href}-${item.title}`} {...item} />
@@ -116,6 +140,32 @@ export default function Home() {
               {item.label}
             </Link>
           ))}
+        </div>
+      </Section>
+
+      <Section eyebrow="Portal Operations" intro="首页作为官网总入口，说明协会门户、业务闭环、内容更新和公开边界。" title="门户运营结构" tone="soft">
+        <HomeRowList rows={portalOperations} />
+      </Section>
+
+      <Section eyebrow="Latest" intro="公告、专题、重要文件和发展中心动态将按协会实际发布节奏更新；具体申请或核验事项以对应业务页面为准。" title="最新公告与公开更新">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="rounded-2xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-6 text-sm leading-7 text-[#5f5b52]">
+            <p className="font-serif text-2xl text-porcelain">暂无更多最新内容</p>
+            <p className="mt-3">协会将根据实际工作进展发布公告、专题、发展中心动态、资料中心更新和重要文件。</p>
+          </div>
+          <div className="grid min-w-0 gap-3">
+            {[
+              ["公告资讯", "发布会员、认证、核验、文化交流和合作联系相关公开信息。", "持续更新"],
+              ["查询核验", "公众核验只显示最小公开字段，异常情况可联系协会人工复核。", "已可用"],
+              ["资料中心", "公开资料以审核允许公开的内容为准，不展示敏感材料或内部路径。", "逐步完善"]
+            ].map(([title, text, status]) => (
+              <article className="grid min-w-0 gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-[0_10px_24px_rgba(31,42,40,0.035)] md:grid-cols-[10rem_minmax(0,1fr)_7rem] md:items-center" key={title}>
+                <h3 className="text-base font-semibold text-porcelain">{title}</h3>
+                <p className="text-sm leading-7 text-[#5f5b52]">{text}</p>
+                <span className="rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-3 py-1 text-center text-xs font-semibold text-[#66594d]">{status}</span>
+              </article>
+            ))}
+          </div>
         </div>
       </Section>
 

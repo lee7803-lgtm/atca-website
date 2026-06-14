@@ -1,9 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
 import { listPaymentOrders, PaymentApiRequestError, PaymentApiUnauthorizedError, type PaymentOrderListItem, type PaymentStatus } from "@/lib/api/payments";
 import { formatPaymentProvider } from "@/lib/payment-display";
 
@@ -46,7 +45,7 @@ const businessTypeText: Record<string, string> = {
 };
 
 export default async function AdminPaymentsPage({ searchParams }: { searchParams?: { status?: PaymentStatus; q?: string } }) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("payments:read");
 
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
   const q = searchParams?.q?.trim() || undefined;

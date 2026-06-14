@@ -39,6 +39,7 @@ export function PaymentReceiptActions({ orderId, hasReceipt, reviewStatus }: { o
 
   async function submit(action: "approve" | "reject") {
     if (!hasReceipt || isSaving) return;
+    if (!window.confirm(action === "approve" ? "确认付款凭证已通过并标记收款？" : "确认将付款凭证标记为不通过？")) return;
     setIsSaving(action);
     setMessage("");
     try {

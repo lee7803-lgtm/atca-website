@@ -1,11 +1,12 @@
 import Link from "next/link";
 import type { Metadata } from "next";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { PageHero } from "@/components/PageHero";
 import { NoticeBox, Section } from "@/components/Section";
 import { AccountAccessForm } from "./AccountAccessForm";
 
 export const metadata: Metadata = {
-  title: "登录 / 注册｜国际道教与文化协会 ITCA"
+  title: "账号建设中｜国际道教与文化协会 ITCA"
 };
 
 export default function AccountLoginPage() {
@@ -13,23 +14,25 @@ export default function AccountLoginPage() {
     <>
       <PageHero
         actions={[
-          { href: "/account", label: "用户中心" },
-          { href: "/application/query", label: "申请查询", variant: "secondary" }
+          { href: "/application/query", label: "申请进度查询" },
+          { href: "/verification", label: "查询核验", variant: "secondary" }
         ]}
         atmosphere="credential"
-        eyebrow="Account Access"
+        eyebrow="Account Service"
         imageSrc="/images/itca/04-service-membership.png"
-        intro="登录 / 注册入口用于用户中心服务。账号系统建设中，开放前请继续使用申请进度查询、证书公开核验和会员公开核验入口办理相关事项。"
-        subtitle="Login And Registration"
-        title="登录 / 注册"
+        intro="用户中心账号系统建设中，当前不作为正式账号入口。申请、核验和补件事项请继续使用已上线业务路径办理。"
+        subtitle="Account Service In Progress"
+        title="账号建设中"
         visualDescription="用户中心开放后，将逐步提供资料、会员、认证、证书、订单和通知集中查看服务。"
         visualEyebrow="User Access"
         visualMark="Account"
-        visualSeal="登录"
+        visualSeal="账号"
         visualTitle="用户系统入口"
       />
 
-      <Section afterHero eyebrow="Access" title="登录 / 注册入口">
+      <Breadcrumbs items={[{ href: "/account", label: "用户中心" }, { label: "账号建设中" }]} />
+
+      <Section afterHero eyebrow="Access Status" title="用户中心建设中" intro="本页只说明账号服务状态，不采集注册信息，不创建用户账号，不替代现有申请和核验流程。">
         <AccountAccessForm />
       </Section>
 
@@ -46,6 +49,15 @@ export default function AccountLoginPage() {
           </Link>
           <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member-query">
             会员查询
+          </Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/member/apply">
+            个人会员申请
+          </Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/organization/apply">
+            机构会员申请
+          </Link>
+          <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/certification/taoist-priest">
+            认证申请
           </Link>
         </div>
       </Section>

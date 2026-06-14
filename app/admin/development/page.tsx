@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function AdminDevelopmentPage() {
-  requireAdminPage();
+  requireAdminPage("development:read");
 
   return (
     <AdminV2Page
@@ -22,4 +22,3 @@ export default function AdminDevelopmentPage() {
     />
   );
 }
-

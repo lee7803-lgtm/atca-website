@@ -42,14 +42,13 @@ export default function AccountPage() {
     <>
       <PageHero
         actions={[
-          { href: "/account/login", label: "登录 / 注册" },
-          { href: "/application/query", label: "申请进度查询", variant: "secondary" },
+          { href: "/application/query", label: "申请进度查询" },
           { href: "/verification", label: "查询核验", variant: "secondary" }
         ]}
         atmosphere="credential"
         eyebrow="Account"
         imageSrc="/images/itca/04-service-membership.png"
-        intro="用户中心面向注册用户、会员、认证申请人、机构账号和合作伙伴，用于集中说明资料、会员、认证、证书、订单、通知、补充资料和申请进度等服务入口。"
+        intro="用户中心账号体系建设中，当前页面用于集中说明资料、会员、认证、证书、订单、通知、补充资料和申请进度等服务入口，不作为正式账号入口。"
         subtitle="User Center"
         title="用户中心"
         visualDescription="账号系统建设中。现阶段请继续通过申请进度查询、证书公开核验和会员公开核验入口办理相关事项。"

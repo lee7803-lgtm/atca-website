@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationRecordDisposition } from "@/lib/api/admin-applications";
 import { SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { RecordDisposition } from "@/types/application";
@@ -19,8 +20,9 @@ function getRequestIp(request: Request) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "applications:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: { recordDisposition?: RecordDisposition; recordDispositionNote?: string };
 

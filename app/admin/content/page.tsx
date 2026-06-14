@@ -8,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default function AdminContentPage() {
-  requireAdminPage();
+  requireAdminPage("content:read");
   return <CmsDashboard />;
 }

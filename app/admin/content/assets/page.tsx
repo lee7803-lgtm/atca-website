@@ -8,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default function AdminContentAssetsPage() {
-  requireAdminPage();
+  requireAdminPage("content:read");
   return <CmsAssetsGrid />;
 }

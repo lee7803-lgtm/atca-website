@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { createPaymentOrder, PaymentApiRequestError, PaymentApiUnauthorizedError } from "@/lib/api/payments";
 
 const validSourceTypes = ["application", "certification_application"] as const;
@@ -23,8 +24,9 @@ function getRequestIp(request: Request) {
 }
 
 export async function POST(request: Request) {
+  const auth = requireAdminApiPermission(request, "payments:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: {
     sourceType?: string;

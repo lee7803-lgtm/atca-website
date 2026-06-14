@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function AdminRolesPage() {
-  requireAdminPage();
+  requireAdminPage("roles:read");
 
   return (
     <AdminV2Page

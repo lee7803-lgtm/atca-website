@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { PaymentApiRequestError, PaymentApiUnauthorizedError, updatePaymentOrderStatus } from "@/lib/api/payments";
 
 const validStatuses = ["manual_review", "paid", "cancelled"] as const;
@@ -17,8 +18,9 @@ function getRequestIp(request: Request) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "payments:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: { status?: string; adminNote?: string };
 

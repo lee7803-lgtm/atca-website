@@ -1,7 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { revalidatePath } from "next/cache";
-import { notFound, redirect } from "next/navigation";
+import { notFound } from "next/navigation";
 import { cookies } from "next/headers";
 import QRCode from "qrcode";
 import { CertificateStatusForm, CertificationReviewForm } from "../ReviewForm";
@@ -12,7 +12,9 @@ import { AdminRecordDispositionPanel } from "@/components/AdminRecordDisposition
 import { CopyButton } from "@/components/CopyButton";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
+import { hasAdminPermission } from "@/lib/admin/rbac";
 import { getCertificateVerificationUrl } from "@/lib/site-url";
 import { createMasterDataEntry } from "@/lib/master-data";
 import { createAuditLog } from "@/lib/admin/audit-logs";
@@ -66,7 +68,7 @@ type StageGuide = {
 async function collectCertificationMasterDataAction(formData: FormData) {
   "use server";
 
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("certification:write");
   const kind = String(formData.get("kind") || "");
   const name = String(formData.get("name") || "").trim();
   if (!["referee", "organization"].includes(kind) || !name) return;
@@ -97,7 +99,10 @@ async function collectCertificationMasterDataAction(formData: FormData) {
 }
 
 export default async function AdminCertificationApplicationDetailPage({ params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  const session = requireAdminPage("certification:read");
+  const canWriteCertification = hasAdminPermission(session, "certification:write");
+  const canManageCertificate = hasAdminPermission(session, "certification:certificate");
+  const canWritePayments = hasAdminPermission(session, "payments:write");
 
   let application: CertificationApplicationAdminRecord | null = null;
   let certificate: CertificateQueryResult | null = null;
@@ -200,14 +205,14 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         <DetailItem label="现居地" value={application.residence || "未填写"} />
         <DetailItem label="确认时间" value={application.confirmedAt ? formatDateTime(application.confirmedAt) : "未记录"} />
         <AttachmentGroup attachments={identityDocuments} className="md:col-span-2" title="身份证明材料" />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(0)} disabledReason={isMaterialReviewLocked(0) ? "请先完成上一项资料审核" : undefined} itemKey="identity" label="身份真实性" materialReview={application.materialReview} />
+        <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || isMaterialReviewLocked(0)} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : isMaterialReviewLocked(0) ? "请先完成上一项资料审核" : undefined} itemKey="identity" label="身份真实性" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="contact-detail" title="联系方式">
         <DetailItem label="手机 / WhatsApp" value={application.phone} />
         <DetailItem label="邮箱" value={application.email} />
         <DetailItem className="md:col-span-2" label="地址" value={application.address || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(1)} disabledReason={isMaterialReviewLocked(1) ? "请先完成上一项资料审核" : undefined} itemKey="ethics" label="联系方式" materialReview={application.materialReview} />
+        <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || isMaterialReviewLocked(1)} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : isMaterialReviewLocked(1) ? "请先完成上一项资料审核" : undefined} itemKey="ethics" label="联系方式" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="lineage-detail" title="师承 / 传承信息">
@@ -218,31 +223,31 @@ export default async function AdminCertificationApplicationDetailPage({ params }
         <DetailItem label="所属道派" value={application.sect || "未填写"} />
         <DetailItem label="宫观 / 机构" value={application.templeOrOrganization || "未填写"} />
         <DetailItem label="实践年限" value={application.practiceYears || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(2)} disabledReason={isMaterialReviewLocked(2) ? "请先完成上一项资料审核" : undefined} itemKey="lineage" label="师承 / 传承信息" materialReview={application.materialReview} />
+        <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || isMaterialReviewLocked(2)} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : isMaterialReviewLocked(2) ? "请先完成上一项资料审核" : undefined} itemKey="lineage" label="师承 / 传承信息" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="recommendation-detail" title="推荐人信息">
         <DetailItem label="推荐人姓名" value={application.recommenderName || "未填写"} />
         <DetailItem label="推荐人联系方式" value={application.recommenderContact || "未填写"} />
         <DetailItem className="md:col-span-2" label="推荐关系 / 推荐说明" value={application.recommenderRelation || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(3)} disabledReason={isMaterialReviewLocked(3) ? "请先完成上一项资料审核" : undefined} itemKey="recommendation" label="推荐人信息" materialReview={application.materialReview} />
+        <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || isMaterialReviewLocked(3)} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : isMaterialReviewLocked(3) ? "请先完成上一项资料审核" : undefined} itemKey="recommendation" label="推荐人信息" materialReview={application.materialReview} />
       </DetailSection>
 
       <DetailSection id="practice-detail" title="经历与申请理由">
         <DetailItem className="md:col-span-2" label="道教履历说明" value={application.experienceSummary || "未填写"} />
         <DetailItem className="md:col-span-2" label="申请理由" value={application.applicationReason || "未填写"} />
         <DetailItem className="md:col-span-2" label="补充备注" value={application.additionalNote || "未填写"} />
-        <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(4)} disabledReason={isMaterialReviewLocked(4) ? "请先完成上一项资料审核" : undefined} itemKey="practice" label="经历与申请理由" materialReview={application.materialReview} />
+        <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || isMaterialReviewLocked(4)} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : isMaterialReviewLocked(4) ? "请先完成上一项资料审核" : undefined} itemKey="practice" label="经历与申请理由" materialReview={application.materialReview} />
       </DetailSection>
 
-      <SupplementalRecords applicationId={application.id} materialReview={application.materialReview} reviewDisabled={isMaterialReviewLocked(5)} submissions={supplementalSubmissions} />
+      <SupplementalRecords applicationId={application.id} materialReview={application.materialReview} reviewDisabled={!canWriteCertification || isMaterialReviewLocked(5)} submissions={supplementalSubmissions} />
 
       <DetailSection id="supporting-materials-detail" title="上传材料 / 证明材料">
         <div className="md:col-span-2 grid gap-5">
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
             <AttachmentGroup attachments={lineageDocuments} title="师承证明材料" />
             <div className="mt-5">
-              <MaterialReviewField applicationId={application.id} disabled={isMaterialReviewLocked(6)} disabledReason={isMaterialReviewLocked(6) ? "请先完成上一项资料审核" : undefined} itemKey="credential" label="师承证明材料" materialReview={application.materialReview} />
+              <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || isMaterialReviewLocked(6)} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : isMaterialReviewLocked(6) ? "请先完成上一项资料审核" : undefined} itemKey="credential" label="师承证明材料" materialReview={application.materialReview} />
             </div>
           </div>
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
@@ -258,13 +263,13 @@ export default async function AdminCertificationApplicationDetailPage({ params }
               <AttachmentGroup attachments={credentialDocuments} title="既有证书 / 资质凭证" />
             </div>
             <div className="mt-5">
-              <MaterialReviewField applicationId={application.id} disabled={application.materialReview.credential === "pending"} disabledReason={application.materialReview.credential === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="photo" label="道装证件照 / 既有证书" materialReview={application.materialReview} />
+              <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || application.materialReview.credential === "pending"} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : application.materialReview.credential === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="photo" label="道装证件照 / 既有证书" materialReview={application.materialReview} />
             </div>
           </div>
           <div className="rounded-2xl border border-[#e4ded0] bg-[#fbf8ef] p-5">
             <AttachmentGroup attachments={otherDocuments} title="其他证明材料" />
             <div className="mt-5">
-              <MaterialReviewField applicationId={application.id} disabled={application.materialReview.photo === "pending"} disabledReason={application.materialReview.photo === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="completeness" label="其他证明材料" materialReview={application.materialReview} />
+              <MaterialReviewField applicationId={application.id} disabled={!canWriteCertification || application.materialReview.photo === "pending"} disabledReason={!canWriteCertification ? "当前角色只有查看权限。" : application.materialReview.photo === "pending" ? "请先完成上一项资料审核" : undefined} itemKey="completeness" label="其他证明材料" materialReview={application.materialReview} />
             </div>
           </div>
         </div>
@@ -350,38 +355,46 @@ export default async function AdminCertificationApplicationDetailPage({ params }
       </div>
 
       <div className="mt-8">
-        <AdminRecordDispositionPanel
-          actionUrl={`/api/admin/certification-applications/${application.id}/record-disposition`}
-          disposition={application.recordDisposition || "normal"}
-          note={application.recordDispositionNote || ""}
-          updatedAt={application.recordDispositionAt}
-          updatedBy={application.recordDispositionBy || ""}
-        />
+        {canWriteCertification ? (
+          <AdminRecordDispositionPanel
+            actionUrl={`/api/admin/certification-applications/${application.id}/record-disposition`}
+            disposition={application.recordDisposition || "normal"}
+            note={application.recordDispositionNote || ""}
+            updatedAt={application.recordDispositionAt}
+            updatedBy={application.recordDispositionBy || ""}
+          />
+        ) : (
+          <ReadOnlyNotice />
+        )}
       </div>
 
       <div className="mt-8">
-        <AdminContactCorrectionPanel
-          actionUrl={`/api/admin/certification-applications/${application.id}/contact`}
-          disposition={application.recordDisposition || "normal"}
-          fields={[
-            { key: "applicantName", label: "申请人中文姓名", required: true },
-            { key: "applicantNameEn", label: "英文名 / 拼音" },
-            { key: "taoistName", label: "道名 / 法名" },
-            { key: "phone", label: "手机 / WhatsApp", required: true },
-            { key: "email", label: "邮箱", required: true, type: "email" },
-            { key: "residence", label: "现居地", required: true, optionKind: "country" },
-            { key: "address", label: "地址" }
-          ]}
-          values={{
-            applicantName: application.applicantName,
-            applicantNameEn: application.applicantNameEn || "",
-            taoistName: application.taoistName || "",
-            phone: application.phone,
-            email: application.email,
-            residence: application.residence || "",
-            address: application.address || ""
-          }}
-        />
+        {canWriteCertification ? (
+          <AdminContactCorrectionPanel
+            actionUrl={`/api/admin/certification-applications/${application.id}/contact`}
+            disposition={application.recordDisposition || "normal"}
+            fields={[
+              { key: "applicantName", label: "申请人中文姓名", required: true },
+              { key: "applicantNameEn", label: "英文名 / 拼音" },
+              { key: "taoistName", label: "道名 / 法名" },
+              { key: "phone", label: "手机 / WhatsApp", required: true },
+              { key: "email", label: "邮箱", required: true, type: "email" },
+              { key: "residence", label: "现居地", required: true, optionKind: "country" },
+              { key: "address", label: "地址" }
+            ]}
+            values={{
+              applicantName: application.applicantName,
+              applicantNameEn: application.applicantNameEn || "",
+              taoistName: application.taoistName || "",
+              phone: application.phone,
+              email: application.email,
+              residence: application.residence || "",
+              address: application.address || ""
+            }}
+          />
+        ) : (
+          <ReadOnlyNotice />
+        )}
       </div>
 
       <div className="mt-8">
@@ -398,41 +411,53 @@ export default async function AdminCertificationApplicationDetailPage({ params }
           <DetailItem label="推荐关系 / 说明" value={application.recommenderRelation || "未填写"} />
           <DetailItem label="宫观 / 机构 / 所属组织" value={application.templeOrOrganization || "未填写"} />
           <DetailItem label="道场 / 传承说明" value={application.lineage || "未填写"} />
-          <MasterDataCollectButton kind="referee" name={application.recommenderName} note={`来自认证申请 ${application.applicationNo}。${application.recommenderRelation || ""}`} />
-          <MasterDataCollectButton kind="organization" name={application.templeOrOrganization} note={`来自认证申请 ${application.applicationNo}。`} />
+          {canWriteCertification ? (
+            <>
+              <MasterDataCollectButton kind="referee" name={application.recommenderName} note={`来自认证申请 ${application.applicationNo}。${application.recommenderRelation || ""}`} />
+              <MasterDataCollectButton kind="organization" name={application.templeOrOrganization} note={`来自认证申请 ${application.applicationNo}。`} />
+            </>
+          ) : (
+            <ReadOnlyNotice />
+          )}
         </DetailSection>
       </div>
 
-      <div className="mt-8">
-        <CreatePaymentOrderForm sourceId={application.id} sourceType="certification_application" />
-      </div>
+      {canWritePayments ? (
+        <div className="mt-8">
+          <CreatePaymentOrderForm sourceId={application.id} sourceType="certification_application" />
+        </div>
+      ) : null}
 
       <div className="mt-8">
-        <CertificationReviewForm
-          applicationId={application.id}
-          applicationNo={application.applicationNo}
-          certificateNo={certificate?.certificateNo}
-          currentStatusText={formatCertificationApplicationStatus(application)}
-          deliveredAt={application.deliveredAt}
-          deliveryStatus={application.deliveryStatus}
-          initialApprovedLevel={application.approvedLevel}
-          initialApprovedPath={application.approvedPath}
-          initialApplicantFeedback={application.applicantFeedback}
-          initialCommitteeReviewNote={application.committeeReviewNote}
-          initialInternalReviewNote={application.internalReviewNote}
-          initialMaterialReview={application.materialReview}
-          initialReviewNote={application.reviewNote}
-          initialStatus={application.status}
-          auditRecords={<AuditRecords application={application} />}
-          certificateMessage={certificateMessage}
-          certificateStatusPanel={certificate ? <CertificateStatusForm applicationId={application.id} certificate={certificate} /> : null}
-          certificateValidityText={certificate ? formatCertificateValidity(certificate) : ""}
-          materialReviewWorkflow={materialReviewWorkflow}
-        />
+        {canWriteCertification || canManageCertificate ? (
+          <CertificationReviewForm
+            applicationId={application.id}
+            applicationNo={application.applicationNo}
+            certificateNo={certificate?.certificateNo}
+            currentStatusText={formatCertificationApplicationStatus(application)}
+            deliveredAt={application.deliveredAt}
+            deliveryStatus={application.deliveryStatus}
+            initialApprovedLevel={application.approvedLevel}
+            initialApprovedPath={application.approvedPath}
+            initialApplicantFeedback={application.applicantFeedback}
+            initialCommitteeReviewNote={application.committeeReviewNote}
+            initialInternalReviewNote={application.internalReviewNote}
+            initialMaterialReview={application.materialReview}
+            initialReviewNote={application.reviewNote}
+            initialStatus={application.status}
+            auditRecords={<AuditRecords application={application} />}
+            certificateMessage={certificateMessage}
+            certificateStatusPanel={certificate && canManageCertificate ? <CertificateStatusForm applicationId={application.id} certificate={certificate} /> : null}
+            certificateValidityText={certificate ? formatCertificateValidity(certificate) : ""}
+            materialReviewWorkflow={materialReviewWorkflow}
+          />
+        ) : (
+          <ReadOnlyNotice />
+        )}
       </div>
       {certificate ? (
         <div className="mt-8">
-          <FormalCertificatePreview application={application} certificate={certificate} certificatePdf={certificatePdf} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} verificationQrCode={certificateVerificationQrCode} verificationUrl={certificateVerificationUrl} />
+          <FormalCertificatePreview application={application} canManageCertificate={canManageCertificate} certificate={certificate} certificatePdf={certificatePdf} hasCertificatePhoto={Boolean(certificatePhoto?.signedUrl || certificatePhoto?.storagePath)} verificationQrCode={certificateVerificationQrCode} verificationUrl={certificateVerificationUrl} />
         </div>
       ) : null}
     </section>
@@ -663,6 +688,7 @@ function formatCertificateStatus(certificate: CertificateQueryResult) {
 
 function FormalCertificatePreview({
   application,
+  canManageCertificate,
   certificate,
   certificatePdf,
   hasCertificatePhoto,
@@ -670,6 +696,7 @@ function FormalCertificatePreview({
   verificationUrl
 }: {
   application: CertificationApplicationAdminRecord;
+  canManageCertificate: boolean;
   certificate: CertificateQueryResult;
   certificatePdf: CertificatePdfMetadata | null;
   hasCertificatePhoto: boolean;
@@ -691,11 +718,13 @@ function FormalCertificatePreview({
           <h2 className="mt-2 font-serif text-3xl text-porcelain">正式证书预览</h2>
         </div>
         <div className="grid gap-3 sm:justify-items-end">
-          <form className="w-full sm:w-auto" action={`/api/admin/certification-applications/${application.id}/certificate-pdf`} method="post" target="_blank">
-            <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-2.5 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" type="submit">
-              {certificatePdf?.hasPdf ? "重新生成正式证书 PDF" : "生成正式证书 PDF"}
-            </button>
-          </form>
+          {canManageCertificate ? (
+            <form className="w-full sm:w-auto" action={`/api/admin/certification-applications/${application.id}/certificate-pdf`} method="post" target="_blank">
+              <button className="w-full rounded-full bg-[#7F1D1D] px-5 py-2.5 text-center text-sm font-semibold text-white shadow-[0_12px_30px_rgba(127,29,29,0.18)] transition hover:bg-[#6f1919] sm:w-auto" type="submit">
+                {certificatePdf?.hasPdf ? "重新生成正式证书 PDF" : "生成正式证书 PDF"}
+              </button>
+            </form>
+          ) : null}
           {certificatePdf?.hasPdf ? (
             <a className="w-full rounded-full border border-[#d8d0bf] bg-white px-5 py-2.5 text-center text-sm font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:w-auto" href={`/api/admin/certification-applications/${application.id}/certificate-pdf`} target="_blank" rel="noreferrer">
               下载已生成 PDF
@@ -889,6 +918,14 @@ function DetailSection({ children, id, title }: { children: ReactNode; id?: stri
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <div className="mt-5 grid gap-4 md:grid-cols-2">{children}</div>
     </section>
+  );
+}
+
+function ReadOnlyNotice({ text = "当前角色只有查看权限，不能执行本区操作。" }: { text?: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+      {text}
+    </div>
   );
 }
 

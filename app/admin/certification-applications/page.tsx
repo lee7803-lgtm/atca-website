@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
 import { AdminCsvExport } from "@/components/AdminCsvExport";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
 import { checkCertificatesTableConfigured, findCertificateByApplicationId, isSupabaseSchemaError, listCertificationApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatCertificationApplicationStatus, hasSupplementRecord } from "@/lib/status-labels";
 import { certificationLevelLabels, certificationPathLabels, type CertificateQueryResult, type CertificationApplicationAdminRecord, type CertificationPath, type CertificationRecordDisposition, type CertificationStatus } from "@/types/certification";
@@ -53,7 +52,7 @@ type CertificationApplicationExportRecord = CertificationApplicationAdminRecord 
 const csvHeaders = ["申请编号", "推荐人姓名", "推荐人联系方式", "推荐关系 / 推荐说明", "申请人姓名", "道名 / 法名", "邮箱", "手机号 / WhatsApp", "道派 / 传承体系", "申报认证等级", "核定传承体系", "核定认证等级", "记录类型", "当前状态", "证书编号", "下发状态", "是否有附件", "附件数量", "提交时间", "更新时间"];
 
 export default async function AdminCertificationApplicationsPage({ searchParams }: { searchParams?: { status?: StatusFilter; recordDisposition?: CertificationRecordDisposition | "all"; q?: string } }) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("certification:read");
 
   const selectedStatus = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;
   const status = selectedStatus === "supplement_review" ? "under_review" : selectedStatus || undefined;

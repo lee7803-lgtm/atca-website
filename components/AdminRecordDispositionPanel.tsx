@@ -47,6 +47,7 @@ export function AdminRecordDispositionPanel({
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const save = async () => {
+    if (!window.confirm("确认保存记录治理状态？该操作会影响记录可见性，并应保留审计说明。")) return;
     setIsSaving(true);
     setMessage("");
 

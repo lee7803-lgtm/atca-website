@@ -8,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default function AdminContentBlockLibraryPage() {
-  requireAdminPage();
+  requireAdminPage("content:read");
   return <CmsBlockLibrary />;
 }

@@ -1,10 +1,9 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
 import { AdminCsvExport } from "@/components/AdminCsvExport";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
 import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
 import { isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationAdminRecord, ApplicationStatus, ApplicationType, RecordDisposition } from "@/types/application";
@@ -76,7 +75,7 @@ const dispositionText: Record<RecordDisposition, string> = {
 const csvHeaders = ["申请编号", "会员编号", "姓名 / 机构名称", "邮箱", "手机号 / WhatsApp", "推荐人姓名", "推荐人联系方式", "推荐说明", "申请类型", "记录类型", "统一状态", "会员有效期", "提交时间", "更新时间"];
 
 export default async function AdminApplicationsPage({ searchParams }: { searchParams?: { applicationType?: ApplicationType; status?: ApplicationStatus; recordDisposition?: RecordDisposition | "all"; validity?: string; q?: string } }) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("applications:read");
 
   const applicationType = typeOptions.some((item) => item.value === searchParams?.applicationType) ? searchParams?.applicationType : undefined;
   const status = statusOptions.some((item) => item.value === searchParams?.status) ? searchParams?.status : undefined;

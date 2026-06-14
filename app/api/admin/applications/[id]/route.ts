@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { AdminApiRequestError, AdminApiUnauthorizedError, updateAdminApplicationAdminNote, updateAdminApplicationReview } from "@/lib/api/admin-applications";
 import { recordMemberApplicationReviewNotification } from "@/lib/notifications/workflows";
 import { getApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
@@ -20,7 +21,8 @@ function getRequestIp(request: Request) {
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
+  const auth = requireAdminApiPermission(request, "applications:read");
+  if (auth.response) return auth.response;
 
   try {
     const application = await getApplicationById(params.id);
@@ -43,8 +45,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "applications:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: { action?: "update_member_material_review"; status?: ApplicationStatus; adminNote?: string };
 

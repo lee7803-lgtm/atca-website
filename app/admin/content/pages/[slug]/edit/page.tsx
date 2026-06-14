@@ -8,6 +8,6 @@ export const metadata: Metadata = {
 };
 
 export default function AdminContentPageEditor({ params }: { params: { slug: string } }) {
-  requireAdminPage();
+  requireAdminPage("content:read");
   return <CmsEditorMock channelId={params.slug} />;
 }

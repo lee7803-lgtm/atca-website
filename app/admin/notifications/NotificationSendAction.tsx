@@ -24,6 +24,7 @@ export function NotificationSendAction({ id, channel, status, label, title, help
 
   async function handleSend() {
     if (disabled) return;
+    if (!window.confirm("确认执行单条通知发送 / 模拟发送？该操作会更新通知记录并预留审计。")) return;
     setMessage("");
 
     try {

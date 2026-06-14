@@ -1,9 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
 import { listAuditLogs } from "@/lib/admin/audit-logs";
 
 export const dynamic = "force-dynamic";
@@ -12,7 +10,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminAuditLogsPage() {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("auditLogs:read");
 
   let logs: Awaited<ReturnType<typeof listAuditLogs>> = [];
   let message = "";

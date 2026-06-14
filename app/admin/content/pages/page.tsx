@@ -9,7 +9,7 @@ export const metadata: Metadata = {
 };
 
 export default function AdminContentPagesPage() {
-  requireAdminPage();
+  requireAdminPage("content:read");
 
   return (
     <div className="mx-auto grid max-w-7xl gap-6">

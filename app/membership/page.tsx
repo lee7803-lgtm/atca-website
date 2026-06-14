@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
@@ -38,6 +39,21 @@ const process: Array<{ title: string; icon: IconBadgeName }> = [
   { title: "准备申请资料", icon: "certificate" },
   { title: "协会审核确认", icon: "value" },
   { title: "建立会员档案", icon: "structure" }
+];
+
+const lifecycleRows = [
+  ["申请前须知", "确认个人或机构会员类型，阅读会员身份边界和资料使用说明。", "前台可用"],
+  ["申请材料", "提交基础身份、联系方式、学习经历、机构资料或推荐信息。", "前台可用"],
+  ["审核流程", "秘书处进行资料初审，必要时进入人工复核和补件流程。", "流程处理"],
+  ["付款确认", "涉及费用时从申请进度页进入 Bank Transfer 订单和凭证审核。", "流程处理"],
+  ["会员编号生成", "审核通过后生成会员编号，并进入会员公开核验最小字段展示。", "流程处理"],
+  ["公开核验", "公众仅可通过会员编号和姓名 / 机构名称核验公开登记状态。", "前台可用"]
+];
+
+const membershipFaq = [
+  ["我适合申请哪类会员？", "个人学习者、研究者和认证申请人优先选择个人会员；宫观、道堂、文化机构、社团组织选择机构会员。"],
+  ["提交后在哪里查询？", "保存申请编号，通过申请进度查询页面查看审核、补件、付款和结果状态。"],
+  ["会员是否等于认证？", "不是。会员身份属于协会会员服务体系，认证建档需要另行提交认证申请并通过审核。"]
 ];
 
 function MembershipSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
@@ -79,6 +95,32 @@ function LabelList({ items }: { items: string[] }) {
   );
 }
 
+function RowList({ rows }: { rows: string[][] }) {
+  return (
+    <div className="grid min-w-0 gap-3">
+      {rows.map(([title, text, status], index) => (
+        <article className="grid min-w-0 gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-[0_10px_24px_rgba(31,42,40,0.035)] md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center" key={title}>
+          <div>
+            <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
+            <h3 className="mt-2 text-base font-semibold text-porcelain">{title}</h3>
+          </div>
+          <p className="text-sm leading-7 text-[#5f5b52]">{text}</p>
+          <span className="rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-3 py-1 text-center text-xs font-semibold text-[#66594d]">{status}</span>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function EmptyPanel({ text, title }: { text: string; title: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-6 text-sm leading-7 text-[#5f5b52]">
+      <p className="font-serif text-2xl text-porcelain">{title}</p>
+      <p className="mt-3">{text}</p>
+    </div>
+  );
+}
+
 export default function MembershipPage() {
   return (
     <>
@@ -102,6 +144,8 @@ export default function MembershipPage() {
         visualSeal="会员"
         visualTitle="会员组织服务"
       />
+
+      <Breadcrumbs items={[{ label: "会员体系" }]} />
 
       <MembershipSection eyebrow="Application Notice" title="会员申请须知" compact afterHero>
         <div className="min-w-0 overflow-hidden border-l-4 border-[#7F1D1D] bg-[#fbf8ef] p-6 text-sm leading-8 text-[#5f5b52] shadow-[0_16px_45px_rgba(176,138,69,0.08)] sm:p-7">
@@ -145,6 +189,21 @@ export default function MembershipPage() {
             </article>
           ))}
         </div>
+      </MembershipSection>
+
+      <MembershipSection eyebrow="Lifecycle" title="会员业务闭环" intro="用户需要知道申请前准备什么、提交后如何流转、通过后如何查询和核验。">
+        <RowList rows={lifecycleRows} />
+      </MembershipSection>
+
+      <MembershipSection eyebrow="Updates" title="会员公告与资料列表" intro="协会后续将发布会员公告、材料模板、会员服务说明和常见问题；暂无内容时保持公开说明状态。" tone="soft">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+          <EmptyPanel title="暂无会员公告" text="协会将根据会员服务进展发布会员公告、服务更新和申请说明。" />
+          <EmptyPanel title="暂无资料模板" text="会员材料模板、服务手册和公开说明将经审核后发布。" />
+        </div>
+      </MembershipSection>
+
+      <MembershipSection eyebrow="FAQ" title="常见问题">
+        <RowList rows={membershipFaq.map(([title, text]) => [title, text, "公开说明"])} />
       </MembershipSection>
 
       <MembershipSection eyebrow="Notice" title="会员身份与认证体系的关系" compact>

@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
+import { Breadcrumbs } from "@/components/Breadcrumbs";
 import { IconBadge, type IconBadgeName } from "@/components/IconBadge";
 import { PageHero } from "@/components/PageHero";
 import { InfoCard } from "@/components/Section";
@@ -34,6 +35,23 @@ const overview: Array<{ title: string; text: string; icon: IconBadgeName }> = [
   { title: "审核方式", text: "申请提交后进入人工审核，ITCA 可根据资料完整性和核验需要要求补充材料。", icon: "association" }
 ];
 
+const certificationRows = [
+  ["认证类型", "当前公开道教文化认证建档 / 道士认证建档申请入口，其他项目以协会公告为准。", "前台可用"],
+  ["认证等级", "申请人可申报等级，最终等级以材料、师承、经历和认证委员会审核意见为准。", "前台可用"],
+  ["材料要求", "身份资料、师承信息、证明文件、实践经历、推荐信息和声明确认。", "前台可用"],
+  ["审核 / 补件", "按材料板块进行审核；需补件时申请人通过申请进度页补充材料。", "流程处理"],
+  ["付款确认", "涉及费用时保留 Bank Transfer 付款与凭证审核闭环。", "流程处理"],
+  ["证书生成", "审核通过后生成证书记录、PDF 和公开核验所需最小字段。", "流程处理"],
+  ["PDF 下载", "申请人通过申请进度查询进入正式证书 PDF 下载，不在公开核验页提供下载。", "前台可用"],
+  ["公开核验", "公众使用证书编号与持证人姓名核验公开登记状态。", "前台可用"]
+];
+
+const certificationFaq = [
+  ["我现在应该点哪里？", "准备材料后进入认证建档申请；已提交则进入申请进度查询；已持证则进入证书公开核验。"],
+  ["未通过或需补件怎么办？", "通过申请进度查询查看审核反馈，并按页面提示补充资料或重新准备材料。"],
+  ["公开核验证明什么？", "只证明协会公开登记状态，不构成政府许可、行政执业资格或法定从业资质。"]
+];
+
 function CertificationSection({ eyebrow, title, intro, children, tone = "default", compact = false, afterHero = false }: { eyebrow?: string; title: string; intro?: string; children: ReactNode; tone?: "default" | "soft"; compact?: boolean; afterHero?: boolean }) {
   return (
     <section className={tone === "soft" ? "section-surface-soft" : "section-surface"}>
@@ -61,6 +79,32 @@ function CertificationIcon({ name }: { name: IconBadgeName }) {
   );
 }
 
+function RowList({ rows }: { rows: string[][] }) {
+  return (
+    <div className="grid min-w-0 gap-3">
+      {rows.map(([title, text, status], index) => (
+        <article className="grid min-w-0 gap-3 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-[0_10px_24px_rgba(31,42,40,0.035)] md:grid-cols-[10rem_minmax(0,1fr)_8rem] md:items-center" key={title}>
+          <div>
+            <p className="text-xs tracking-[0.22em] text-gold">0{index + 1}</p>
+            <h3 className="mt-2 text-base font-semibold text-porcelain">{title}</h3>
+          </div>
+          <p className="text-sm leading-7 text-[#5f5b52]">{text}</p>
+          <span className="rounded-full border border-[#d8d0bf] bg-[#fbf8ef] px-3 py-1 text-center text-xs font-semibold text-[#66594d]">{status}</span>
+        </article>
+      ))}
+    </div>
+  );
+}
+
+function EmptyPanel({ text, title }: { text: string; title: string }) {
+  return (
+    <div className="rounded-2xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-6 text-sm leading-7 text-[#5f5b52]">
+      <p className="font-serif text-2xl text-porcelain">{title}</p>
+      <p className="mt-3">{text}</p>
+    </div>
+  );
+}
+
 export default function CertificationPage() {
   return (
     <>
@@ -84,6 +128,8 @@ export default function CertificationPage() {
         visualTitle="认证资料与备案"
         atmosphere="credential"
       />
+
+      <Breadcrumbs items={[{ label: "认证体系" }]} />
 
       <CertificationSection eyebrow="Overview" title="认证说明" afterHero>
         <div className="grid min-w-0 gap-5 sm:grid-cols-2 lg:grid-cols-4">
@@ -128,6 +174,10 @@ export default function CertificationPage() {
         </div>
       </CertificationSection>
 
+      <CertificationSection eyebrow="Lifecycle" title="认证业务闭环" intro="认证体系首页需要直接回答适合申请什么、准备什么、如何查询、如何核验以及异常状态如何处理。">
+        <RowList rows={certificationRows} />
+      </CertificationSection>
+
       <CertificationSection eyebrow="Verification" title="证书公开核验方式" compact>
         <div className="grid min-w-0 gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,0.9fr)]">
           <InfoCard icon={<CertificationIcon name="query" />} title="官网公开核验" text="证书生成后，公众、合作方及第三方机构可通过证书编号与持证人姓名核验证书公开信息。查询结果仅展示公开核验所需资料。" />
@@ -135,6 +185,17 @@ export default function CertificationPage() {
             核验说明：证书公开核验不能查询申请进度，也不展示申请人的联系方式、上传材料、审核意见或道装证件照。申请人如需查看申请结果或证书打印信息，请前往申请查询。
           </div>
         </div>
+      </CertificationSection>
+
+      <CertificationSection eyebrow="Updates" title="认证公告与资料列表" intro="协会后续将发布认证公告、材料模板、审核规则和证书说明；暂无内容时保持公开说明状态。" tone="soft">
+        <div className="grid min-w-0 gap-5 lg:grid-cols-2">
+          <EmptyPanel title="暂无认证公告" text="协会将根据认证工作进展发布认证规则更新、材料清单调整和证书说明。" />
+          <EmptyPanel title="暂无材料模板" text="认证材料模板、示例说明和公开文件将经审核后发布。" />
+        </div>
+      </CertificationSection>
+
+      <CertificationSection eyebrow="FAQ" title="常见问题">
+        <RowList rows={certificationFaq.map(([title, text]) => [title, text, "公开说明"])} />
       </CertificationSection>
 
       <CertificationSection eyebrow="Scope" title="其他认证项目说明" tone="soft" compact>

@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { SupabaseConfigError, SupabaseRequestError, updateCertificationRecordDisposition } from "@/lib/supabase/server";
 import type { CertificationRecordDisposition } from "@/types/certification";
 
@@ -9,17 +10,14 @@ function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
 }
 
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-}
-
 function getRequestIp(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "certification:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: { recordDisposition?: CertificationRecordDisposition; recordDispositionNote?: string };
 

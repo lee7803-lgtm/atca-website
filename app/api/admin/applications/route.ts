@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { listApplications, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import type { ApplicationStatus, ApplicationType } from "@/types/application";
 
@@ -7,12 +7,8 @@ const validTypes: ApplicationType[] = ["personal_member", "organization_member"]
 const validStatuses: ApplicationStatus[] = ["submitted", "pending_review", "under_review", "need_more_info", "approved", "rejected", "archived"];
 
 export async function GET(request: Request) {
-  const session = request instanceof Request ? request.headers.get("cookie") : "";
-  const cookieValue = session?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
-
-  if (!isValidAdminSessionToken(cookieValue)) {
-    return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-  }
+  const auth = requireAdminApiPermission(request, "applications:read");
+  if (auth.response) return auth.response;
 
   const { searchParams } = new URL(request.url);
   const applicationType = searchParams.get("applicationType") as ApplicationType | null;

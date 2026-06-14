@@ -1,13 +1,10 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { SupabaseConfigError, SupabaseRequestError, updateCertificationContactInfo } from "@/lib/supabase/server";
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
-}
-
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
 }
 
 function getRequestIp(request: Request) {
@@ -19,8 +16,9 @@ function asString(value: unknown) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "certification:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   let body: unknown;
   try {

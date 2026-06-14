@@ -18,7 +18,7 @@ const items = [
 ];
 
 export default function AdminUsersPage() {
-  requireAdminPage();
+  requireAdminPage("users:read");
 
   return (
     <AdminV2Page

@@ -1,9 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
 import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
 import { AdminApiUnauthorizedError, listAdminApplications } from "@/lib/api/admin-applications";
 import { listPaymentOrders, PaymentApiRequestError, PaymentApiUnauthorizedError, type PaymentOrderListItem, type PaymentStatus } from "@/lib/api/payments";
 import { listNotificationLogs } from "@/lib/notifications/admin";
@@ -94,7 +93,7 @@ const sectionTone: Record<WorkbenchSection, string> = {
 };
 
 export default async function AdminWorkbenchPage() {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("workbench:read");
 
   const [memberResult, certificationResult, paymentResult, notificationResult] = await Promise.all([
     getMemberTodos(),

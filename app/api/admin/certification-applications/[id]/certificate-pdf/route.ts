@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { CertificatePdfFontError, generateCertificatePdf } from "@/lib/certificates/pdf";
 import { recordCertificatePdfGeneratedNotification } from "@/lib/notifications/workflows";
 import {
@@ -25,10 +26,6 @@ function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
 }
 
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-}
-
 async function getCertificatePhoto(application: Awaited<ReturnType<typeof getCertificationApplicationById>>) {
   if (!application) return null;
   const storagePath = application.certificatePhotoPath || application.supportingDocuments.find((attachment) => attachment.fieldName === "photo" && attachment.storagePath)?.storagePath || "";
@@ -45,8 +42,9 @@ async function getCertificatePhoto(application: Awaited<ReturnType<typeof getCer
 }
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "certification:certificate");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   try {
     const application = await getCertificationApplicationById(params.id);
@@ -95,7 +93,8 @@ export async function POST(request: Request, { params }: { params: { id: string 
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
+  const auth = requireAdminApiPermission(request, "certification:read");
+  if (auth.response) return auth.response;
 
   try {
     const stored = await findCertificatePdfStorageByApplicationId(params.id);

@@ -1,19 +1,12 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { createCertificationAttachmentSignedUrl, getCertificationApplicationById, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 
 export const runtime = "nodejs";
 
-function getAdminCookie(request: Request) {
-  return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
-}
-
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-}
-
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
+  const auth = requireAdminApiPermission(request, "certification:read");
+  if (auth.response) return auth.response;
 
   try {
     const application = await getCertificationApplicationById(params.id);

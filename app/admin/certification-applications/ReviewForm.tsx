@@ -281,6 +281,7 @@ export function CertificationReviewForm({
       setMessage("请先完成核定传承体系与核定认证等级后再保存审核通过状态。");
       return;
     }
+    if (!window.confirm("确认保存认证审核状态？该操作会影响申请流转并写入后台记录。")) return;
     request({ status }, "审核状态、内部备注和申请人反馈已保存。");
   };
   const generateCertificate = () => {
@@ -289,11 +290,21 @@ export function CertificationReviewForm({
       setMessage(generateBlockedReason || "当前申请暂不能生成证书。");
       return;
     }
+    if (!window.confirm("确认生成证书记录？生成后审核流程将锁定，后续需通过证书状态维护处理。")) return;
     request({ action: "generate_certificate", generateCertificate: true }, "证书记录已生成。");
   };
-  const markDelivered = () => request({ action: "mark_delivered" }, "证书已标记为已下发。");
-  const correctNotDelivered = () => request({ action: "correct_not_delivered" }, "证书下发状态已更正为未下发。");
-  const archive = () => request({ action: "archive" }, "申请已建档。");
+  const markDelivered = () => {
+    if (!window.confirm("确认标记证书已下发？")) return;
+    request({ action: "mark_delivered" }, "证书已标记为已下发。");
+  };
+  const correctNotDelivered = () => {
+    if (!window.confirm("确认更正为未下发？")) return;
+    request({ action: "correct_not_delivered" }, "证书下发状态已更正为未下发。");
+  };
+  const archive = () => {
+    if (!window.confirm("确认将申请建档归档？")) return;
+    request({ action: "archive" }, "申请已建档。");
+  };
 
   return (
     <section className="scroll-mt-6 rounded-2xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate sm:p-8" id="review-processing">
@@ -473,6 +484,7 @@ export function CertificateStatusForm({ applicationId, certificate }: { applicat
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const save = async () => {
+    if (!window.confirm("确认保存证书状态？暂停、撤销或有效期变更会影响公开核验结果。")) return;
     setIsSaving(true);
     setMessage("");
 

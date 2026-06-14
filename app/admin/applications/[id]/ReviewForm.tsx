@@ -83,6 +83,7 @@ export function ReviewForm({
       setMessage("请填写需要申请人补充或修正的资料说明。");
       return;
     }
+    if (!window.confirm("确认保存会员申请复审状态？该操作会影响申请流转并写入后台记录。")) return;
     setIsSaving(true);
     setMessage("");
 
@@ -174,6 +175,7 @@ export function MemberMaterialReviewField({
       ...currentReview,
       [itemKey]: { status, note: note.trim() }
     };
+    if (!window.confirm("确认保存该材料审核项？")) return;
     setIsSaving(true);
     setMessage("");
 
@@ -255,6 +257,7 @@ export function MemberInitialReviewForm({
       ...currentReview,
       initialReview: { status, note: note.trim() }
     };
+    if (!window.confirm("确认保存会员申请初审状态？")) return;
     setIsSaving(true);
     setMessage("");
 
@@ -342,6 +345,7 @@ export function MemberStatusForm({ application, disabled = false, disabledReason
       setMessage(disabledReason || "复审通过后才能维护会员编号、有效期和会员业务状态。");
       return;
     }
+    if (!window.confirm("确认保存会员有效期和业务状态？该操作会影响会员公开状态和后台记录。")) return;
     setIsSaving(true);
     setMessage("");
 

@@ -52,6 +52,10 @@ export function CreatePaymentOrderForm({ sourceId, sourceType, title = "生成�
       setIsSaving(false);
       return;
     }
+    if (!window.confirm("确认生成银行电汇支付订单？该操作会写入支付订单并影响申请流转。")) {
+      setIsSaving(false);
+      return;
+    }
 
     try {
       const response = await fetch("/api/admin/payments", {

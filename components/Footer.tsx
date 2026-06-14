@@ -42,8 +42,8 @@ export function Footer() {
         <div>
           <p className="border-b border-warmGold/20 pb-2 text-sm font-semibold text-warmGold">关于与服务</p>
           <div className="mt-3 grid grid-cols-1 gap-x-4 gap-y-2 text-sm text-white/70 sm:grid-cols-2 lg:grid-cols-2">
-            <Link href="/intro">协会介绍</Link>
-            <Link href="/rules">规章制度</Link>
+            <Link href="/intro">关于协会</Link>
+            <Link href="/rules">治理公开</Link>
             <Link href="/organization">组织架构</Link>
             <Link href="/contact">联系协会</Link>
             <Link href="/membership">会员申请</Link>
@@ -54,7 +54,7 @@ export function Footer() {
             <Link href="/certificate-query">证书公开核验</Link>
             <Link href="/member-query">会员公开核验</Link>
             <Link href="/application/query">申请进度查询</Link>
-            <Link href="/account/login">登录 / 注册</Link>
+            <Link href="/account/login">账号建设中</Link>
             <Link href="/admin">管理入口</Link>
           </div>
         </div>

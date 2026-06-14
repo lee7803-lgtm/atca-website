@@ -1,10 +1,8 @@
 import Link from "next/link";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { AdminLogoutButton } from "../AdminLogoutButton";
 import { NotificationSendAction } from "./NotificationSendAction";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
 import { listNotificationLogs } from "@/lib/notifications/admin";
 import { getEmailProviderConfig, isEmailAllowedTestRecipient } from "@/lib/notifications/email/config";
 import { formatNotificationChannel, formatNotificationStatus, formatNotificationType, maskEmail, maskPhone } from "@/lib/notifications/format";
@@ -19,7 +17,7 @@ export const metadata: Metadata = {
 };
 
 export default async function AdminNotificationsPage() {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("notifications:read");
 
   let logs: NotificationLogRecord[] = [];
   let message = "";

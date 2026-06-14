@@ -18,7 +18,7 @@ const items = [
 ];
 
 export default function AdminDataCenterPage() {
-  requireAdminPage();
+  requireAdminPage("dataCenter:read");
 
   return (
     <AdminV2Page

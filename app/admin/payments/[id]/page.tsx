@@ -1,10 +1,10 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { notFound, redirect } from "next/navigation";
-import { cookies } from "next/headers";
 import { PaymentStatusActions } from "./PaymentStatusActions";
 import { PaymentReceiptActions } from "./PaymentReceiptActions";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
+import { hasAdminPermission } from "@/lib/admin/rbac";
 import { getPaymentOrder, PaymentApiRequestError, PaymentApiUnauthorizedError, type PaymentEvent, type PaymentOrderDetail, type PaymentStatus } from "@/lib/api/payments";
 import { formatPaymentProvider } from "@/lib/payment-display";
 
@@ -33,7 +33,8 @@ const businessTypeText: Record<string, string> = {
 };
 
 export default async function AdminPaymentDetailPage({ params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  const session = requireAdminPage("payments:read");
+  const canWritePayments = hasAdminPermission(session, "payments:write");
 
   let order: PaymentOrderDetail | null = null;
   let message = "";
@@ -156,8 +157,16 @@ export default async function AdminPaymentDetailPage({ params }: { params: { id:
         </div>
 
         <div className="grid gap-6">
-          <PaymentReceiptActions hasReceipt={Boolean(order.receiptFileName)} orderId={order.id} reviewStatus={order.receiptReviewStatus} />
-          <PaymentStatusActions orderId={order.id} status={order.status} />
+          {canWritePayments ? (
+            <>
+              <PaymentReceiptActions hasReceipt={Boolean(order.receiptFileName)} orderId={order.id} reviewStatus={order.receiptReviewStatus} />
+              <PaymentStatusActions orderId={order.id} status={order.status} />
+            </>
+          ) : (
+            <section className="rounded-2xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-6 text-sm leading-7 text-[#5f5b52]">
+              当前角色只有查看权限，不能审核凭证、确认收款或修改支付状态。
+            </section>
+          )}
         </div>
       </div>
     </section>

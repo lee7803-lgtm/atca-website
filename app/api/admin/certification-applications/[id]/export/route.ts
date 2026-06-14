@@ -1,12 +1,8 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { findCertificateByApplicationId, getCertificationApplicationById, isSupabaseSchemaError, SupabaseConfigError, SupabaseRequestError } from "@/lib/supabase/server";
 import { formatCertificationApplicationStatus, formatSupplementStatusChange } from "@/lib/status-labels";
 import { materialReviewItemLabels, materialReviewStatusLabels, type CertificationAttachment } from "@/types/certification";
-
-function getAdminCookie(request: Request) {
-  return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
-}
 
 function escapeHtml(value: string | number | boolean | null | undefined) {
   return String(value ?? "")
@@ -85,9 +81,8 @@ function materialReviewFields(materialReview: Record<string, string>) {
 }
 
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) {
-    return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-  }
+  const auth = requireAdminApiPermission(request, "certification:export");
+  if (auth.response) return auth.response;
 
   try {
     const application = await getCertificationApplicationById(params.id);

@@ -69,6 +69,7 @@ export function AdminContactCorrectionPanel({
       }
     }
 
+    if (!window.confirm("确认保存联系方式修正？该操作会影响后台联系资料，并写入审计记录。")) return;
     setIsSaving(true);
     setMessage("");
     try {

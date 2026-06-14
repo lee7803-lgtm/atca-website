@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { createAuditLog } from "@/lib/admin/audit-logs";
 import { getNotificationLogById, updateNotificationSendResult } from "@/lib/notifications/admin";
 import { getEmailProviderConfig } from "@/lib/notifications/email/config";
@@ -17,17 +18,14 @@ function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
 }
 
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-}
-
 function getRequestIp(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
 }
 
 export async function POST(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "notifications:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
 
   if (!uuidPattern.test(params.id)) {
     return NextResponse.json({ success: false, message: "通知记录不存在。" }, { status: 404 });

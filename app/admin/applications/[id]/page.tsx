@@ -8,8 +8,10 @@ import { RelatedNotificationRecords, RelatedPaymentRecords } from "@/components/
 import { AdminContactCorrectionPanel } from "@/components/AdminContactCorrectionPanel";
 import { AdminRecordDispositionPanel } from "@/components/AdminRecordDispositionPanel";
 import { CreatePaymentOrderForm } from "@/app/admin/payments/CreatePaymentOrderForm";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
 import { createAuditLog } from "@/lib/admin/audit-logs";
+import { requireAdminPage } from "@/lib/admin/require-admin";
+import { hasAdminPermission } from "@/lib/admin/rbac";
 import { AdminApiUnauthorizedError, getAdminApplication } from "@/lib/api/admin-applications";
 import { listRelatedPaymentOrders, PaymentApiRequestError, type PaymentOrderListItem } from "@/lib/api/payments";
 import { listRelatedNotificationLogs } from "@/lib/notifications/admin";
@@ -40,7 +42,7 @@ const statusText: Record<ApplicationStatus, string> = {
 async function collectMemberMasterDataAction(formData: FormData) {
   "use server";
 
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("applications:write");
   const name = String(formData.get("name") || "").trim();
   if (!name) return;
   const entry = await createMasterDataEntry({
@@ -85,7 +87,9 @@ function isValidUuid(value: string) {
 
 export default async function AdminApplicationDetailPage({ params }: { params: { id: string } }) {
   if (!isValidUuid(params.id)) notFound();
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  const session = requireAdminPage("applications:read");
+  const canWriteApplications = hasAdminPermission(session, "applications:write");
+  const canWritePayments = hasAdminPermission(session, "payments:write");
 
   let application = null;
   try {
@@ -168,38 +172,40 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="联系人" value={application.contactName || application.name} />
             <DetailItem label="国家 / 地区" value={application.country} />
             <DetailItem label="机构类型" value={application.organizationType || "不适用"} />
-            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={false} itemKey="identity" review={materialReview} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={!canWriteApplications} disabledReason={!canWriteApplications ? "当前角色只有查看权限。" : undefined} itemKey="identity" review={materialReview} />
           </DetailSection>
           <DetailSection title="联系方式资料">
             <DetailItem label="手机 / WhatsApp" value={application.phone} />
             <DetailItem label="邮箱" value={application.email} />
-            <details className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
-              <summary className="cursor-pointer text-sm font-semibold text-[#7F1D1D]">修改 / 更正联系方式</summary>
-              <div className="mt-4">
-                <AdminContactCorrectionPanel
-                  actionUrl={`/api/admin/applications/${application.id}/contact`}
-                  disposition={application.recordDisposition}
-                  fields={[
-                    { key: "name", label: "姓名 / 机构名称", required: true },
-                    { key: "contactName", label: "联系人", required: true },
-                    { key: "phone", label: "手机 / WhatsApp", required: true },
-                    { key: "email", label: "邮箱", required: true, type: "email" },
-                    { key: "country", label: "国家 / 地区", required: true, optionKind: "country" },
-                    { key: "organizationType", label: "机构类型", optionKind: "organizationType" }
-                  ]}
-                  title="联系方式更正"
-                  values={{
-                    name: application.name,
-                    contactName: application.contactName || application.name,
-                    phone: application.phone,
-                    email: application.email,
-                    country: application.country,
-                    organizationType: application.organizationType || ""
-                  }}
-                />
-              </div>
-            </details>
-            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.identity.status !== "approved"} disabledReason="请先通过基础身份资料审核。" itemKey="contact" review={materialReview} />
+            {canWriteApplications ? (
+              <details className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
+                <summary className="cursor-pointer text-sm font-semibold text-[#7F1D1D]">修改 / 更正联系方式</summary>
+                <div className="mt-4">
+                  <AdminContactCorrectionPanel
+                    actionUrl={`/api/admin/applications/${application.id}/contact`}
+                    disposition={application.recordDisposition}
+                    fields={[
+                      { key: "name", label: "姓名 / 机构名称", required: true },
+                      { key: "contactName", label: "联系人", required: true },
+                      { key: "phone", label: "手机 / WhatsApp", required: true },
+                      { key: "email", label: "邮箱", required: true, type: "email" },
+                      { key: "country", label: "国家 / 地区", required: true, optionKind: "country" },
+                      { key: "organizationType", label: "机构类型", optionKind: "organizationType" }
+                    ]}
+                    title="联系方式更正"
+                    values={{
+                      name: application.name,
+                      contactName: application.contactName || application.name,
+                      phone: application.phone,
+                      email: application.email,
+                      country: application.country,
+                      organizationType: application.organizationType || ""
+                    }}
+                  />
+                </div>
+              </details>
+            ) : null}
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={!canWriteApplications || materialReview.identity.status !== "approved"} disabledReason={!canWriteApplications ? "当前角色只有查看权限。" : "请先通过基础身份资料审核。"} itemKey="contact" review={materialReview} />
           </DetailSection>
           <DetailSection title="会员类型与申请信息">
             <DetailItem label="申请类型" value={typeText[application.applicationType]} />
@@ -212,13 +218,13 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="更新时间" value={formatDateTime(application.updatedAt)} />
             <DetailItem label="个人简介 / 机构简介" value={application.profile} />
             <DetailItem label="申请理由 / 合作意向" value={application.purpose} />
-            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.contact.status !== "approved"} disabledReason="请先通过联系方式资料审核。" itemKey="membership" review={materialReview} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={!canWriteApplications || materialReview.contact.status !== "approved"} disabledReason={!canWriteApplications ? "当前角色只有查看权限。" : "请先通过联系方式资料审核。"} itemKey="membership" review={materialReview} />
           </DetailSection>
           <DetailSection title="引荐人 / 所属宫观 / 机构信息">
             <DetailItem label="引荐人 / 推荐人" value={application.referrerName || "未填写"} />
             <DetailItem label="引荐人联系方式" value={application.referrerContact || "未填写"} />
             <DetailItem label="推荐说明" value={application.referrerNote || "未填写"} />
-            {application.referrerName ? (
+            {application.referrerName && canWriteApplications ? (
               <form action={collectMemberMasterDataAction} className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
                 <input name="name" type="hidden" value={application.referrerName} />
                 <input name="contact" type="hidden" value={application.referrerContact} />
@@ -228,12 +234,12 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
                 </button>
               </form>
             ) : null}
-            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.membership.status !== "approved"} disabledReason="请先通过会员类型与申请信息审核。" itemKey="referral" review={materialReview} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={!canWriteApplications || materialReview.membership.status !== "approved"} disabledReason={!canWriteApplications ? "当前角色只有查看权限。" : "请先通过会员类型与申请信息审核。"} itemKey="referral" review={materialReview} />
           </DetailSection>
           <DetailSection title="上传材料 / 附件资料">
             <DetailItem label="附件状态" value="会员申请当前未启用独立附件上传；如需材料补充，请通过“需补充资料”流程引导申请人在线补交。" />
             <DetailItem label="补充资料" value={application.supplementSubmittedAt ? `已补充：${formatDateTime(application.supplementSubmittedAt)}` : "暂无补充资料记录"} />
-            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={materialReview.referral.status !== "approved"} disabledReason="请先通过引荐人 / 所属宫观 / 机构信息审核。" itemKey="materials" review={materialReview} />
+            <MemberMaterialReviewField adminNote={application.adminNote} applicationId={application.id} currentStatus={application.status} disabled={!canWriteApplications || materialReview.referral.status !== "approved"} disabledReason={!canWriteApplications ? "当前角色只有查看权限。" : "请先通过引荐人 / 所属宫观 / 机构信息审核。"} itemKey="materials" review={materialReview} />
           </DetailSection>
           {memberMaterialReviewKeys.some((key) => materialReview[key].status === "need_more_info") ? (
             <DetailSection title="补充资料要求">
@@ -253,14 +259,16 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="状态备注" value={application.memberStatusNote || "暂无备注"} />
           </DetailSection>
           <DetailSection id="review-processing" title="初审处理区">
-            <MemberInitialReviewForm adminNote={application.adminNote} applicationId={application.id} blockers={materialReviewBlockers} currentStatus={application.status} review={materialReview} />
+            {canWriteApplications ? <MemberInitialReviewForm adminNote={application.adminNote} applicationId={application.id} blockers={materialReviewBlockers} currentStatus={application.status} review={materialReview} /> : <ReadOnlyNotice />}
           </DetailSection>
           <DetailSection id="payment-processing" title="付费通知 / 支付订单区">
             <p className="text-sm leading-7 text-[#5f5b52]">付款方式：银行电汇 / Bank Transfer。初审通过后才能生成支付订单。</p>
             {paymentOrderBlockers.length > 0 ? (
               <BlockingNotice items={paymentOrderBlockers} title="暂不能生成支付订单" />
-            ) : (
+            ) : canWritePayments ? (
               <CreatePaymentOrderForm sourceId={application.id} sourceType="application" />
+            ) : (
+              <ReadOnlyNotice text="当前角色不能生成支付订单；需财务审核员或超级管理员处理。" />
             )}
           </DetailSection>
           {hasPaymentOrder ? (
@@ -270,11 +278,11 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             </DetailSection>
           ) : null}
           <DetailSection title="复审处理区">
-            <ReviewForm approveBlockers={finalReviewBlockers} hiddenAdminNoteSuffix={materialReviewMarker} applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} />
+            {canWriteApplications ? <ReviewForm approveBlockers={finalReviewBlockers} hiddenAdminNoteSuffix={materialReviewMarker} applicationId={application.id} initialAdminNote={application.adminNote} initialStatus={application.status} /> : <ReadOnlyNotice />}
           </DetailSection>
           <MemberValidityPanel application={application} />
           <DetailSection id="member-status-processing" title="会员编号 / 有效期 / 状态维护">
-            <MemberStatusForm application={application} disabled={memberMaintenanceBlocked} disabledReason={memberMaintenanceReason} />
+            {canWriteApplications ? <MemberStatusForm application={application} disabled={memberMaintenanceBlocked} disabledReason={memberMaintenanceReason} /> : <ReadOnlyNotice />}
           </DetailSection>
           <RelatedNotificationRecords logs={relatedNotifications} message={notificationMessage} />
           <RelatedPaymentRecords message={paymentMessage} orders={relatedPayments} />
@@ -282,13 +290,15 @@ export default async function AdminApplicationDetailPage({ params }: { params: {
             <DetailItem label="审计记录" value="联系方式修正、记录治理、支付确认、基础资料收录等关键写操作会写入 audit_logs。可前往操作记录页按申请编号或资源编号追踪。" />
             <Link className="rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-center text-sm font-semibold text-ink" href="/admin/audit-logs">查看操作记录</Link>
           </DetailSection>
-          <AdminRecordDispositionPanel
-            actionUrl={`/api/admin/applications/${application.id}/record-disposition`}
-            disposition={application.recordDisposition}
-            note={application.recordDispositionNote}
-            updatedAt={application.recordDispositionAt}
-            updatedBy={application.recordDispositionBy}
-          />
+          {canWriteApplications ? (
+            <AdminRecordDispositionPanel
+              actionUrl={`/api/admin/applications/${application.id}/record-disposition`}
+              disposition={application.recordDisposition}
+              note={application.recordDispositionNote}
+              updatedAt={application.recordDispositionAt}
+              updatedBy={application.recordDispositionBy}
+            />
+          ) : null}
         </div>
       </div>
     </section>
@@ -479,6 +489,14 @@ function DetailSection({ children, id, title }: { children: ReactNode; id?: stri
       <h2 className="font-serif text-2xl text-porcelain">{title}</h2>
       <div className="mt-5 grid gap-4">{children}</div>
     </section>
+  );
+}
+
+function ReadOnlyNotice({ text = "当前角色只有查看权限，不能执行本区操作。" }: { text?: string }) {
+  return (
+    <div className="rounded-xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+      {text}
+    </div>
   );
 }
 

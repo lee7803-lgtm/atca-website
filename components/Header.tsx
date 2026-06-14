@@ -17,7 +17,7 @@ const navItems = [
     label: "关于协会",
     children: [
       { href: "/intro", label: "协会介绍" },
-      { href: "/rules", label: "规章制度" },
+      { href: "/rules", label: "治理公开" },
       { href: "/organization", label: "组织架构" },
       { href: "/contact", label: "联系协会" }
     ]
@@ -126,16 +126,16 @@ export function Header() {
 
         <div className="ml-auto flex shrink-0 items-center gap-2">
           <Link
-            href="/account/login"
+            href="/verification"
             className="rounded-xl border border-[#d8d0bf] bg-white px-3 py-2 text-sm font-medium text-ink shadow-[0_10px_22px_rgba(80,54,36,0.06)] transition hover:border-[#7F1D1D] hover:text-[#7F1D1D] sm:px-4"
           >
-            登录
+            查询核验
           </Link>
           <Link
             href="/account/login"
             className="rounded-xl bg-ritualRed px-3 py-2 text-sm font-medium text-white shadow-[0_10px_22px_rgba(80,54,36,0.1)] transition hover:bg-porcelain sm:px-4"
           >
-            注册
+            账号建设中
           </Link>
         </div>
       </div>

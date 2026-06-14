@@ -34,6 +34,22 @@ export function AdminV2Page({
           {notice}
         </div>
       ) : null}
+      <AdminSectionCard title="模块说明与当前状态">
+        <div className="mt-5 grid gap-4 lg:grid-cols-[1fr_1fr_auto]">
+          <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+            <p className="font-semibold text-porcelain">谁使用</p>
+            <p className="mt-2">授权管理员、审核员、内容维护人员、财务审核员、资料中心管理员或只读观察员按权限使用。</p>
+          </div>
+          <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+            <p className="font-semibold text-porcelain">影响范围</p>
+            <p className="mt-2">可能影响前台公开展示、申请流转、通知记录、证书状态、资料公开字段或审计记录。</p>
+          </div>
+          <div className="rounded-xl border border-[#d8d0bf] bg-white p-4 text-sm leading-7 text-[#5f5b52]">
+            <p className="font-semibold text-porcelain">筛选与搜索</p>
+            <p className="mt-2">列表筛选 / 搜索预留；真实查询接入后按模块权限开放。</p>
+          </div>
+        </div>
+      </AdminSectionCard>
       {items ? <AdminV2CardGrid items={items} /> : null}
       {children}
     </div>
@@ -42,22 +58,29 @@ export function AdminV2Page({
 
 export function AdminV2CardGrid({ items }: { items: AdminV2Item[] }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
+    <AdminSectionCard title="数据列表 / 功能边界">
+      <div className="mt-5 grid gap-3">
       {items.map((item) => (
-        <article className="rounded-xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate" key={item.title}>
-          <div className="flex items-start justify-between gap-3">
-            <h2 className="font-serif text-2xl text-porcelain">{item.title}</h2>
+        <article className="grid gap-4 rounded-xl border border-[#e4ded0] bg-white/94 p-5 shadow-aureate lg:grid-cols-[12rem_minmax(0,1fr)_9rem] lg:items-center" key={item.title}>
+          <div>
             {item.badge ? <AdminStatusBadge tone="neutral">{item.badge}</AdminStatusBadge> : null}
+            <h2 className="mt-3 font-serif text-2xl text-porcelain">{item.title}</h2>
           </div>
-          <p className="mt-3 text-sm leading-7 text-[#5f5b52]">{item.text}</p>
+          <p className="text-sm leading-7 text-[#5f5b52]">{item.text}</p>
           {item.href ? (
-            <Link className="mt-5 inline-flex rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={item.href}>
+            <Link className="inline-flex justify-center rounded-full border border-[#d8d0bf] bg-white px-4 py-2 text-xs font-semibold text-ink transition hover:border-[#7F1D1D] hover:text-[#7F1D1D]" href={item.href}>
               进入模块
             </Link>
-          ) : null}
+          ) : (
+            <span className="rounded-full border border-dashed border-[#d8d0bf] bg-[#fbf8ef] px-4 py-2 text-center text-xs font-semibold text-[#66594d]">预留入口</span>
+          )}
         </article>
       ))}
-    </div>
+      </div>
+      <div className="mt-4 rounded-xl border border-dashed border-[#d8d0bf] bg-[#fbf8ef] p-4 text-sm leading-7 text-[#5f5b52]">
+        暂无更多实时数据。后续接入数据库列表后，应显示空状态、筛选、搜索、分页、发布状态和审计提示。
+      </div>
+    </AdminSectionCard>
   );
 }
 
@@ -103,4 +126,3 @@ export function AdminV2SimpleTable({ columns, rows }: { columns: string[]; rows:
     </AdminSectionCard>
   );
 }
-

@@ -14,6 +14,16 @@ export type V2Card = {
   title: string;
 };
 
+export type V2StructuredItem = {
+  badge?: string;
+  href?: string;
+  meta?: string;
+  status?: string;
+  text: string;
+  title: string;
+  updatedAt?: string;
+};
+
 export type V2Section = {
   afterHero?: boolean;
   actions?: V2Action[];
@@ -34,9 +44,16 @@ export type V2PageData = {
   eyebrow: string;
   imagePosition?: string;
   imageSrc?: string;
+  businessEntries?: V2Action[];
   intro: string;
+  cmsFields?: string[];
+  emptyStates?: string[];
+  featuredItems?: V2StructuredItem[];
+  latestItems?: V2StructuredItem[];
   metadataTitle: string;
+  resourceItems?: V2StructuredItem[];
   sections: V2Section[];
+  subChannelItems?: V2StructuredItem[];
   subtitle?: string;
   title: string;
   visualDescription?: string;
@@ -124,15 +141,16 @@ export const accountModules: V2Card[] = [
 
 export const rbacRoles = [
   { key: "super_admin", title: "超级管理员", text: "负责系统配置、角色分配、关键记录处置和全部后台模块管理。" },
-  { key: "secretariat_admin", title: "秘书处管理员", text: "统筹申请受理、跨部门协调、内容确认和秘书处日常运营。" },
-  { key: "member_admin", title: "会员管理员", text: "管理个人会员、机构会员、会员有效期、续期和会员公开查询资料。" },
-  { key: "certification_admin", title: "认证管理员", text: "处理认证申请、材料审核、证书签发、证书状态和公开核验资料。" },
-  { key: "finance_admin", title: "财务管理员", text: "处理支付订单、收据、人工确认、退款备注和财务导出。" },
-  { key: "content_admin", title: "内容管理员", text: "维护介绍、规章、信仰、教义、文化交流和公告等前台内容。" },
-  { key: "development_admin", title: "发展中心管理员", text: "维护各发展中心、课程活动和合作项目资料。" },
+  { key: "content_admin", title: "内容管理员", text: "维护频道首页、公告、栏目模块、推荐位和发布审核队列。" },
+  { key: "application_reviewer", title: "申请审核员", text: "处理个人会员、机构会员申请、补件、初审复审和会员状态维护。" },
+  { key: "finance_admin", title: "财务审核员", text: "处理支付订单、收据、人工确认、退款备注和财务导出。" },
+  { key: "certification_admin", title: "证书管理员", text: "处理认证申请、材料审核、证书签发、证书状态和公开核验资料。" },
   { key: "data_center_admin", title: "资料中心管理员", text: "审核机构、个人、传承、课程、活动和基地等公开资料。" },
-  { key: "notification_admin", title: "通知管理员", text: "维护通知模板、发送记录、失败重试和通知策略。" },
-  { key: "readonly_auditor", title: "只读审计员", text: "查看后台总览、操作日志、记录状态和必要审计字段。" }
+  { key: "readonly_observer", title: "只读观察员", text: "查看后台总览、操作日志、记录状态和必要审计字段，不执行写操作。" },
+  { key: "secretariat_admin", title: "秘书处管理员", text: "后续预留：统筹申请受理、跨部门协调、内容确认和秘书处日常运营。" },
+  { key: "member_admin", title: "会员管理员", text: "后续预留：管理个人会员、机构会员、会员有效期、续期和会员公开查询资料。" },
+  { key: "development_admin", title: "发展中心管理员", text: "维护各发展中心、课程活动和合作项目资料。" },
+  { key: "notification_admin", title: "通知管理员", text: "维护通知模板、发送记录、失败重试和通知策略。" }
 ];
 
 export const rbacPermissionModules = [
@@ -170,12 +188,12 @@ export const v2Pages: Record<string, V2PageData> = {
       {
         afterHero: true,
         actions: [
-          { href: "/rules", label: "查看规章制度" },
+          { href: "/rules", label: "查看治理公开" },
           { href: "/organization", label: "组织架构", variant: "secondary" },
           { href: "/contact", label: "联系协会", variant: "secondary" }
         ],
         eyebrow: "Channel Guide",
-        intro: "本频道承接协会介绍、规章制度、组织架构和联系协会，不把制度页作为独立一级频道。",
+        intro: "本频道承接协会介绍、治理公开、组织架构和联系协会。制度公开内容归属关于协会栏目下统一呈现。",
         notice: "关于协会内容用于公开说明协会门户、会员服务、认证建档、文化交流和合作联系。公开信息以官网发布版本和协会秘书处确认为准，不作超出协会服务范围的资质表述。",
         title: "栏目导语"
       },
@@ -198,8 +216,8 @@ export const v2Pages: Record<string, V2PageData> = {
           { href: "/rules", icon: "value", title: "隐私与资料公开", text: "说明公开字段授权、资料更正、撤回公开、投诉申诉和敏感材料处理原则。" }
         ],
         eyebrow: "Governance",
-        intro: "规章制度作为关于协会下的治理公开内容，提供制度分类、版本和适用说明。",
-        title: "规章制度",
+        intro: "治理公开作为关于协会下的制度公开内容，提供制度分类、版本和适用说明。",
+        title: "治理公开",
         tone: "soft"
       },
       {
@@ -248,10 +266,10 @@ export const v2Pages: Record<string, V2PageData> = {
   rules: {
     actions: [{ href: "/intro", label: "返回关于协会" }, { href: "/verification", label: "查询核验", variant: "secondary" }],
     atmosphere: "credential",
-    eyebrow: "About ITCA / Rules",
+    eyebrow: "About ITCA / Governance",
     imageSrc: "/images/itca/03-service-certification.png",
-    intro: "本页为“关于协会 / 规章制度”下的制度公开页，保留 `/rules` 历史访问路径，但不作为顶部一级频道。",
-    metadataTitle: "关于协会 · 规章制度｜国际道教与文化协会 ITCA",
+    intro: "本页为关于协会栏目下的治理公开页，集中说明制度分类、适用边界和修订原则；`/rules` 历史访问路径继续保留。",
+    metadataTitle: "关于协会 · 治理公开｜国际道教与文化协会 ITCA",
     sections: [
       {
         afterHero: true,
@@ -260,9 +278,9 @@ export const v2Pages: Record<string, V2PageData> = {
           { href: "/application/query", label: "申请进度查询", variant: "secondary" },
           { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }
         ],
-        intro: "规章制度并入关于协会频道，用于公开治理、会员、认证、核验、资料公开、合作和投诉申诉等规则。",
-        notice: "历史路径 `/rules` 继续保留，方便旧链接访问。后续如规范为 `/about/rules`，应保留兼容跳转说明。",
-        title: "关于协会 · 规章制度"
+        intro: "治理公开用于说明协会治理、会员、认证、核验、资料公开、合作和投诉申诉等规则。",
+        notice: "历史路径 `/rules` 继续保留，方便旧链接访问。页面内容归属关于协会栏目，不作为独立一级频道。",
+        title: "关于协会 · 治理公开"
       },
       {
         cards: [
@@ -274,7 +292,7 @@ export const v2Pages: Record<string, V2PageData> = {
           { icon: "cooperation", title: "合作项目管理", text: "合作申请、项目确认、资料发布和活动记录以协会秘书处正式确认为准。" }
         ],
         eyebrow: "Governance",
-        intro: "规章制度为申请、认证、会员、核验和合作提供统一说明，减少信息不对称。",
+        intro: "制度公开为申请、认证、会员、核验和合作提供统一说明，减少信息不对称。",
         title: "制度分类"
       },
       {
@@ -289,8 +307,8 @@ export const v2Pages: Record<string, V2PageData> = {
       }
     ],
     boundaryNotices: [{ title: "认证边界说明", text: publicBoundaries.certification }],
-    title: "关于协会 · 规章制度",
-    visualDescription: "规章制度是关于协会下的治理公开内容，用于说明申请、认证、会员、核验和合作事项的处理原则。",
+    title: "关于协会 · 治理公开",
+    visualDescription: "治理公开是关于协会下的制度公开内容，用于说明申请、认证、会员、核验和合作事项的处理原则。",
     visualSeal: "制度",
     visualTitle: "制度与边界"
   },
@@ -400,10 +418,26 @@ export const v2Pages: Record<string, V2PageData> = {
   development: {
     actions: [{ href: "/cooperation", label: "联系合作" }, { href: "/data", label: "资料中心", variant: "secondary" }],
     atmosphere: "standard",
+    businessEntries: [
+      { href: "/cooperation", label: "提交合作意向" },
+      { href: "/data", label: "查看资料沉淀", variant: "secondary" },
+      { href: "/membership", label: "了解会员体系", variant: "secondary" }
+    ],
     eyebrow: "Development Centers",
+    featuredItems: [
+      { badge: "治理", meta: "秘书处统筹 / 中心负责人确认 / 审核后发布", status: "运营规则", text: "发展中心项目、活动、资料、合作机构和成果记录经确认后公开，重要内容进入审核后发布。", title: "发展中心管理方式" },
+      { badge: "合作", href: "/cooperation", meta: "入驻、项目发布、资料沉淀", status: "开放沟通", text: "合作方可提交主体资料、项目说明、公开展示范围和联系人，由秘书处确认是否进入后续流程。", title: "合作与入驻路径" },
+      { badge: "成果", href: "/data", meta: "资料中心承接公开成果", status: "可公开", text: "课程、活动、基地、机构和项目成果可沉淀为资料中心公开资料，敏感字段不公开。", title: "成果展示路径" }
+    ],
     imageSrc: "/images/itca/06-home-international-cooperation.png",
     intro: "发展中心是协会推动文化研究、交流合作、教育传播、项目孵化与社会服务的专业化平台，服务国际道教文化传播、会员发展、机构合作和文化项目落地。",
+    latestItems: [],
     metadataTitle: "发展中心｜国际道教与文化协会 ITCA",
+    resourceItems: [
+      { badge: "项目", status: "暂无公开项目", text: "项目立项、合作方、成果状态和公开范围经确认后按栏目展示。", title: "发展中心项目列表" },
+      { badge: "活动", status: "暂无最新活动", text: "讲座、研修、访问、论坛、展览和文化交流活动可在审核后发布。", title: "发展中心活动列表" },
+      { badge: "资料", status: "暂无资料入库", text: "研究资料、活动纪要、合作成果和公开文件可沉淀到资料中心。", title: "发展中心资料列表" }
+    ],
     sections: [
       {
         afterHero: true,
@@ -429,6 +463,13 @@ export const v2Pages: Record<string, V2PageData> = {
         title: "合作边界"
       }
     ],
+    subChannelItems: developmentCenters.map((center) => ({
+      href: center.href,
+      meta: center.labels?.join(" / "),
+      status: "中心首页",
+      text: center.text,
+      title: center.title
+    })),
     title: "发展中心",
     visualDescription: "发展中心以文化研究、教育传播、国际交流和资料整理为核心，推动协会使命落地。",
     visualSeal: "发展",
@@ -473,10 +514,29 @@ export const v2Pages: Record<string, V2PageData> = {
   data: {
     actions: [{ href: "/cooperation", label: "申请入驻" }, { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }],
     atmosphere: "credential",
+    businessEntries: [
+      { href: "/cooperation", label: "申请入驻" },
+      { href: "/contact", label: "资料更正 / 撤回 / 申诉", variant: "secondary" },
+      { href: "/member-query", label: "会员公开核验", variant: "secondary" },
+      { href: "/certificate-query", label: "证书公开核验", variant: "secondary" }
+    ],
     eyebrow: "Resource Center",
+    featuredItems: [
+      { badge: "规则", href: "/rules", meta: "公开字段与最小公开原则", status: "已发布", text: "公开资料只展示经授权和审核的最小字段，不公开联系方式、证件、内部备注和非公开材料。", title: "资料公开规则", updatedAt: "以制度版本为准" },
+      { badge: "入口", href: "/cooperation", meta: "机构、课程、活动、基地可申请入库", status: "可申请", text: "机构、平台、课程、活动和基地资料可通过发展合作入口提交，经审核后决定是否公开。", title: "资料入库申请", updatedAt: "持续开放" },
+      { badge: "复核", href: "/contact", meta: "更正、撤回、申诉", status: "人工处理", text: "公开资料主体或相关权利人可提交更正、撤回公开或人工复核需求。", title: "资料更正与撤回", updatedAt: "人工复核" }
+    ],
     imageSrc: "/images/itca/05-service-verification.png",
     intro: "资料中心用于收录并展示道教文化与相关交流领域的机构、个人、平台、传承、课程、活动和基地等公开资料。",
+    latestItems: [],
     metadataTitle: "资料中心｜国际道教与文化协会 ITCA",
+    resourceItems: [
+      { badge: "机构库", meta: "公开机构名称、地区、类型、简介和审核状态", status: "暂无公开资料", text: "宫观、道堂、协会、文化机构、研究机构和康养基地资料经审核后发布。", title: "机构库列表" },
+      { badge: "个人库", meta: "公开姓名 / 道名、公开身份标签和授权简介", status: "暂无公开资料", text: "个人资料与会员、认证档案有关联，但公开展示遵循授权和最小字段原则。", title: "个人库列表" },
+      { badge: "平台库", meta: "公开平台名称、主体、链接和合作说明", status: "暂无公开资料", text: "文化平台、课程平台、媒体账号和合作系统资料可进入平台库。", title: "平台库列表" },
+      { badge: "传承库", meta: "公开传承名称、说明、来源和审核状态", status: "暂无公开资料", text: "师承、谱系、非遗线索和文化资料需经过加强审核后展示。", title: "传承库列表" },
+      { badge: "课程 / 活动 / 基地", meta: "公开名称、时间、地点、状态和主办信息", status: "暂无公开资料", text: "课程、活动和基地资料用于展示协会或合作方可公开成果。", title: "课程 / 活动 / 基地列表" }
+    ],
     sections: [
       {
         afterHero: true,
@@ -499,6 +559,12 @@ export const v2Pages: Record<string, V2PageData> = {
         title: "公开机制",
         tone: "soft"
       }
+    ],
+    subChannelItems: [
+      { href: "/membership", meta: "会员档案与公开会员核验关联", status: "关联模块", text: "会员档案按协会流程管理，前台仅通过会员公开核验展示最小字段。", title: "会员资料关系" },
+      { href: "/certification", meta: "认证档案与证书公开核验关联", status: "关联模块", text: "认证档案按审核流程处理，公开核验只证明协会公开登记状态。", title: "认证资料关系" },
+      { href: "/cooperation", meta: "机构、平台、课程、活动、基地入库", status: "申请入口", text: "合作主体可提交资料入驻申请，经审核后进入资料中心公开资料流程。", title: "资料入驻路径" },
+      { href: "/contact", meta: "更正 / 撤回 / 申诉", status: "人工复核", text: "公开资料主体可申请更正、撤回公开或发起申诉。", title: "资料治理路径" }
     ],
     boundaryNotices: [{ title: "资料中心公开信息边界", text: publicBoundaries.data }],
     title: "资料中心",

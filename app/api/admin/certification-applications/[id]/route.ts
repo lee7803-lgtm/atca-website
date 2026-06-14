@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server";
 import { generateCertificateNo } from "@/lib/application-number";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
+import type { AdminPermission } from "@/lib/admin/rbac";
 import {
   recordCertificateDeliveredNotification,
   recordCertificateGeneratedNotification,
@@ -30,10 +32,6 @@ const reviewBackflowStatuses: CertificationStatus[] = ["submitted", "under_revie
 
 function getAdminCookie(request: Request) {
   return request.headers.get("cookie")?.split(";").map((item) => item.trim()).find((item) => item.startsWith(`${adminSessionCookieName}=`))?.split("=")[1];
-}
-
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
 }
 
 function getRequestIp(request: Request) {
@@ -104,9 +102,6 @@ function isDateOnly(value: string) {
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
-  const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
-
   let payload: unknown;
 
   try {
@@ -116,12 +111,18 @@ export async function PATCH(request: Request, { params }: { params: { id: string
   }
 
   if (!isRecord(payload)) return NextResponse.json({ success: false, message: "请求资料格式不正确。" }, { status: 400 });
+  const action = asString(payload.action);
+  const requiredPermission: AdminPermission = payload.generateCertificate === true || ["generate_certificate", "update_certificate_status", "mark_delivered", "correct_not_delivered"].includes(action)
+    ? "certification:certificate"
+    : "certification:write";
+  const auth = requireAdminApiPermission(request, requiredPermission);
+  if (auth.response) return auth.response;
+  const adminCookie = getAdminCookie(request);
 
   try {
     const application = await getCertificationApplicationById(params.id);
     if (!application) return NextResponse.json({ success: false, message: "未找到认证申请。" }, { status: 404 });
 
-    const action = asString(payload.action);
     const internalReviewNote = asString(payload.internalReviewNote) || asString(payload.internal_review_note);
     const applicantFeedback = asString(payload.applicantFeedback) || asString(payload.applicant_feedback);
     const approvedPath = asCertificationPath(payload.approvedPath) || asCertificationPath(payload.approved_path);

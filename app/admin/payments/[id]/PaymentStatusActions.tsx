@@ -36,6 +36,7 @@ export function PaymentStatusActions({ orderId, status }: { orderId: string; sta
   const [messageTone, setMessageTone] = useState<"success" | "error">("success");
 
   const submit = async (nextStatus: ActionStatus) => {
+    if (!window.confirm(`确认执行“${actionLabels[nextStatus]}”？该操作会写入支付事件和审计记录。`)) return;
     setIsSaving(nextStatus);
     setMessage("");
 

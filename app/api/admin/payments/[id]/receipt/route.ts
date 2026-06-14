@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { getPaymentOrder, updatePaymentOrderStatus } from "@/lib/api/payments";
 import { createPaymentReceiptSignedUrl, reviewPaymentReceipt } from "@/lib/payment-receipts";
 
@@ -11,12 +12,9 @@ function getRequestIp(request: Request) {
   return request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || request.headers.get("x-real-ip") || "";
 }
 
-function unauthorized() {
-  return NextResponse.json({ success: false, message: "请先完成后台验证。" }, { status: 401 });
-}
-
 export async function GET(request: Request, { params }: { params: { id: string } }) {
-  if (!isValidAdminSessionToken(getAdminCookie(request))) return unauthorized();
+  const auth = requireAdminApiPermission(request, "payments:read");
+  if (auth.response) return auth.response;
   const order = await getPaymentOrder(params.id);
   if (!order || !order.receiptFilePath) return NextResponse.json({ success: false, message: "付款凭证不存在。" }, { status: 404 });
   try {
@@ -27,8 +25,9 @@ export async function GET(request: Request, { params }: { params: { id: string }
 }
 
 export async function PATCH(request: Request, { params }: { params: { id: string } }) {
+  const auth = requireAdminApiPermission(request, "payments:write");
+  if (auth.response) return auth.response;
   const adminCookie = getAdminCookie(request);
-  if (!isValidAdminSessionToken(adminCookie)) return unauthorized();
   const actor = getAdminSession(adminCookie);
   const body = (await request.json().catch(() => null)) as { action?: string; note?: string } | null;
   if (!body || !["approve", "reject"].includes(body.action || "")) {

@@ -27,6 +27,7 @@ export function MaterialReviewField({
   const [isSaving, setIsSaving] = useState(false);
 
   const updateValue = async (nextValue: MaterialReviewStatus) => {
+    if (!window.confirm("确认保存该认证材料审核项？")) return;
     setValue(nextValue);
     setMessage("");
     setIsSaving(true);

@@ -219,14 +219,15 @@ revoke all on table public.data_center_entries from anon, authenticated;
 insert into public.admin_roles (role_key, display_name, description)
 values
   ('super_admin', '超级管理员', '拥有系统配置、角色权限、关键记录处置和全部后台模块管理权限。'),
+  ('content_admin', '内容管理员', '维护频道首页、公告、栏目模块、推荐位和发布审核队列。'),
+  ('application_reviewer', '申请审核员', '处理个人会员、机构会员申请、补件、初审复审和会员状态维护。'),
+  ('finance_admin', '财务审核员', '处理支付订单、收据、人工确认、退款备注和财务导出。'),
+  ('certification_admin', '证书管理员', '处理认证申请、材料审核、证书签发、证书状态和公开核验资料。'),
+  ('data_center_admin', '资料中心管理员', '审核机构、个人、传承、课程、活动和基地等公开资料。'),
+  ('readonly_observer', '只读观察员', '查看后台总览、操作日志、记录状态和必要审计字段，不执行写操作。'),
   ('secretariat_admin', '秘书处管理员', '统筹申请受理、跨模块协调、内容确认和秘书处日常运营。'),
   ('member_admin', '会员管理员', '管理个人会员、机构会员、会员有效期、续期和会员公开查询资料。'),
-  ('certification_admin', '认证管理员', '处理认证申请、材料审核、证书签发、证书状态和公开核验资料。'),
-  ('finance_admin', '财务管理员', '处理支付订单、收据、人工确认和财务导出。'),
-  ('content_admin', '内容管理员', '维护前台内容和公告。'),
   ('development_admin', '发展中心管理员', '维护六大发展中心、专委会、课程活动和合作项目资料。'),
-  ('data_center_admin', '数据中心管理员', '审核公开文化数据库资料。'),
   ('notification_admin', '通知管理员', '维护通知模板、发送记录和通知策略。'),
   ('readonly_auditor', '只读审计员', '查看后台总览、操作日志和必要审计字段。')
 on conflict (role_key) do nothing;
-

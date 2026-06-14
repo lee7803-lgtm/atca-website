@@ -1,4 +1,5 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
+import type { AdminRole } from "@/lib/admin/rbac";
 
 export const adminSessionCookieName = "atca_admin_session";
 
@@ -7,7 +8,7 @@ export type AdminSession = {
   adminId?: string;
   email?: string;
   displayName?: string;
-  role?: string;
+  role?: AdminRole | string;
 };
 
 export class AdminConfigError extends Error {
@@ -46,7 +47,7 @@ function signAdminSessionPayload(payload: string) {
   return createHmac("sha256", getAdminSessionSecret()).update(payload).digest("base64url");
 }
 
-export function createAdminUserSessionToken(admin: { id: string; email: string; displayName: string; role: string }) {
+export function createAdminUserSessionToken(admin: { id: string; email: string; displayName: string; role: AdminRole | string }) {
   const payload = base64UrlEncode(
     JSON.stringify({
       actorType: "admin",

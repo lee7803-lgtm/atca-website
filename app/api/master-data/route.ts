@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
-import { adminSessionCookieName, getAdminSession, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
 import { createAuditLog } from "@/lib/admin/audit-logs";
+import { requireAdminApiPermission } from "@/lib/admin/require-admin";
 import { createMasterDataEntry, listMasterDataEntries, MasterDataTableMissingError, updateMasterDataEntry } from "@/lib/master-data";
 import type { MasterDataKind } from "@/types/master-data";
 
@@ -19,9 +20,15 @@ export async function GET(request: Request) {
   const url = new URL(request.url);
   const kind = parseKind(url.searchParams.get("kind"));
   if (!kind) return NextResponse.json({ success: false, message: "基础资料类型不正确。", items: [] }, { status: 400 });
+  const publicOnly = url.searchParams.get("public") !== "false";
+
+  if (!publicOnly) {
+    const auth = requireAdminApiPermission(request, "masterData:read");
+    if (auth.response) return auth.response;
+  }
 
   try {
-    const items = await listMasterDataEntries({ kind, publicOnly: url.searchParams.get("public") !== "false" });
+    const items = await listMasterDataEntries({ kind, publicOnly });
     return NextResponse.json({ success: true, items });
   } catch (error) {
     if (error instanceof MasterDataTableMissingError) {
@@ -32,9 +39,8 @@ export async function GET(request: Request) {
 }
 
 export async function POST(request: Request) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) {
-    return NextResponse.json({ success: false, message: "未登录或登录已失效。" }, { status: 401 });
-  }
+  const auth = requireAdminApiPermission(request, "masterData:write");
+  if (auth.response) return auth.response;
 
   const formData = await request.formData();
   const kind = parseKind(asString(formData.get("kind")));
@@ -67,9 +73,8 @@ export async function POST(request: Request) {
 }
 
 export async function PATCH(request: Request) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) {
-    return NextResponse.json({ success: false, message: "未登录或登录已失效。" }, { status: 401 });
-  }
+  const auth = requireAdminApiPermission(request, "masterData:write");
+  if (auth.response) return auth.response;
 
   const body = (await request.json().catch(() => null)) as { id?: string; name?: string; displayName?: string; type?: string; country?: string; region?: string; status?: string; reviewStatus?: string; note?: string; internalNote?: string } | null;
   if (!body?.id || !body.name?.trim()) return NextResponse.json({ success: false, message: "请填写基础资料 ID 和名称。" }, { status: 400 });

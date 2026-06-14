@@ -106,7 +106,7 @@ export default function VerificationPage() {
               联系协会
             </Link>
             <Link className="rounded-full border border-[#d8d0bf] bg-white px-6 py-3 text-center text-sm font-semibold text-ink" href="/rules">
-              查看规章制度
+              查看治理公开
             </Link>
           </div>
         </div>

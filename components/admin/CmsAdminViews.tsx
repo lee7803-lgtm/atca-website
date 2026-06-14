@@ -65,7 +65,7 @@ export function CmsDashboard() {
       <AdminPageHeader actions={<CmsQuickLinks />} eyebrow="CMS V3.0" intro="内容管理 V3.0 用于管理顶部导航、频道页面、受控版式、发布审核、媒体库和版本记录；第一版使用结构化配置数据，不连接数据库。" title="内容管理工作台" />
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         <AdminStatCard label="一级频道" note="顶部导航固定 11 个一级入口" value={cmsChannels.length} />
-        <AdminStatCard label="页面与二级栏目" note="包含关于协会下规章制度等子页面" value={editableChannels.length} />
+        <AdminStatCard label="页面与二级栏目" note="包含关于协会下治理公开等子页面" value={editableChannels.length} />
         <AdminStatCard label="核心保护入口" note="隐藏或改路径需二次确认" value={protectedCount} />
         <AdminStatCard label="待审核" note="包含频道页和内容条目" value={reviewCount} />
       </div>
@@ -90,7 +90,7 @@ export function CmsDashboard() {
           </div>
           <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
             <h3 className="font-medium text-porcelain">核心入口保护</h3>
-            <p className="mt-2 text-sm leading-7 text-[#5f5b52]">首页、会员、认证、查询核验、申请进度等入口可以管理说明文案，但不能被 CMS 绕开业务逻辑。规章制度归属关于协会二级栏目，不作为顶部一级频道。</p>
+            <p className="mt-2 text-sm leading-7 text-[#5f5b52]">首页、会员、认证、查询核验、申请进度等入口可以管理说明文案，但不能被 CMS 绕开业务逻辑。治理公开归属关于协会二级栏目，不作为顶部一级频道。</p>
           </div>
           <div className="rounded-xl border border-[#e4ded0] bg-[#fbf8ef] p-4">
             <h3 className="font-medium text-porcelain">审核留痕</h3>

@@ -1,12 +1,12 @@
 import type { Metadata } from "next";
 import { revalidatePath } from "next/cache";
-import { redirect } from "next/navigation";
 import { cookies } from "next/headers";
 import { AdminPageHeader, AdminSectionCard, AdminStatusBadge } from "@/components/admin/AdminUI";
 import { SearchableSelectWithOther } from "@/components/SearchableSelectWithOther";
-import { adminSessionCookieName, isValidAdminSessionToken } from "@/lib/admin/auth";
+import { adminSessionCookieName, getAdminSession } from "@/lib/admin/auth";
 import { createAuditLog } from "@/lib/admin/audit-logs";
-import { getAdminSession } from "@/lib/admin/auth";
+import { requireAdminPage } from "@/lib/admin/require-admin";
+import { hasAdminPermission } from "@/lib/admin/rbac";
 import { createMasterDataEntry, listMasterDataEntries, MasterDataTableMissingError, updateMasterDataEntry } from "@/lib/master-data";
 import { countryRegionOptions, organizationMasterTypeOptions, refereeTypeOptions } from "@/lib/select-options";
 import type { MasterDataEntry, MasterDataKind } from "@/types/master-data";
@@ -35,7 +35,7 @@ const reviewStatusText: Record<string, string> = {
 async function createMasterDataAction(formData: FormData) {
   "use server";
 
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  requireAdminPage("masterData:write");
   const kind = String(formData.get("kind") || "") as MasterDataKind;
   const name = String(formData.get("name") || "").trim();
   if (!["referee", "organization"].includes(kind) || !name) return;
@@ -58,8 +58,7 @@ async function createMasterDataAction(formData: FormData) {
 async function updateMasterDataAction(formData: FormData) {
   "use server";
 
-  const adminCookie = cookies().get(adminSessionCookieName)?.value;
-  if (!isValidAdminSessionToken(adminCookie)) redirect("/admin");
+  requireAdminPage("masterData:write");
   const id = String(formData.get("id") || "");
   const name = String(formData.get("name") || "").trim();
   const displayName = String(formData.get("displayName") || "").trim() || name;
@@ -97,7 +96,8 @@ async function writeMasterDataAudit(action: string, resourceId: string, resource
 }
 
 export default async function AdminMasterDataPage({ searchParams }: { searchParams?: { edit?: string } }) {
-  if (!isValidAdminSessionToken(cookies().get(adminSessionCookieName)?.value)) redirect("/admin");
+  const session = requireAdminPage("masterData:read");
+  const canWrite = hasAdminPermission(session, "masterData:write");
 
   let entries: MasterDataEntry[] = [];
   let message = "";
@@ -116,10 +116,16 @@ export default async function AdminMasterDataPage({ searchParams }: { searchPara
         title="基础资料"
       />
       {message ? <div className="border-l-4 border-[#8a6b3e] bg-[#fbf8ef] p-5 text-sm leading-7 text-[#5f5b52]">{message}</div> : null}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <CreateMasterDataForm kind="referee" />
-        <CreateMasterDataForm kind="organization" />
-      </div>
+      {canWrite ? (
+        <div className="grid gap-6 lg:grid-cols-2">
+          <CreateMasterDataForm kind="referee" />
+          <CreateMasterDataForm kind="organization" />
+        </div>
+      ) : (
+        <AdminSectionCard title="只读权限">
+          <p className="mt-4 text-sm leading-7 text-[#5f5b52]">当前角色可查看主数据配置，但不能新增、编辑、停用或修改审核状态。</p>
+        </AdminSectionCard>
+      )}
       <AdminSectionCard title="资料条目">
         <div className="mt-5 overflow-x-auto">
           <table className="min-w-[1080px] w-full border-collapse text-left text-sm">
@@ -164,7 +170,7 @@ export default async function AdminMasterDataPage({ searchParams }: { searchPara
           </table>
         </div>
       </AdminSectionCard>
-      {selectedEntry ? <MasterDataEditSection entry={selectedEntry} /> : null}
+      {selectedEntry && canWrite ? <MasterDataEditSection entry={selectedEntry} /> : null}
     </div>
   );
 }

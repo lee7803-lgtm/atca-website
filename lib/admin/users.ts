@@ -1,6 +1,7 @@
 import "server-only";
 
 import { scryptSync, timingSafeEqual } from "node:crypto";
+import type { AdminRole } from "@/lib/admin/rbac";
 
 type SupabaseAdminConfig = {
   url: string;
@@ -12,7 +13,7 @@ export type AdminUser = {
   email: string;
   displayName: string;
   passwordHash: string;
-  role: "super_admin" | "admin" | "reviewer" | "viewer";
+  role: AdminRole;
   status: "active" | "disabled";
 };
 
