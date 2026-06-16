@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ITCA 官网 V2.0 原型入口</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">ITCA 官网 V2.0 原型总入口 · 本地 HTML · 不连接数据库 · 不执行 SQL</div>
+      <div class="header-main">
+        <a class="brand" href="index.html">
+          <span class="brand-mark">道</span>
+          <span>
+            <p class="brand-title">ITCA 原型</p>
+            <p class="brand-subtitle">International Taoisme And Cultural Association</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="原型导航">
+          <a aria-current="page" href="index.html">入口</a>
+          <a href="home.html">首页</a>
+          <a href="about.html">关于协会</a>
+          <a href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a href="committee.html">委员会</a>
+          <a href="account.html">用户中心</a>
+          <a href="admin-dashboard.html">后台</a>
+          <a href="admin-cms.html">CMS</a>
+          <a href="admin-rbac.html">RBAC</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="../../prd/itca-v2-final-prd.md">PRD</a>
+          <a class="button primary" href="../itca-v2-prototype-spec.md">原型说明</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Prototype Index</p>
+          <h1>ITCA 官网 V2.0 原型设计图与交互说明</h1>
+          <p class="lead">本入口用于查看本轮交付的关键页面原型。原型聚焦信息架构、业务闭环、CMS 维护关系、用户中心和 SaaS 化后台，不作为最终生产视觉代码。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="home.html">查看首页原型</a>
+            <a class="button" href="admin-dashboard.html">查看后台原型</a>
+            <a class="button subtle" href="../itca-v2-prototype-spec.md">阅读原型说明</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="../../../public/images/itca/01-home-hero.png" alt="ITCA 官网东方纸感首屏原型背景" />
+          <div class="hero-label">
+            <strong>交付范围</strong>
+            <p>前台频道、业务申请、用户中心、后台 CMS、RBAC 与委员会业务原型。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Pages</p>
+              <h2>关键页面原型</h2>
+            </div>
+            <p>每个页面均使用统一 Header，桌面端横向导航，移动端单行横滑。公共页面保持正式协会门户质感，后台页面体现 SaaS 管理结构。</p>
+          </div>
+          <div class="grid three">
+            <a class="card" href="home.html">
+              <p class="meta">01 / Portal</p>
+              <h3>首页</h3>
+              <p>协会总门户、核心服务、V1.3 闭环、公告与查询入口。</p>
+            </a>
+            <a class="card" href="about.html">
+              <p class="meta">02 / About</p>
+              <h3>关于协会</h3>
+              <p>协会介绍与规章制度合并，包含组织架构与联系入口。</p>
+            </a>
+            <a class="card" href="member.html">
+              <p class="meta">03 / Membership</p>
+              <h3>会员服务</h3>
+              <p>个人会员、机构会员、申请编号、支付凭证、公众核验。</p>
+            </a>
+            <a class="card" href="certification.html">
+              <p class="meta">04 / Certification</p>
+              <h3>认证服务</h3>
+              <p>道士认证申请、材料审核、补件、支付审核、发证和 PDF 下载。</p>
+            </a>
+            <a class="card" href="committee.html">
+              <p class="meta">05 / Committee</p>
+              <h3>委员会业务</h3>
+              <p>需求方自行筹办、申请、审核、自行运营、发展中心监督。</p>
+            </a>
+            <a class="card" href="account.html">
+              <p class="meta">06 / Account</p>
+              <h3>用户中心</h3>
+              <p>我的申请、我的会员、我的证书、补件、付款凭证、PDF 下载。</p>
+            </a>
+            <a class="card" href="admin-dashboard.html">
+              <p class="meta">07 / Admin</p>
+              <h3>后台管理首页</h3>
+              <p>待办、会员、认证、委员会、CMS、主数据、用户权限入口。</p>
+            </a>
+            <a class="card" href="admin-cms.html">
+              <p class="meta">08 / CMS</p>
+              <h3>CMS 栏目首页维护</h3>
+              <p>每个顶部频道按模板维护栏目首页，而不是卡片填充。</p>
+            </a>
+            <a class="card" href="admin-rbac.html">
+              <p class="meta">09 / RBAC</p>
+              <h3>RBAC 权限管理</h3>
+              <p>用户、角色、菜单权限、操作权限、审核权限和审计。</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section">
+        <div class="section-inner">
+          <div class="notice">
+            <h2>开发边界</h2>
+            <p>本轮只做 PRD 与原型补充，不新增 SQL，不执行 SQL，不修改数据库，不发布 Production，不 push 远端，不删除现有业务代码。若后续发现现有路由、字段、接口与 PRD 不一致，应先在文档中列出差异，再进入独立开发任务。</p>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">ITCA 官网 V2.0 原型交付 · 2026-06-16 · 本地文件可直接打开。</div>
+    </footer>
+  </body>
+</html>

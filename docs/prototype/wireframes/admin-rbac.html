@@ -1,0 +1,238 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>RBAC 权限管理原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">RBAC · 用户、角色、权限、菜单权限、操作权限、审核权限、数据范围、审计日志</div>
+      <div class="header-main">
+        <a class="brand" href="admin-dashboard.html">
+          <span class="brand-mark">权</span>
+          <span>
+            <p class="brand-title">ITCA 权限管理</p>
+            <p class="brand-subtitle">Users, Roles & Permissions</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="后台快捷导航">
+          <a href="home.html">前台首页</a>
+          <a href="admin-dashboard.html">后台首页</a>
+          <a href="admin-cms.html">CMS</a>
+          <a aria-current="page" href="admin-rbac.html">RBAC</a>
+          <a href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a href="committee.html">委员会</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="admin-dashboard.html">工作台</a>
+          <a class="button primary" href="admin-cms.html">内容管理</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-layout">
+      <aside class="admin-side" aria-label="RBAC 侧边导航">
+        <a href="admin-dashboard.html">工作台</a>
+        <a href="#">用户</a>
+        <a class="active" href="admin-rbac.html">角色权限</a>
+        <a href="#">菜单权限</a>
+        <a href="#">操作权限</a>
+        <a href="#">审核权限</a>
+        <a href="#">数据范围</a>
+        <a href="#">审计日志</a>
+      </aside>
+
+      <section class="admin-main">
+        <div class="panel">
+          <p class="eyebrow">RBAC</p>
+          <h1 style="font-size:42px">权限管理</h1>
+          <p>后台权限需要从单一管理员工具升级为用户、组织、角色、菜单、操作、审核节点、数据范围和敏感字段权限共同控制的 SaaS 化权限体系。</p>
+        </div>
+
+        <section class="panel" data-cms-block="rbac.roles">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Roles</p>
+              <h2>角色清单</h2>
+            </div>
+            <p>以下角色为 V2.0 最小可用角色集合。后续可按组织和业务线扩展。</p>
+          </div>
+          <div class="grid four">
+            <article class="card"><p class="meta">super_admin</p><h3>超级管理员</h3><p>全部权限、系统配置、角色权限和关键操作审批。</p></article>
+            <article class="card"><p class="meta">association_admin</p><h3>协会管理员</h3><p>协会日常运营、跨模块协调、后台总览和内容确认。</p></article>
+            <article class="card"><p class="meta">content_admin</p><h3>内容管理员</h3><p>频道首页、公告、内容页、推荐位、媒体素材和提交发布。</p></article>
+            <article class="card"><p class="meta">member_reviewer</p><h3>会员审核员</h3><p>个人会员、机构会员申请审核、补件和会籍状态维护。</p></article>
+            <article class="card"><p class="meta">cert_reviewer</p><h3>认证审核员</h3><p>认证材料审核、补件、复审和证书信息准备。</p></article>
+            <article class="card"><p class="meta">finance_reviewer</p><h3>财务审核员</h3><p>付款凭证查看、付款审核、paid 状态确认和财务导出。</p></article>
+            <article class="card"><p class="meta">committee_admin</p><h3>委员会管理员</h3><p>委员会申请审核、监督记录、年度报告和任务缴纳管理。</p></article>
+            <article class="card"><p class="meta">readonly_observer</p><h3>只读观察员</h3><p>查看后台总览、列表和审计日志，不执行写操作。</p></article>
+          </div>
+        </section>
+
+        <section class="panel" data-cms-block="rbac.users">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Users</p>
+              <h2>用户与组织</h2>
+            </div>
+            <p>用户账号需要绑定组织、角色、状态和数据范围。普通用户与后台管理员可以共享账号底座，但权限必须隔离。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>用户</th>
+                  <th>组织</th>
+                  <th>角色</th>
+                  <th>状态</th>
+                  <th>数据范围</th>
+                  <th>最近登录</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>admin@itca.org</td><td>协会秘书处</td><td>超级管理员</td><td>启用</td><td>全部</td><td>2026-06-16 09:30</td></tr>
+                <tr><td>content@itca.org</td><td>内容部</td><td>内容管理员</td><td>启用</td><td>内容模块</td><td>2026-06-16 08:45</td></tr>
+                <tr><td>finance@itca.org</td><td>财务部</td><td>财务审核员</td><td>启用</td><td>付款记录</td><td>2026-06-15 18:10</td></tr>
+                <tr><td>committee@itca.org</td><td>发展中心</td><td>委员会管理员</td><td>启用</td><td>委员会模块</td><td>2026-06-15 16:20</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" data-cms-block="rbac.matrix">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Permission Matrix</p>
+              <h2>菜单、操作与审核权限</h2>
+            </div>
+            <p>RBAC 不只控制菜单显示，还必须控制按钮、审核动作、数据范围和敏感字段。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>模块</th>
+                  <th>菜单权限</th>
+                  <th>操作权限</th>
+                  <th>审核权限</th>
+                  <th>敏感字段</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>会员管理</td>
+                  <td>会员审核员 / 超级管理员</td>
+                  <td>查看、新增审核意见、要求补件、生成会员编号</td>
+                  <td>初审、复审</td>
+                  <td>联系方式、证件信息按角色脱敏</td>
+                </tr>
+                <tr>
+                  <td>认证管理</td>
+                  <td>认证审核员 / 超级管理员</td>
+                  <td>材料审核、补件、复审、证书信息准备</td>
+                  <td>认证初审、认证复审、发证确认</td>
+                  <td>申请材料、证书照片、内部备注受控</td>
+                </tr>
+                <tr>
+                  <td>支付管理</td>
+                  <td>财务审核员 / 超级管理员</td>
+                  <td>查看凭证、确认 paid、退回凭证、导出</td>
+                  <td>财务审核</td>
+                  <td>付款凭证、金额、银行流水受控</td>
+                </tr>
+                <tr>
+                  <td>委员会管理</td>
+                  <td>委员会管理员 / 发展中心 / 超级管理员</td>
+                  <td>审核申请、记录监督、年度报告、任务缴纳状态</td>
+                  <td>初审、复审、监督确认</td>
+                  <td>负责人联系方式、内部监督意见受控</td>
+                </tr>
+                <tr>
+                  <td>CMS</td>
+                  <td>内容管理员 / 协会管理员</td>
+                  <td>草稿、编辑、提交审核、发布、下架、回滚</td>
+                  <td>内容审核、合规审核</td>
+                  <td>未发布草稿和高风险内容受控</td>
+                </tr>
+                <tr>
+                  <td>用户权限</td>
+                  <td>超级管理员</td>
+                  <td>邀请、禁用、角色分配、数据范围配置</td>
+                  <td>权限变更二次确认</td>
+                  <td>账号、登录记录、权限变更记录受控</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" data-cms-block="rbac.editor">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Role Editor</p>
+              <h2>角色配置面板</h2>
+            </div>
+            <p>角色配置变更必须记录变更原因、操作者、时间、前后权限，并在高风险角色上触发二次确认。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>编辑角色：财务审核员</h3>
+              <div class="form-grid">
+                <label>角色名称<input value="财务审核员" readonly /></label>
+                <label>角色标识<input value="finance_reviewer" readonly /></label>
+                <label>菜单权限<select><option>支付管理、后台首页、审计日志</option></select></label>
+                <label>数据范围<select><option>付款记录</option><option>全部</option></select></label>
+                <label>操作权限<select><option>查看、确认 paid、退回凭证、导出</option></select></label>
+                <label>审核权限<select><option>财务审核</option></select></label>
+              </div>
+              <label style="margin-top:14px">变更原因<textarea readonly>补充财务审核员可查看审计日志，但不可修改证书和用户权限。</textarea></label>
+              <div class="hero-actions">
+                <button class="primary" type="button">提交权限变更</button>
+                <button type="button">保存草稿</button>
+              </div>
+            </div>
+            <div class="notice">
+              <h3>权限校验要求</h3>
+              <p>前端菜单隐藏只是体验优化，后端 API 必须校验用户、角色、菜单、操作、审核节点、数据范围和敏感字段权限。任何越权访问都应拒绝并写入安全日志。</p>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" data-cms-block="rbac.audit">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Audit</p>
+              <h2>权限审计</h2>
+            </div>
+            <p>权限系统的每次关键变更都要可追踪，避免后台长期依赖单一密码或不可审计的超级权限。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>时间</th>
+                  <th>操作者</th>
+                  <th>对象</th>
+                  <th>动作</th>
+                  <th>说明</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>2026-06-16 09:50</td><td>admin@itca.org</td><td>finance_reviewer</td><td>更新操作权限</td><td>新增支付导出权限，保留导出审计。</td></tr>
+                <tr><td>2026-06-16 09:10</td><td>admin@itca.org</td><td>content@itca.org</td><td>分配角色</td><td>分配内容管理员，可编辑频道首页草稿。</td></tr>
+                <tr><td>2026-06-15 18:40</td><td>admin@itca.org</td><td>committee_admin</td><td>新增角色</td><td>新增委员会管理员，负责委员会申请和监督记录。</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">RBAC 原型 · 菜单、操作、审核、数据范围与敏感字段权限必须同时控制。</div>
+    </footer>
+  </body>
+</html>

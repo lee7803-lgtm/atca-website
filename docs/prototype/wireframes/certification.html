@@ -1,0 +1,280 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>认证服务栏目首页原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">认证服务 · 道士认证申请、材料审核、补件、支付审核、发证、证书核验</div>
+      <div class="header-main">
+        <a class="brand" href="home.html">
+          <span class="brand-mark">IT</span>
+          <span>
+            <p class="brand-title">国际道教与文化协会</p>
+            <p class="brand-subtitle">International Taoisme And Cultural Association</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="主导航">
+          <a href="home.html">首页</a>
+          <a href="about.html">关于协会</a>
+          <a href="about.html#culture">文化与道教</a>
+          <a href="member.html">会员服务</a>
+          <a aria-current="page" href="certification.html">认证服务</a>
+          <a href="committee.html">发展中心</a>
+          <a href="home.html#cooperation">交流合作</a>
+          <a href="home.html#data">数据中心</a>
+          <a href="#verify">查询核验</a>
+          <a href="account.html">用户中心</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="#verify">证书核验</a>
+          <a class="button primary" href="account.html">登录 / 注册</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" data-cms-block="certification.banner">
+        <div class="hero-copy">
+          <p class="eyebrow">Certification</p>
+          <h1>认证服务</h1>
+          <p class="lead">认证服务用于协会内部审核、记录建档、证书签发和公开核验。认证不构成政府许可、法定职业资格、医疗资质、教育学历或宗教活动许可。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#apply">道士认证申请</a>
+            <a class="button" href="#process">申请流程</a>
+            <a class="button subtle" href="#verify">证书核验</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="../../../public/images/itca/03-service-certification.png" alt="认证服务栏目视觉" />
+          <div class="hero-label">
+            <strong>证书下载边界</strong>
+            <p>公众核验页只展示核验字段；正式证书 PDF 仅限申请人登录后下载。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="certification.intro">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Overview</p>
+              <h2>认证说明</h2>
+            </div>
+            <p>认证服务栏目首页应说明认证对象、材料范围、审核路径、证书公开核验和协会认证边界。</p>
+          </div>
+          <div class="grid three">
+            <article class="card">
+              <p class="meta">申请对象</p>
+              <h3>道士认证申请</h3>
+              <p>申请人提交个人资料、相关经历、证明材料和照片，进入协会认证建档审核流程。</p>
+            </article>
+            <article class="card">
+              <p class="meta">审核方式</p>
+              <h3>材料审核与复审</h3>
+              <p>认证审核员检查材料完整性，必要时要求补充资料；复审通过后准备发证。</p>
+            </article>
+            <article class="card">
+              <p class="meta">公开核验</p>
+              <h3>证书编号 + 姓名</h3>
+              <p>公众核验只验证公开状态，不展示申请材料、联系方式、后台审核意见和 PDF 下载链接。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="process" data-cms-block="certification.process">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Process</p>
+              <h2>认证申请流程</h2>
+            </div>
+            <p>认证流程必须与 V1.3 状态机兼容，支付和发证动作由后台角色完成。</p>
+          </div>
+          <div class="timeline">
+            <div class="step">
+              <span class="step-number">1</span>
+              <div>
+                <h3>材料提交</h3>
+                <p>申请人填写认证申请，上传身份证明、经历说明、照片、相关证明和真实性承诺。</p>
+              </div>
+              <span class="status">submitted</span>
+            </div>
+            <div class="step">
+              <span class="step-number">2</span>
+              <div>
+                <h3>审核与补充资料</h3>
+                <p>认证审核员检查材料，缺失或需说明时发起补件；用户中心显示补件任务。</p>
+              </div>
+              <span class="status">needs_supplement</span>
+            </div>
+            <div class="step">
+              <span class="step-number">3</span>
+              <div>
+                <h3>支付审核</h3>
+                <p>申请人上传银行电汇凭证，财务审核员确认后进入复审或发证环节。</p>
+              </div>
+              <span class="status">payment_review</span>
+            </div>
+            <div class="step">
+              <span class="step-number">4</span>
+              <div>
+                <h3>复审与发证</h3>
+                <p>后台复审通过后生成证书编号、证书记录、PDF 文件和公开核验字段。</p>
+              </div>
+              <span class="status">issued</span>
+            </div>
+            <div class="step">
+              <span class="step-number">5</span>
+              <div>
+                <h3>用户中心下载 PDF</h3>
+                <p>申请人登录后可在用户中心下载正式证书 PDF；公众核验页不提供下载。</p>
+              </div>
+              <span class="status">account_only</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" id="apply" data-cms-block="certification.materials">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Materials</p>
+              <h2>认证申请材料</h2>
+            </div>
+            <p>前台材料说明必须足够明确，便于申请人一次性提交；后台需支持材料项审核、退回和补充说明。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>申请表摘要</h3>
+              <div class="form-grid">
+                <label>申请人姓名<input value="张三" readonly /></label>
+                <label>认证类别<select><option>道士认证申请</option></select></label>
+                <label>联系方式<input value="+852 6000 0000" readonly /></label>
+                <label>申请编号<input value="提交后自动生成" readonly /></label>
+              </div>
+              <label style="margin-top:14px">经历说明<textarea readonly>填写与申请认证相关的学习、传承、实践、服务经历和材料真实性承诺。</textarea></label>
+              <div class="hero-actions">
+                <a class="button primary" href="account.html">登录后提交申请</a>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>材料清单</h3>
+              <details open>
+                <summary>身份与联系方式</summary>
+                <p>用于后台核对申请人身份和通知，不在公众核验页展示。</p>
+              </details>
+              <details>
+                <summary>认证相关证明</summary>
+                <p>包括学习经历、传承说明、机构证明、推荐材料或其他可支持审核的文件。</p>
+              </details>
+              <details>
+                <summary>照片与证书素材</summary>
+                <p>需清晰、正面、无遮挡，并符合后台证书生成和归档要求。</p>
+              </details>
+              <details>
+                <summary>资料授权确认</summary>
+                <p>明确哪些字段可用于内部审核、证书生成和公开核验。</p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="verify" data-cms-block="certification.verification">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Certificate Verification</p>
+              <h2>证书公众核验</h2>
+            </div>
+            <p>核验页只用于确认公开记录状态。证书详情和 PDF 下载必须经过权限控制。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>证书核验表单</h3>
+              <div class="form-grid">
+                <label>证书编号<input value="ITCA-TAO-2026-000001" readonly /></label>
+                <label>持证人姓名<input value="张三" readonly /></label>
+              </div>
+              <div class="hero-actions">
+                <button class="primary" type="button">核验证书</button>
+              </div>
+            </div>
+            <div class="panel">
+              <p class="meta">核验结果示例</p>
+              <h3>公开状态：有效</h3>
+              <p>证书编号：ITCA-TAO-2026-000001</p>
+              <p>持证人：张三</p>
+              <p>认证类别：道士认证建档</p>
+              <p>公开结果以官网查询页为准。不展示证件、联系方式、申请材料、后台备注和 PDF 下载链接。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="certification.boundary">
+        <div class="section-inner">
+          <div class="notice">
+            <h2>认证边界说明</h2>
+            <p>本认证为 ITCA 协会认证建档，用于文化交流、会员服务和协会内部记录场景中的参考信息，不构成政府许可、行政执业资格或法定从业资质。证书状态可能因复核、暂停、撤销等情况变化，申请人应对提交材料真实性负责。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-cms-block="certification.admin-map">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Admin Mapping</p>
+              <h2>后台配置关系</h2>
+            </div>
+            <p>认证服务需映射到认证审核、支付管理、证书管理、PDF 文件权限和公开核验字段。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>前台能力</th>
+                  <th>后台模块</th>
+                  <th>关键权限</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>认证申请</td>
+                  <td>认证申请管理</td>
+                  <td>认证审核员可审核、退回、要求补件</td>
+                </tr>
+                <tr>
+                  <td>支付凭证</td>
+                  <td>付款管理</td>
+                  <td>财务审核员确认 paid 状态</td>
+                </tr>
+                <tr>
+                  <td>发证 / PDF</td>
+                  <td>证书管理</td>
+                  <td>认证审核员或证书管理员生成证书和 PDF</td>
+                </tr>
+                <tr>
+                  <td>公众核验</td>
+                  <td>公开字段管理</td>
+                  <td>只读公开字段，禁止泄露敏感资料</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">认证服务原型 · PDF 下载仅限申请人登录后进入用户中心。</div>
+    </footer>
+  </body>
+</html>

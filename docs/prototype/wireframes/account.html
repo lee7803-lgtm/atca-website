@@ -1,0 +1,247 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>用户中心原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">用户中心 · 我的申请、我的会员、我的证书、补充资料、支付凭证、PDF 下载</div>
+      <div class="header-main">
+        <a class="brand" href="home.html">
+          <span class="brand-mark">IT</span>
+          <span>
+            <p class="brand-title">国际道教与文化协会</p>
+            <p class="brand-subtitle">International Taoisme And Cultural Association</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="主导航">
+          <a href="home.html">首页</a>
+          <a href="about.html">关于协会</a>
+          <a href="about.html#culture">文化与道教</a>
+          <a href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a href="committee.html">发展中心</a>
+          <a href="home.html#cooperation">交流合作</a>
+          <a href="home.html#data">数据中心</a>
+          <a href="member.html#verification">查询核验</a>
+          <a aria-current="page" href="account.html">用户中心</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="member.html#verification">查询核验</a>
+          <a class="button primary" href="account.html">张三</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" data-cms-block="account.banner">
+        <div class="hero-copy">
+          <p class="eyebrow">Account Center</p>
+          <h1>用户中心</h1>
+          <p class="lead">登录后集中查看本人申请、会员身份、证书记录、补充资料任务、支付凭证和正式证书 PDF。用户中心只展示当前账号有权访问的记录。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#applications">我的申请</a>
+            <a class="button" href="#certificates">我的证书</a>
+            <a class="button subtle" href="#payments">支付凭证</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="../../../public/images/itca/05-service-verification.png" alt="用户中心与查询核验视觉" />
+          <div class="hero-label">
+            <strong>权限边界</strong>
+            <p>公开查询只用于核验；证书 PDF、补件材料和付款凭证必须登录后查看。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="account.overview">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Dashboard</p>
+              <h2>我的待办</h2>
+            </div>
+            <p>用户中心首页优先展示需要申请人处理的事项，减少用户在公开查询页和业务页面之间反复跳转。</p>
+          </div>
+          <div class="grid four">
+            <div class="stat">
+              <strong>2</strong>
+              <p>进行中的申请</p>
+            </div>
+            <div class="stat">
+              <strong>1</strong>
+              <p>需补充资料</p>
+            </div>
+            <div class="stat">
+              <strong>1</strong>
+              <p>待上传支付凭证</p>
+            </div>
+            <div class="stat">
+              <strong>1</strong>
+              <p>可下载证书 PDF</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="applications" data-cms-block="account.applications">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Applications</p>
+              <h2>我的申请</h2>
+            </div>
+            <p>申请列表显示个人会员、机构会员、认证申请和委员会申请。状态必须与后台真实状态一致。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>申请编号</th>
+                  <th>申请类型</th>
+                  <th>当前状态</th>
+                  <th>下一步</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>ITCA-MA-2026-00018</td>
+                  <td>个人会员申请</td>
+                  <td>待付款</td>
+                  <td>上传银行电汇凭证</td>
+                  <td><a class="small-button" href="#payments">上传凭证</a></td>
+                </tr>
+                <tr>
+                  <td>ITCA-TAO-2026-00007</td>
+                  <td>道士认证申请</td>
+                  <td>需补充资料</td>
+                  <td>补充照片与经历说明</td>
+                  <td><a class="small-button" href="#supplement">补充资料</a></td>
+                </tr>
+                <tr>
+                  <td>ITCA-COM-2026-00003</td>
+                  <td>委员会申请</td>
+                  <td>复审中</td>
+                  <td>等待协会或发展中心审核</td>
+                  <td><a class="small-button" href="committee.html">查看说明</a></td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="account.assets">
+        <div class="section-inner">
+          <div class="grid two">
+            <div class="panel" id="member">
+              <p class="eyebrow">Membership</p>
+              <h2>我的会员</h2>
+              <p>会员编号：ITCA-M-2026-000001</p>
+              <p>会员类型：个人会员</p>
+              <p>状态：有效</p>
+              <p>有效期：2026-06-16 至 2027-06-15</p>
+              <div class="hero-actions">
+                <a class="button" href="member.html#verification">公开核验</a>
+              </div>
+            </div>
+            <div class="panel" id="certificates">
+              <p class="eyebrow">Certificates</p>
+              <h2>我的证书</h2>
+              <p>证书编号：ITCA-TAO-2026-000001</p>
+              <p>认证类别：道士认证建档</p>
+              <p>状态：已发证，可公开核验</p>
+              <p>PDF 下载仅限本人账号，下载动作写入日志。</p>
+              <div class="hero-actions">
+                <a class="button primary" href="#download">下载正式证书 PDF</a>
+                <a class="button" href="certification.html#verify">公开核验</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="supplement" data-cms-block="account.supplement">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Supplement</p>
+              <h2>补充资料</h2>
+            </div>
+            <p>后台审核员发起补件后，用户中心显示补件原因、截止时间、材料要求和上传入口。</p>
+          </div>
+          <div class="grid two">
+            <div class="notice">
+              <h3>补件要求</h3>
+              <p>认证申请 ITCA-TAO-2026-00007 需补充近期正面照片、学习经历说明和推荐材料扫描件。请在 2026-06-30 前提交。</p>
+            </div>
+            <div class="form-panel">
+              <h3>上传补充资料</h3>
+              <div class="form-grid">
+                <label>材料类型<select><option>证书照片</option><option>经历说明</option><option>推荐材料</option></select></label>
+                <label>文件<input value="photo-supplement.jpg" readonly /></label>
+              </div>
+              <label style="margin-top:14px">补充说明<textarea readonly>按审核意见补充近期照片和经历说明。</textarea></label>
+              <div class="hero-actions">
+                <button class="primary" type="button">提交补充资料</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" id="payments" data-cms-block="account.payments">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Payments</p>
+              <h2>支付凭证</h2>
+            </div>
+            <p>支付凭证上传后进入财务审核。用户只能看到自己的付款记录，不能自行改变 paid 状态。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>上传凭证</h3>
+              <div class="form-grid">
+                <label>申请编号<input value="ITCA-MA-2026-00018" readonly /></label>
+                <label>应付金额<input value="HKD 800" readonly /></label>
+                <label>付款方式<select><option>银行电汇</option></select></label>
+                <label>凭证文件<input value="bank-transfer-receipt.pdf" readonly /></label>
+              </div>
+              <div class="hero-actions">
+                <button class="primary" type="button">提交财务审核</button>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>财务审核状态</h3>
+              <p>状态：已上传付款凭证，等待财务确认。</p>
+              <p>财务审核通过后进入 paid 状态，并继续进入复审、发证或会员编号生成环节。</p>
+              <p>退回时需展示退回原因和重新上传入口。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="download" data-cms-block="account.pdf">
+        <div class="section-inner">
+          <div class="notice">
+            <h2>正式证书 PDF 下载</h2>
+            <p>只有证书归属当前登录用户、证书状态为已发证且文件权限通过时，才显示下载按钮。公众证书核验页面不得展示 PDF 下载链接。</p>
+            <div class="hero-actions">
+              <button class="primary" type="button">下载 ITCA-TAO-2026-000001.pdf</button>
+              <a class="button" href="certification.html#verify">查看公开核验页</a>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">用户中心原型 · 本人数据隔离 · PDF 下载、付款凭证、补件材料均需权限校验。</div>
+    </footer>
+  </body>
+</html>

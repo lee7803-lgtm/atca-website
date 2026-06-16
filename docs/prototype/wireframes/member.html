@@ -1,0 +1,271 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>会员服务栏目首页原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">会员服务 · 个人会员、机构会员、申请、审核、支付、编号、公众核验</div>
+      <div class="header-main">
+        <a class="brand" href="home.html">
+          <span class="brand-mark">IT</span>
+          <span>
+            <p class="brand-title">国际道教与文化协会</p>
+            <p class="brand-subtitle">International Taoisme And Cultural Association</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="主导航">
+          <a href="home.html">首页</a>
+          <a href="about.html">关于协会</a>
+          <a href="about.html#culture">文化与道教</a>
+          <a aria-current="page" href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a href="committee.html">发展中心</a>
+          <a href="home.html#cooperation">交流合作</a>
+          <a href="home.html#data">数据中心</a>
+          <a href="#verification">查询核验</a>
+          <a href="account.html">用户中心</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="#verification">查询核验</a>
+          <a class="button primary" href="account.html">登录 / 注册</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" data-cms-block="membership.banner">
+        <div class="hero-copy">
+          <p class="eyebrow">Membership</p>
+          <h1>会员服务</h1>
+          <p class="lead">为个人会员与机构会员提供申请、审核、付款、编号生成、会员身份查看和公众核验入口。会员身份用于协会会员服务和交流管理，不等同于资格认证。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#apply">个人会员申请</a>
+            <a class="button" href="#apply">机构会员申请</a>
+            <a class="button subtle" href="#verification">会员查询核验</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="../../../public/images/itca/04-service-membership.png" alt="会员服务栏目视觉" />
+          <div class="hero-label">
+            <strong>会员业务闭环</strong>
+            <p>申请编号、后台审核、支付凭证、财务确认、会员编号和公众核验必须完整保留。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="membership.intro">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Types</p>
+              <h2>会员类型</h2>
+            </div>
+            <p>会员服务栏目首页需要说明个人会员与机构会员差异、申请条件、材料范围、权益边界和核验方式。</p>
+          </div>
+          <div class="grid two">
+            <article class="card">
+              <p class="meta">个人会员</p>
+              <h3>个人会员申请</h3>
+              <p>适用于参与协会文化交流、课程活动、会员服务和后续认证建档相关服务的个人。申请材料包含个人基础资料、联系方式、引荐人、身份证明或相关说明材料。</p>
+              <div class="badge-row">
+                <span class="badge">申请编号</span>
+                <span class="badge">后台审核</span>
+                <span class="badge">会员编号</span>
+              </div>
+            </article>
+            <article class="card">
+              <p class="meta">机构会员</p>
+              <h3>机构会员申请</h3>
+              <p>适用于文化机构、社团组织、课程团队、研究单位、基地或合作机构。申请材料包含机构资料、负责人、联系人、机构证明、合作方向和付款凭证。</p>
+              <div class="badge-row">
+                <span class="badge">机构编号</span>
+                <span class="badge">负责人</span>
+                <span class="badge">公众核验</span>
+              </div>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="apply" data-cms-block="membership.process">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Apply Flow</p>
+              <h2>会员申请流程</h2>
+            </div>
+            <p>会员申请与 V1.3 申请、审核、支付、通知、核验链路保持一致。财务确认前不得生成正式会员编号。</p>
+          </div>
+          <div class="timeline">
+            <div class="step">
+              <span class="step-number">1</span>
+              <div>
+                <h3>提交申请</h3>
+                <p>选择个人会员或机构会员，填写资料并上传必要附件，提交后生成申请编号。</p>
+              </div>
+              <span class="status">submitted</span>
+            </div>
+            <div class="step">
+              <span class="step-number">2</span>
+              <div>
+                <h3>后台审核</h3>
+                <p>会员审核员检查资料完整性、引荐人、机构信息和材料真实性；必要时要求补充资料。</p>
+              </div>
+              <span class="status">pre_review</span>
+            </div>
+            <div class="step">
+              <span class="step-number">3</span>
+              <div>
+                <h3>上传支付凭证</h3>
+                <p>申请人按银行电汇说明付款，在用户中心上传凭证；凭证进入财务审核队列。</p>
+              </div>
+              <span class="status">payment_submitted</span>
+            </div>
+            <div class="step">
+              <span class="step-number">4</span>
+              <div>
+                <h3>财务确认</h3>
+                <p>财务审核员确认金额、账户和凭证真实性，通过后状态变为 paid。</p>
+              </div>
+              <span class="status">paid</span>
+            </div>
+            <div class="step">
+              <span class="step-number">5</span>
+              <div>
+                <h3>生成会员编号</h3>
+                <p>后台生成个人会员编号或机构会员编号，用户中心显示会员身份，公众查询页可核验。</p>
+              </div>
+              <span class="status">issued</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="membership.application-cards">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Application</p>
+              <h2>申请入口与材料</h2>
+            </div>
+            <p>前台展示清晰材料要求，后台对应主数据和字段校验。不存在的引荐人或机构可选择“其他”进入后台主数据审核。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>个人会员申请摘要</h3>
+              <div class="form-grid">
+                <label>中文姓名<input value="张三" readonly /></label>
+                <label>联系方式<input value="+852 6000 0000" readonly /></label>
+                <label>引荐人<select><option>无</option><option>后台主数据选择</option></select></label>
+                <label>申请类型<select><option>个人会员</option></select></label>
+              </div>
+              <label style="margin-top:14px">申请说明<textarea readonly>说明加入协会会员服务的原因、参与方向和材料真实性承诺。</textarea></label>
+              <div class="hero-actions">
+                <a class="button primary" href="account.html">登录后提交</a>
+              </div>
+            </div>
+            <div class="form-panel">
+              <h3>机构会员申请摘要</h3>
+              <div class="form-grid">
+                <label>机构名称<input value="某文化研究机构" readonly /></label>
+                <label>负责人<input value="李四" readonly /></label>
+                <label>机构所在地<input value="中国香港" readonly /></label>
+                <label>申请类型<select><option>机构会员</option></select></label>
+              </div>
+              <label style="margin-top:14px">机构说明<textarea readonly>说明机构性质、合作方向、成员情况和公开展示授权范围。</textarea></label>
+              <div class="hero-actions">
+                <a class="button primary" href="account.html">登录后提交</a>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="verification" data-cms-block="membership.verification">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Verification</p>
+              <h2>会员公众查询核验</h2>
+            </div>
+            <p>查询页只用于核验，不暴露联系方式、身份证件、付款信息、申请材料、后台意见和内部备注。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>会员核验</h3>
+              <div class="form-grid">
+                <label>会员编号<input value="ITCA-M-2026-000001" readonly /></label>
+                <label>姓名 / 机构名称<input value="张三" readonly /></label>
+              </div>
+              <div class="hero-actions">
+                <button class="primary" type="button">核验会员状态</button>
+              </div>
+            </div>
+            <div class="panel">
+              <p class="meta">核验结果示例</p>
+              <h3>有效会员记录</h3>
+              <p>会员编号：ITCA-M-2026-000001</p>
+              <p>公开名称：张三</p>
+              <p>会员类型：个人会员</p>
+              <p>状态：有效</p>
+              <p>公开页不显示联系方式、证件、付款凭证、申请材料和后台备注。</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="membership.admin-map">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Admin Mapping</p>
+              <h2>后台配置关系</h2>
+            </div>
+            <p>会员服务不是静态内容页，前台入口需要映射到申请管理、支付审核、会员档案和主数据。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>前台能力</th>
+                  <th>后台模块</th>
+                  <th>维护 / 审核内容</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>个人会员申请</td>
+                  <td>申请管理 / 主数据</td>
+                  <td>资料字段、引荐人、材料、审核意见、补件任务</td>
+                </tr>
+                <tr>
+                  <td>机构会员申请</td>
+                  <td>申请管理 / 机构档案</td>
+                  <td>机构资料、负责人、材料、公开展示授权</td>
+                </tr>
+                <tr>
+                  <td>支付凭证</td>
+                  <td>付款管理</td>
+                  <td>银行电汇凭证、金额、财务确认、退回原因</td>
+                </tr>
+                <tr>
+                  <td>会员查询核验</td>
+                  <td>会员管理 / 公开字段</td>
+                  <td>会员编号、公开名称、状态、有效期、最小字段展示</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">会员服务原型 · 公众查询只用于核验 · PDF 下载不在公众查询页提供。</div>
+    </footer>
+  </body>
+</html>

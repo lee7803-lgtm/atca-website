@@ -1,0 +1,188 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CMS 栏目首页维护原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">CMS · 每个顶部频道支持栏目首页模板维护 · 草稿、审核、发布、版本、审计</div>
+      <div class="header-main">
+        <a class="brand" href="admin-dashboard.html">
+          <span class="brand-mark">管</span>
+          <span>
+            <p class="brand-title">ITCA 内容管理</p>
+            <p class="brand-subtitle">Channel Home CMS</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="后台快捷导航">
+          <a href="home.html">前台首页</a>
+          <a href="admin-dashboard.html">后台首页</a>
+          <a aria-current="page" href="admin-cms.html">CMS</a>
+          <a href="admin-rbac.html">RBAC</a>
+          <a href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a href="committee.html">委员会</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="admin-dashboard.html">工作台</a>
+          <a class="button primary" href="home.html">前台预览</a>
+        </div>
+      </div>
+    </header>
+
+    <main class="admin-layout">
+      <aside class="admin-side" aria-label="CMS 侧边导航">
+        <a href="admin-dashboard.html">工作台</a>
+        <a class="active" href="admin-cms.html">频道首页</a>
+        <a href="#">内容页</a>
+        <a href="#">公告</a>
+        <a href="#">媒体库</a>
+        <a href="#">区块模板</a>
+        <a href="#">审核发布</a>
+        <a href="#">版本记录</a>
+      </aside>
+
+      <section class="admin-main">
+        <div class="panel">
+          <p class="eyebrow">CMS</p>
+          <h1 style="font-size:42px">栏目首页维护</h1>
+          <p>每个顶部导航频道都必须拥有可维护的栏目首页。栏目首页按 Banner、简介、推荐内容、子栏目导航、图文、公告、底部 CTA 等模板区块维护，不允许只用卡片堆叠替代频道首页。</p>
+        </div>
+
+        <section class="panel" data-cms-block="cms.channel-list">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Channels</p>
+              <h2>顶部频道维护清单</h2>
+            </div>
+            <p>以下 10 个顶部频道均支持栏目首页维护、SEO、发布状态、排序和移动端展示策略。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>排序</th>
+                  <th>频道</th>
+                  <th>建议路径</th>
+                  <th>首页模板状态</th>
+                  <th>风险</th>
+                  <th>操作</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr><td>01</td><td>首页</td><td>/</td><td>已配置 7 个区块</td><td>核心保护</td><td><a class="small-button" href="home.html">预览</a></td></tr>
+                <tr><td>02</td><td>关于协会</td><td>/about</td><td>已配置，含规章制度</td><td>核心保护</td><td><a class="small-button" href="about.html">预览</a></td></tr>
+                <tr><td>03</td><td>文化与道教</td><td>/culture</td><td>待合并旧栏目</td><td>普通</td><td><a class="small-button" href="about.html#culture">预览</a></td></tr>
+                <tr><td>04</td><td>会员服务</td><td>/membership</td><td>已配置申请与核验</td><td>核心保护</td><td><a class="small-button" href="member.html">预览</a></td></tr>
+                <tr><td>05</td><td>认证服务</td><td>/certification</td><td>待合规审核</td><td>高风险</td><td><a class="small-button" href="certification.html">预览</a></td></tr>
+                <tr><td>06</td><td>发展中心</td><td>/development</td><td>已配置委员会入口</td><td>核心保护</td><td><a class="small-button" href="committee.html">预览</a></td></tr>
+                <tr><td>07</td><td>交流合作</td><td>/exchange</td><td>待确认合作表单</td><td>普通</td><td><a class="small-button" href="home.html#cooperation">预览</a></td></tr>
+                <tr><td>08</td><td>数据中心</td><td>/data</td><td>待隐私审核</td><td>高风险</td><td><a class="small-button" href="home.html#data">预览</a></td></tr>
+                <tr><td>09</td><td>查询核验</td><td>/verification</td><td>已配置聚合入口</td><td>核心保护</td><td><a class="small-button" href="member.html#verification">预览</a></td></tr>
+                <tr><td>10</td><td>用户中心</td><td>/account</td><td>已配置登录后工作台</td><td>核心保护</td><td><a class="small-button" href="account.html">预览</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <section class="panel" data-cms-block="cms.editor">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Editor</p>
+              <h2>频道首页模板编辑</h2>
+            </div>
+            <p>编辑器以结构化区块维护页面，支持排序、发布状态、展示位置、SEO、封面图、正文、是否推荐。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>页面基础字段</h3>
+              <div class="form-grid">
+                <label>频道标题<input value="认证服务" readonly /></label>
+                <label>副标题<input value="认证申请、审核、发证与公开核验" readonly /></label>
+                <label>排序<input value="05" readonly /></label>
+                <label>发布状态<select><option>待合规审核</option><option>已发布</option><option>草稿</option></select></label>
+                <label>展示位置<select><option>顶部频道首页</option><option>首页推荐</option></select></label>
+                <label>是否推荐<select><option>推荐到首页核心服务</option><option>不推荐</option></select></label>
+                <label>SEO 标题<input value="认证服务｜国际道教与文化协会 ITCA" readonly /></label>
+                <label>封面图<input value="/images/itca/03-service-certification.png" readonly /></label>
+              </div>
+              <label style="margin-top:14px">SEO 描述<textarea readonly>说明认证申请、材料审核、补件、支付审核、发证、PDF 下载与证书公开核验边界。</textarea></label>
+            </div>
+            <div class="panel">
+              <h3>模板区块</h3>
+              <div class="timeline">
+                <div class="step"><span class="step-number">1</span><div><h3>栏目 Banner</h3><p>标题、副标题、栏目定位、主视觉、主按钮和次按钮。</p></div><span class="status">必需</span></div>
+                <div class="step"><span class="step-number">2</span><div><h3>栏目简介</h3><p>服务对象、业务边界、与 V1.3 闭环关系。</p></div><span class="status">必需</span></div>
+                <div class="step"><span class="step-number">3</span><div><h3>推荐内容区</h3><p>重点制度、公告、流程或服务入口。</p></div><span class="status">必需</span></div>
+                <div class="step"><span class="step-number">4</span><div><h3>子栏目导航</h3><p>申请说明、流程、核验、FAQ、资料下载。</p></div><span class="status">必需</span></div>
+                <div class="step"><span class="step-number">5</span><div><h3>图文模块</h3><p>正式正文、图片、流程说明和边界文案。</p></div><span class="status">可排序</span></div>
+                <div class="step"><span class="step-number">6</span><div><h3>公告模块</h3><p>最新公告、状态更新、发布时间、发布人。</p></div><span class="status">可选</span></div>
+                <div class="step"><span class="step-number">7</span><div><h3>底部 CTA</h3><p>申请、查询、登录、合作、资料更正等真实入口。</p></div><span class="status">必需</span></div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel" data-cms-block="cms.review">
+          <div class="section-head" style="margin-bottom:18px">
+            <div>
+              <p class="eyebrow">Review</p>
+              <h2>审核发布与版本</h2>
+            </div>
+            <p>涉及制度、认证、收费、道医中医、易学和数据公开的内容必须进入高风险审核，并保留版本记录。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>内容</th>
+                  <th>风险类型</th>
+                  <th>当前状态</th>
+                  <th>审核角色</th>
+                  <th>版本记录</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>关于协会 · 规章制度</td>
+                  <td>制度 / 规则</td>
+                  <td>待秘书处确认</td>
+                  <td>协会管理员</td>
+                  <td>保留修订说明和生效日期</td>
+                </tr>
+                <tr>
+                  <td>认证服务 · 认证边界</td>
+                  <td>认证 / 合规</td>
+                  <td>待合规审核</td>
+                  <td>认证审核员 + 协会管理员</td>
+                  <td>保留发布前后版本</td>
+                </tr>
+                <tr>
+                  <td>发展中心 · 道医中医</td>
+                  <td>健康 / 风险</td>
+                  <td>待合规审核</td>
+                  <td>内容管理员 + 协会管理员</td>
+                  <td>保留边界说明</td>
+                </tr>
+                <tr>
+                  <td>数据中心 · 公开资料</td>
+                  <td>个人数据</td>
+                  <td>待隐私审核</td>
+                  <td>数据中心管理员</td>
+                  <td>保留授权、撤回、隐藏记录</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </section>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">CMS 原型 · 频道首页模板维护 · 草稿发布分离 · 版本与审计必需。</div>
+    </footer>
+  </body>
+</html>

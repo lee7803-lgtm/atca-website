@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>委员会业务原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">发展中心 · 委员会业务 · 自行筹办、申请审核、自行运营、发展中心监督</div>
+      <div class="header-main">
+        <a class="brand" href="home.html">
+          <span class="brand-mark">IT</span>
+          <span>
+            <p class="brand-title">国际道教与文化协会</p>
+            <p class="brand-subtitle">International Taoisme And Cultural Association</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="主导航">
+          <a href="home.html">首页</a>
+          <a href="about.html">关于协会</a>
+          <a href="about.html#culture">文化与道教</a>
+          <a href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a aria-current="page" href="committee.html">发展中心</a>
+          <a href="home.html#cooperation">交流合作</a>
+          <a href="home.html#data">数据中心</a>
+          <a href="member.html#verification">查询核验</a>
+          <a href="account.html">用户中心</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="admin-dashboard.html">后台入口</a>
+          <a class="button primary" href="account.html">登录 / 注册</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" data-cms-block="committee.banner">
+        <div class="hero-copy">
+          <p class="eyebrow">Committee</p>
+          <h1>委员会业务</h1>
+          <p class="lead">委员会由需求方自行组建和筹办，向协会或发展中心提交申请。审核通过后，委员会在批准范围内自行运营，由发展中心代协会进行监督。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="#apply">发起委员会申请</a>
+            <a class="button" href="#process">查看流程</a>
+            <a class="button subtle" href="#supervision">监督与报告</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="../../../public/images/itca/organization/06-org-cooperation-development.png" alt="委员会业务与发展中心视觉" />
+          <div class="hero-label">
+            <strong>业务原则</strong>
+            <p>协会提供申请、审核、监督和记录闭环，不替需求方直接运营委员会。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="committee.position">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Position</p>
+              <h2>业务定位</h2>
+            </div>
+            <p>委员会业务应清晰区分“需求方自行筹办”和“协会 / 发展中心审核监督”的职责边界。</p>
+          </div>
+          <div class="grid four">
+            <article class="card">
+              <p class="meta">发起</p>
+              <h3>需求方自行组建</h3>
+              <p>需求方自行准备委员会名称、宗旨、负责人、成员名单和运营计划。</p>
+            </article>
+            <article class="card">
+              <p class="meta">申请</p>
+              <h3>提交协会或发展中心</h3>
+              <p>选择归口发展中心或协会审核路径，提交申请材料和筹备说明。</p>
+            </article>
+            <article class="card">
+              <p class="meta">运营</p>
+              <h3>通过后自行运营</h3>
+              <p>审核通过后，委员会按批准范围自行开展工作，保留活动和决议记录。</p>
+            </article>
+            <article class="card">
+              <p class="meta">监督</p>
+              <h3>发展中心代协会监督</h3>
+              <p>发展中心记录年度报告、运营决议、任务缴纳、整改和风险事项。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="process" data-cms-block="committee.process">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Workflow</p>
+              <h2>委员会业务流程</h2>
+            </div>
+            <p>流程需同时在前台说明、用户中心待办和后台管理中体现。</p>
+          </div>
+          <div class="timeline">
+            <div class="step">
+              <span class="step-number">1</span>
+              <div>
+                <h3>筹备</h3>
+                <p>需求方自行组建筹备小组，准备委员会名称、宗旨、负责人、成员和运营计划。</p>
+              </div>
+              <span class="status">draft</span>
+            </div>
+            <div class="step">
+              <span class="step-number">2</span>
+              <div>
+                <h3>申请</h3>
+                <p>通过官网提交委员会申请，选择归口发展中心或协会审核路径，上传筹备材料。</p>
+              </div>
+              <span class="status">submitted</span>
+            </div>
+            <div class="step">
+              <span class="step-number">3</span>
+              <div>
+                <h3>初审与复审</h3>
+                <p>后台检查资料完整性、业务方向、合规风险和负责人信息；通过后生成委员会档案。</p>
+              </div>
+              <span class="status">reviewing</span>
+            </div>
+            <div class="step">
+              <span class="step-number">4</span>
+              <div>
+                <h3>自行运营</h3>
+                <p>委员会按批准范围自行开展工作，需保存运营决议、活动记录和成员变化。</p>
+              </div>
+              <span class="status">active</span>
+            </div>
+            <div class="step">
+              <span class="step-number">5</span>
+              <div>
+                <h3>监督与报告</h3>
+                <p>发展中心代协会监督运营情况，委员会提交年度报告、运营决议并完成及缴纳相应任务。</p>
+              </div>
+              <span class="status">supervised</span>
+            </div>
+            <div class="step">
+              <span class="step-number">6</span>
+              <div>
+                <h3>续期 / 整改 / 终止</h3>
+                <p>根据年度报告、任务缴纳和监督记录决定续期、整改、暂停或终止。</p>
+              </div>
+              <span class="status">rectification</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" id="apply" data-cms-block="committee.apply">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Application</p>
+              <h2>委员会申请表结构</h2>
+            </div>
+            <p>申请表应支持草稿、提交、补件、审核、批准和归档，不直接落为正式委员会。</p>
+          </div>
+          <div class="grid two">
+            <div class="form-panel">
+              <h3>基础信息</h3>
+              <div class="form-grid">
+                <label>委员会名称<input value="道教文化教育委员会" readonly /></label>
+                <label>发起方类型<select><option>机构发起</option><option>个人发起</option></select></label>
+                <label>负责人<input value="李四" readonly /></label>
+                <label>归口发展中心<select><option>教育培训发展中心</option><option>国际与交流发展中心</option></select></label>
+              </div>
+              <label style="margin-top:14px">设立宗旨与业务范围<textarea readonly>说明委员会拟开展的文化交流、课程研修、资料整理或项目协作范围。</textarea></label>
+              <div class="hero-actions">
+                <a class="button primary" href="account.html">登录后发起申请</a>
+              </div>
+            </div>
+            <div class="panel">
+              <h3>需提交材料</h3>
+              <details open>
+                <summary>筹备成员名单</summary>
+                <p>包含负责人、联系人、核心成员、职责分工和联系方式，后台按权限查看。</p>
+              </details>
+              <details>
+                <summary>运营计划</summary>
+                <p>说明年度目标、活动计划、资源安排、风险控制和资料归档方式。</p>
+              </details>
+              <details>
+                <summary>运营决议</summary>
+                <p>委员会成立、重大活动、成员调整、年度计划等决议文件需上传并归档。</p>
+              </details>
+              <details>
+                <summary>年度报告</summary>
+                <p>每年提交工作报告、任务完成说明、财务或缴纳情况、下一年度计划。</p>
+              </details>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" id="supervision" data-cms-block="committee.supervision">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Supervision</p>
+              <h2>发展中心监督与任务缴纳</h2>
+            </div>
+            <p>委员会运营不等于放任运行。发展中心需要代协会记录监督、整改、年度报告和任务缴纳状态。</p>
+          </div>
+          <div class="table-panel">
+            <table>
+              <thead>
+                <tr>
+                  <th>监督事项</th>
+                  <th>委员会提交</th>
+                  <th>后台处理</th>
+                  <th>状态示例</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>运营决议</td>
+                  <td>成立决议、活动决议、成员调整决议</td>
+                  <td>委员会管理员审核并归档</td>
+                  <td>已提交 / 需补充</td>
+                </tr>
+                <tr>
+                  <td>年度报告</td>
+                  <td>年度工作报告、活动总结、风险说明</td>
+                  <td>发展中心审核并形成监督记录</td>
+                  <td>待审核 / 已通过</td>
+                </tr>
+                <tr>
+                  <td>任务完成</td>
+                  <td>任务成果、资料沉淀、活动记录</td>
+                  <td>关联发展中心项目和数据中心公开内容</td>
+                  <td>进行中 / 已完成</td>
+                </tr>
+                <tr>
+                  <td>任务缴纳</td>
+                  <td>缴纳凭证或费用记录</td>
+                  <td>财务确认，写入支付和审计日志</td>
+                  <td>待缴纳 / 已确认</td>
+                </tr>
+                <tr>
+                  <td>整改与终止</td>
+                  <td>整改说明或终止申请</td>
+                  <td>记录整改要求、期限、结果和处理意见</td>
+                  <td>整改中 / 暂停 / 终止</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="committee.admin-map">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Admin Mapping</p>
+              <h2>后台管理映射</h2>
+            </div>
+            <p>委员会业务需要新增后台模块或纳入发展中心后台，不应只作为前台说明页面。</p>
+          </div>
+          <div class="grid three">
+            <article class="card">
+              <p class="meta">委员会管理</p>
+              <h3>申请与档案</h3>
+              <p>处理申请、审核意见、归口中心、状态流转、负责人和成员信息。</p>
+            </article>
+            <article class="card">
+              <p class="meta">发展中心管理</p>
+              <h3>监督记录</h3>
+              <p>发展中心代协会记录运营监督、风险提醒、整改要求和年度报告审核。</p>
+            </article>
+            <article class="card">
+              <p class="meta">付款 / 审计</p>
+              <h3>任务缴纳</h3>
+              <p>委员会任务或缴纳事项进入付款管理，财务确认和状态变更写入审计日志。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">委员会业务原型 · 需求方自行筹办 · 发展中心代协会监督 · 运营决议与年度报告必须归档。</div>
+    </footer>
+  </body>
+</html>

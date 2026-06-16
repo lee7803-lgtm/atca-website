@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>ITCA 官网 V2.0 首页原型</title>
+    <link rel="stylesheet" href="wireframe.css" />
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="top-note">道法自然 · 和合共生 · 弘道传承 · 文化互鉴</div>
+      <div class="header-main">
+        <a class="brand" href="home.html">
+          <span class="brand-mark">IT</span>
+          <span>
+            <p class="brand-title">国际道教与文化协会</p>
+            <p class="brand-subtitle">International Taoisme And Cultural Association</p>
+          </span>
+        </a>
+        <nav class="nav-scroll" aria-label="主导航">
+          <a aria-current="page" href="home.html">首页</a>
+          <a href="about.html">关于协会</a>
+          <a href="about.html#culture">文化与道教</a>
+          <a href="member.html">会员服务</a>
+          <a href="certification.html">认证服务</a>
+          <a href="committee.html">发展中心</a>
+          <a href="home.html#cooperation">交流合作</a>
+          <a href="home.html#data">数据中心</a>
+          <a href="member.html#verification">查询核验</a>
+          <a href="account.html">用户中心</a>
+        </nav>
+        <div class="header-actions">
+          <a class="button" href="member.html#verification">查询核验</a>
+          <a class="button primary" href="account.html">登录 / 注册</a>
+        </div>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero" data-cms-block="home.banner">
+        <div class="hero-copy">
+          <p class="eyebrow">Official Portal</p>
+          <h1>国际道教与文化协会官方网站</h1>
+          <p class="lead">面向公众、会员、认证申请人、机构伙伴与文化交流对象，提供协会介绍、会员服务、认证申请、公开核验、发展中心、交流合作与数据中心入口。</p>
+          <div class="hero-actions">
+            <a class="button primary" href="member.html">会员服务</a>
+            <a class="button" href="certification.html">认证服务</a>
+            <a class="button subtle" href="member.html#verification">查询核验</a>
+          </div>
+        </div>
+        <div class="hero-media">
+          <img src="../../../public/images/itca/01-home-hero.png" alt="协会官网首页主视觉" />
+          <div class="hero-label">
+            <strong>V2.0 门户定位</strong>
+            <p>保留 V1.3 业务闭环，升级为可维护、可审核、可扩展的协会服务平台。</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" data-cms-block="home.featured-services">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Services</p>
+              <h2>核心服务入口</h2>
+            </div>
+            <p>首页只承载最重要的业务分流：会员、认证、查询核验、发展中心、委员会、交流合作和数据中心。每个入口都指向真实栏目首页或业务流程。</p>
+          </div>
+          <div class="grid four">
+            <a class="card" href="member.html">
+              <p class="meta">会员服务</p>
+              <h3>个人与机构会员</h3>
+              <p>提交会员申请、查看审核进度、上传支付凭证，审核通过后生成会员编号并支持公众核验。</p>
+            </a>
+            <a class="card" href="certification.html">
+              <p class="meta">认证服务</p>
+              <h3>道士认证申请</h3>
+              <p>材料提交、审核、补充资料、付款审核、发证、用户中心下载正式证书 PDF。</p>
+            </a>
+            <a class="card" href="member.html#verification">
+              <p class="meta">查询核验</p>
+              <h3>公开核验入口</h3>
+              <p>会员、机构会员、证书与申请进度查询。公开页只展示核验所需字段。</p>
+            </a>
+            <a class="card" href="committee.html">
+              <p class="meta">发展中心</p>
+              <h3>委员会与项目</h3>
+              <p>需求方自行筹办委员会，向协会或发展中心申请，审核通过后自行运营并接受监督。</p>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-cms-block="home.v13-closure">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Business Closure</p>
+              <h2>V1.3 闭环必须保留</h2>
+            </div>
+            <p>V2.0 不推翻 V1.3。申请、审核、支付、证书、核验、通知和后台基础资料管理仍是官网运营底座。</p>
+          </div>
+          <div class="timeline">
+            <div class="step">
+              <span class="step-number">1</span>
+              <div>
+                <h3>提交申请并生成编号</h3>
+                <p>个人会员、机构会员、认证申请提交后生成申请编号，通知申请人进入查询路径。</p>
+              </div>
+              <span class="status">submitted</span>
+            </div>
+            <div class="step">
+              <span class="step-number">2</span>
+              <div>
+                <h3>后台审核与补充资料</h3>
+                <p>审核员检查资料完整性，必要时要求补充资料；补件任务进入用户中心。</p>
+              </div>
+              <span class="status">needs_supplement</span>
+            </div>
+            <div class="step">
+              <span class="step-number">3</span>
+              <div>
+                <h3>支付凭证与财务确认</h3>
+                <p>用户上传银行电汇凭证后进入财务审核，paid 状态只能由财务确认。</p>
+              </div>
+              <span class="status">payment_review</span>
+            </div>
+            <div class="step">
+              <span class="step-number">4</span>
+              <div>
+                <h3>编号、证书、核验与通知</h3>
+                <p>审核通过后生成会员编号或证书编号，通知用户，公开核验只展示最小字段。</p>
+              </div>
+              <span class="status">issued</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section soft" id="cooperation" data-cms-block="home.cooperation-data">
+        <div class="section-inner">
+          <div class="grid two">
+            <div class="panel">
+              <p class="eyebrow">交流合作</p>
+              <h2>合作方向</h2>
+              <p>面向文化机构、社团组织、研究单位、课程团队、文创品牌、康养基地和国际项目伙伴开放交流合作。合作意向需经过协会确认，不提前承诺未确认项目。</p>
+              <div class="badge-row">
+                <span class="badge">机构合作</span>
+                <span class="badge">课程活动</span>
+                <span class="badge">国际交流</span>
+                <span class="badge">文创项目</span>
+              </div>
+            </div>
+            <div class="panel" id="data">
+              <p class="eyebrow">数据中心</p>
+              <h2>公开数据边界</h2>
+              <p>数据中心展示经审核允许公开的机构、个人、课程、活动、基地等资料。不公开证件、联系方式、付款信息、申请材料、后台审核意见和内部备注。</p>
+              <div class="badge-row">
+                <span class="badge">最小公开</span>
+                <span class="badge">纠错撤回</span>
+                <span class="badge">审核发布</span>
+                <span class="badge">人工复核</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="section" data-cms-block="home.notice">
+        <div class="section-inner">
+          <div class="section-head">
+            <div>
+              <p class="eyebrow">Notice</p>
+              <h2>公告与边界说明</h2>
+            </div>
+            <p>公告模块由 CMS 维护，涉及认证、费用、规则、道医中医、易学、数据公开的内容进入高风险审核。</p>
+          </div>
+          <div class="grid three">
+            <article class="card">
+              <p class="meta">认证边界</p>
+              <h3>协会认证建档说明</h3>
+              <p>认证结果以官网公开核验为准，不构成政府许可、法定职业资格或其他行政资质。</p>
+            </article>
+            <article class="card">
+              <p class="meta">支付规则</p>
+              <h3>银行电汇与人工审核</h3>
+              <p>付款凭证上传后进入财务审核，系统不自动确认 paid 状态。</p>
+            </article>
+            <article class="card">
+              <p class="meta">用户中心</p>
+              <h3>证书 PDF 下载</h3>
+              <p>正式证书 PDF 仅限申请人登录后下载，公开核验页不提供下载入口。</p>
+            </article>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="footer-inner">© ITCA · 首页原型 · CMS 可维护模块：Banner、简介、推荐、公告、CTA。</div>
+    </footer>
+  </body>
+</html>
